@@ -1,50 +1,29 @@
 [
   {
     "id": 1,
-    "name": "Toner Compatible HP 85A",
-    "slug": "toner-hp-85a",
-    "description": "Toner compatible de alta calidad para impresoras HP LaserJet",
-    "price": 24.99,
-    "comparePrice": 35.00,
-    "category": "toners",
-    "brand": "HP Compatible",
-    "sku": "COP-TN-85A",
-    "stock": 150,
-    "images": ["/placeholder.svg"],
-    "featured": true,
-    "rating": 4.5,
-    "reviewCount": 28
-  },
-  {
-    "id": 2,
-    "name": "Tinta Epson 544 Negro",
-    "slug": "tinta-epson-544-negro",
-    "description": "Tinta compatible para impresoras Epson EcoTank",
-    "price": 8.99,
-    "comparePrice": 12.00,
-    "category": "tintas",
-    "brand": "Epson Compatible",
-    "sku": "COP-TI-544BK",
-    "stock": 300,
-    "images": ["/placeholder.svg"],
-    "featured": true,
+    "name": "Apple MacBook Air M3 15″",
+    "slug": "apple-macbook-air-m3-15",
+    "category": "tech",
+    "description": "Laptop ultraliviana con chip M3, pantalla Liquid Retina de 15 pulgadas y hasta 18 horas de batería.",
+    "basePrice": 1099,
+    "weight": 3.5,
+    "totalPriceUsd": 1283.1,
+    "image": "https://m.media-amazon.com/images/I/71f5Eu5lJSL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71f5Eu5lJSL._AC_SL1500_.jpg"
+    ],
     "rating": 4.8,
-    "reviewCount": 45
-  },
-  {
-    "id": 3,
-    "name": "Papel Fotogr\u00e1fico A4 Glossy",
-    "slug": "papel-fotografico-a4",
-    "description": "Papel fotogr\u00e1fico brillante premium 200g",
-    "price": 12.99,
-    "comparePrice": 18.00,
-    "category": "papeleria",
-    "brand": "CopikonUSA",
-    "sku": "COP-PP-A4GL",
-    "stock": 200,
-    "images": ["/placeholder.svg"],
-    "featured": false,
-    "rating": 4.3,
-    "reviewCount": 15
+    "reviews": 3241,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
   }
 ]
