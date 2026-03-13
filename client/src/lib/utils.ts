@@ -44,3 +44,17 @@ export function generateOrderId(): string {
   const random = Math.random().toString(36).substring(2, 7).toUpperCase();
   return `ORD-${timestamp}-${random}`;
 }
+
+export function formatUSD(amount: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+}
+
+export function formatBs(amount: number): string {
+  return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES' }).format(amount);
+}
+
+export function calculateEstimatedDelivery(days: number = 5): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+}
