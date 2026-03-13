@@ -58,3 +58,37 @@ export function calculateEstimatedDelivery(days: number = 5): string {
   date.setDate(date.getDate() + days);
   return new Intl.DateTimeFormat('es-VE', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
 }
+
+
+export function formatShortDate(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+}
+
+export function formatPrice(price: number): string {
+  return formatUSD(price);
+}
+
+export function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    processing: 'bg-blue-100 text-blue-800',
+    shipped: 'bg-purple-100 text-purple-800',
+    delivered: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+}
+
+export function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+export function apiRequest(method: string, url: string, data?: any): Promise<Response> {
+  return fetch(url, {
+    method,
+    headers: data ? { 'Content-Type': 'application/json' } : {},
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: 'include',
+  });
+}
