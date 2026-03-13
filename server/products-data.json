@@ -25,5 +25,3979 @@
     "isManual": false,
     "amazonAsin": "",
     "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 2,
+    "name": "Apple AirPods Pro 2da Gen USB-C",
+    "slug": "apple-airpods-pro-2da-gen-usb-c",
+    "category": "tech",
+    "description": "Audífonos con cancelación activa de ruido, audio adaptivo y estuche con carga USB-C.",
+    "basePrice": 189.99,
+    "weight": 0.5,
+    "totalPriceUsd": 221.24,
+    "image": "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 45821,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 291.33,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 3,
+    "name": "Samsung Galaxy Tab S9 FE 10.9″",
+    "slug": "samsung-galaxy-tab-s9-fe-10-9",
+    "category": "tech",
+    "description": "Tablet Android con pantalla AMOLED, S Pen incluido y resistencia al agua IP68.",
+    "basePrice": 349.99,
+    "weight": 1.2,
+    "totalPriceUsd": 409.09,
+    "image": "https://m.media-amazon.com/images/I/81qykiHbp-L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81qykiHbp-L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 2100,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 545.49,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 4,
+    "name": "Sony WH-1000XM5 Wireless Headphones",
+    "slug": "sony-wh-1000xm5-wireless-headphones",
+    "category": "tech",
+    "description": "Los mejores audífonos over-ear con cancelación de ruido líder en la industria.",
+    "basePrice": 278,
+    "weight": 0.6,
+    "totalPriceUsd": 323,
+    "image": "https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 8760,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 386.7,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 5,
+    "name": "Apple Watch Series 10 GPS 42mm",
+    "slug": "apple-watch-series-10-gps-42mm",
+    "category": "tech",
+    "description": "Reloj inteligente con la pantalla más grande jamás vista en un Apple Watch.",
+    "basePrice": 349,
+    "weight": 0.3,
+    "totalPriceUsd": 403,
+    "image": "https://m.media-amazon.com/images/I/61-LnxFcmEL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61-LnxFcmEL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 1520,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 425.2,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 6,
+    "name": "Logitech MX Master 3S Mouse",
+    "slug": "logitech-mx-master-3s-mouse",
+    "category": "tech",
+    "description": "Mouse inalámbrico premium con scroll electromagnético y seguimiento en cualquier superficie.",
+    "basePrice": 89.99,
+    "weight": 0.4,
+    "totalPriceUsd": 105.69,
+    "image": "https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 12300,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 115.76,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 8,
+    "name": "JBL Charge 5 Bocina Bluetooth",
+    "slug": "jbl-charge-5-bocina-bluetooth",
+    "category": "tech",
+    "description": "Bocina portátil con sonido potente, IP67 resistente al agua y 20 horas de batería.",
+    "basePrice": 139.95,
+    "weight": 1.7,
+    "totalPriceUsd": 170.29,
+    "image": "https://m.media-amazon.com/images/I/71BWsiGRpRL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71BWsiGRpRL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 28700,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 196.59,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 45,
+    "name": "Kindle Paperwhite 16GB 2024",
+    "slug": "kindle-paperwhite-16gb-2024",
+    "category": "tech",
+    "description": "E-reader con pantalla de 7″",
+    "basePrice": 149.99,
+    "weight": 0.5,
+    "totalPriceUsd": 175.24,
+    "image": "https://m.media-amazon.com/images/I/61Iz2MQN6pL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61Iz2MQN6pL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 34200,
+    "badge": "Popular",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 46,
+    "name": "Apple AirTag 4 Pack",
+    "slug": "apple-airtag-4-pack",
+    "category": "tech",
+    "description": "Localizador de precisión. Encuentra tus llaves, cartera o equipaje con la red Find My.",
+    "basePrice": 79.99,
+    "weight": 0.2,
+    "totalPriceUsd": 93.09,
+    "image": "https://m.media-amazon.com/images/I/51IhKEPjfyL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/51IhKEPjfyL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 89200,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 47,
+    "name": "Bose SoundLink Flex Bluetooth",
+    "slug": "bose-soundlink-flex-bluetooth",
+    "category": "tech",
+    "description": "Bocina portátil ultraresistente con sonido profundo y claro, IP67.",
+    "basePrice": 119,
+    "weight": 1.3,
+    "totalPriceUsd": 144,
+    "image": "https://m.media-amazon.com/images/I/71RdoeXJBzL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71RdoeXJBzL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 18400,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 48,
+    "name": "Samsung Galaxy Buds3 Pro",
+    "slug": "samsung-galaxy-buds3-pro",
+    "category": "tech",
+    "description": "Audífonos con ANC inteligente, audio 360 y diseño ergonómico premium.",
+    "basePrice": 179.99,
+    "weight": 0.3,
+    "totalPriceUsd": 208.64,
+    "image": "https://m.media-amazon.com/images/I/71ZUGT0Y+ML._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71ZUGT0Y+ML._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 5600,
+    "badge": "Nuevo",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 49,
+    "name": "DJI Mini 4 Pro Drone",
+    "slug": "dji-mini-4-pro-drone",
+    "category": "tech",
+    "description": "Drone ultracompacto con cámara 4K HDR, detección omnidireccional de obstáculos.",
+    "basePrice": 759,
+    "weight": 0.8,
+    "totalPriceUsd": 877.25,
+    "image": "https://m.media-amazon.com/images/I/61GSgjFzQML._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61GSgjFzQML._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 3200,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 1163.26,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 50,
+    "name": "GoPro HERO13 Black",
+    "slug": "gopro-hero13-black",
+    "category": "tech",
+    "description": "Cámara de acción con video 5.3K, estabilización HyperSmooth 7 y GPS integrado.",
+    "basePrice": 349.99,
+    "weight": 0.6,
+    "totalPriceUsd": 405.79,
+    "image": "https://m.media-amazon.com/images/I/71wZLH6cvBL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71wZLH6cvBL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 7800,
+    "badge": "Nuevo",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 51,
+    "name": "Anker PowerCore 20000mAh",
+    "slug": "anker-powercore-20000mah",
+    "category": "tech",
+    "description": "Batería portátil de alta capacidad con carga rápida USB-C y doble puerto.",
+    "basePrice": 39.99,
+    "weight": 0.9,
+    "totalPriceUsd": 50.94,
+    "image": "https://m.media-amazon.com/images/I/71mPfKB3CpL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71mPfKB3CpL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 142000,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 52,
+    "name": "Marshall Stanmore II Bluetooth",
+    "slug": "marshall-stanmore-ii-bluetooth",
+    "category": "tech",
+    "description": "Bocina con el icónico diseño Marshall, sonido envolvente y conectividad múltiple.",
+    "basePrice": 279.99,
+    "weight": 4.9,
+    "totalPriceUsd": 348.94,
+    "image": "https://m.media-amazon.com/images/I/61Fko1vjNjL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61Fko1vjNjL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 8900,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Envío": "Aéreo a Venezuela",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 406.34,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 9,
+    "name": "Apple iPhone 16 128GB",
+    "slug": "apple-iphone-16-128gb",
+    "category": "phones",
+    "description": "El iPhone más avanzado con chip A18, cámara de 48MP y Dynamic Island.",
+    "basePrice": 799,
+    "weight": 0.4,
+    "totalPriceUsd": 921.05,
+    "image": "https://m.media-amazon.com/images/I/61bK6PMOC3L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61bK6PMOC3L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 5200,
+    "badge": "Nuevo",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 10,
+    "name": "Samsung Galaxy S25 Ultra 256GB",
+    "slug": "samsung-galaxy-s25-ultra-256gb",
+    "category": "phones",
+    "description": "Smartphone premium con S Pen, cámara de 200MP y pantalla AMOLED de 6.8″",
+    "basePrice": 1199.99,
+    "weight": 0.5,
+    "totalPriceUsd": 1382.74,
+    "image": "https://m.media-amazon.com/images/I/71O7BR9YqDL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71O7BR9YqDL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 3100,
+    "badge": "Nuevo",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 11,
+    "name": "Apple iPhone 16 Pro Max 256GB",
+    "slug": "apple-iphone-16-pro-max-256gb",
+    "category": "phones",
+    "description": "El iPhone más potente con chip A18 Pro, titanio y cámara de 48MP con zoom 5x.",
+    "basePrice": 1199,
+    "weight": 0.5,
+    "totalPriceUsd": 1381.6,
+    "image": "https://m.media-amazon.com/images/I/61lBFPMVr7L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61lBFPMVr7L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 8400,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 1564.81,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 12,
+    "name": "Samsung Galaxy Z Flip 6 256GB",
+    "slug": "samsung-galaxy-z-flip-6-256gb",
+    "category": "phones",
+    "description": "Smartphone plegable con pantalla FlexWindow y cámara mejorada de 50MP.",
+    "basePrice": 899.99,
+    "weight": 0.4,
+    "totalPriceUsd": 1037.19,
+    "image": "https://m.media-amazon.com/images/I/61J6s1tkwpL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61J6s1tkwpL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 1800,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 1390.67,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 53,
+    "name": "Google Pixel 9 128GB",
+    "slug": "google-pixel-9-128gb",
+    "category": "phones",
+    "description": "Smartphone con la mejor cámara IA y 7 años de actualizaciones garantizadas.",
+    "basePrice": 699,
+    "weight": 0.4,
+    "totalPriceUsd": 806.05,
+    "image": "https://m.media-amazon.com/images/I/71ZoB-YDEOL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71ZoB-YDEOL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 4200,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 847.22,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 54,
+    "name": "OnePlus 12 256GB",
+    "slug": "oneplus-12-256gb",
+    "category": "phones",
+    "description": "Flagship killer con pantalla 2K, carga de 100W y cámara Hasselblad.",
+    "basePrice": 699.99,
+    "weight": 0.5,
+    "totalPriceUsd": 807.74,
+    "image": "https://m.media-amazon.com/images/I/61r1JQ+GKUL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61r1JQ+GKUL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 2800,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 862.45,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 55,
+    "name": "Apple iPhone SE 4ta Gen 128GB",
+    "slug": "apple-iphone-se-4ta-gen-128gb",
+    "category": "phones",
+    "description": "iPhone accesible con chip A16 y diseño moderno tipo iPhone 14.",
+    "basePrice": 429,
+    "weight": 0.4,
+    "totalPriceUsd": 495.55,
+    "image": "https://m.media-amazon.com/images/I/61tyKQYYmEL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61tyKQYYmEL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 1200,
+    "badge": "Nuevo",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 56,
+    "name": "Samsung Galaxy A55 5G 128GB",
+    "slug": "samsung-galaxy-a55-5g-128gb",
+    "category": "phones",
+    "description": "Smartphone gama media con pantalla Super AMOLED y resistencia IP67.",
+    "basePrice": 329.99,
+    "weight": 0.4,
+    "totalPriceUsd": 381.69,
+    "image": "https://m.media-amazon.com/images/I/71eCV4MDQYL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71eCV4MDQYL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 6800,
+    "badge": "Popular",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 57,
+    "name": "Protector Pantalla iPhone 16 (3 Pack)",
+    "slug": "protector-pantalla-iphone-16-3-pack",
+    "category": "phones",
+    "description": "Vidrio templado 9H con instalación fácil, anti-huellas y cobertura completa.",
+    "basePrice": 12.99,
+    "weight": 0.2,
+    "totalPriceUsd": 16.04,
+    "image": "https://m.media-amazon.com/images/I/71nBIpLw0TL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71nBIpLw0TL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 34500,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 19.23,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 58,
+    "name": "Funda OtterBox Defender iPhone 16 Pro",
+    "slug": "funda-otterbox-defender-iphone-16-pro",
+    "category": "phones",
+    "description": "La funda más resistente del mercado con protección multicapa certificada.",
+    "basePrice": 49.99,
+    "weight": 0.3,
+    "totalPriceUsd": 59.14,
+    "image": "https://m.media-amazon.com/images/I/71RjnN03dAL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71RjnN03dAL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 22100,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Red": "Desbloqueado",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 78.37,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 13,
+    "name": "PlayStation 5 Slim Disc Console",
+    "slug": "playstation-5-slim-disc-console",
+    "category": "gaming",
+    "description": "La consola más popular con SSD ultrarrápido, ray tracing y miles de juegos.",
+    "basePrice": 449.99,
+    "weight": 8,
+    "totalPriceUsd": 561.49,
+    "image": "https://m.media-amazon.com/images/I/51QTmFOJfNL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/51QTmFOJfNL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 14200,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 14,
+    "name": "Xbox Series X 1TB",
+    "slug": "xbox-series-x-1tb",
+    "category": "gaming",
+    "description": "La Xbox más potente con 12 teraflops, 4K nativo y Game Pass.",
+    "basePrice": 449.99,
+    "weight": 9.8,
+    "totalPriceUsd": 571.39,
+    "image": "https://m.media-amazon.com/images/I/61-jjE67uqL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61-jjE67uqL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 9800,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 699.86,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 15,
+    "name": "Nintendo Switch OLED Model",
+    "slug": "nintendo-switch-oled-model",
+    "category": "gaming",
+    "description": "Consola híbrida con pantalla OLED de 7″",
+    "basePrice": 329,
+    "weight": 1.8,
+    "totalPriceUsd": 388.25,
+    "image": "https://m.media-amazon.com/images/I/61nqNujSF1L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61nqNujSF1L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 22400,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 426.91,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 16,
+    "name": "PlayStation DualSense Controller",
+    "slug": "playstation-dualsense-controller",
+    "category": "gaming",
+    "description": "Control inalámbrico con gatillos adaptativos y retroalimentación háptica.",
+    "basePrice": 69.99,
+    "weight": 0.8,
+    "totalPriceUsd": 84.89,
+    "image": "https://m.media-amazon.com/images/I/61myEBQOKQL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61myEBQOKQL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 41200,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 17,
+    "name": "Razer BlackShark V2 X Gaming Headset",
+    "slug": "razer-blackshark-v2-x-gaming-headset",
+    "category": "gaming",
+    "description": "Headset gaming ligero con sonido espacial 7.1 y micrófono cardioide.",
+    "basePrice": 39.99,
+    "weight": 0.7,
+    "totalPriceUsd": 49.84,
+    "image": "https://m.media-amazon.com/images/I/61CGnG2a8hL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61CGnG2a8hL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 18300,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 59.58,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 59,
+    "name": "Meta Quest 3 128GB",
+    "slug": "meta-quest-3-128gb",
+    "category": "gaming",
+    "description": "Visor de realidad mixta con passthrough a color y rendimiento mejorado.",
+    "basePrice": 499.99,
+    "weight": 1.2,
+    "totalPriceUsd": 581.59,
+    "image": "https://m.media-amazon.com/images/I/61EB+YMDVwL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61EB+YMDVwL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 12400,
+    "badge": "Popular",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 60,
+    "name": "Steam Deck OLED 512GB",
+    "slug": "steam-deck-oled-512gb",
+    "category": "gaming",
+    "description": "PC gaming portátil con pantalla OLED HDR y acceso a toda tu biblioteca Steam.",
+    "basePrice": 549,
+    "weight": 1.7,
+    "totalPriceUsd": 640.7,
+    "image": "https://m.media-amazon.com/images/I/71xyNBO7OqL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71xyNBO7OqL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 8900,
+    "badge": "Nuevo",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 61,
+    "name": "God of War Ragnarök PS5",
+    "slug": "god-of-war-ragnarok-ps5",
+    "category": "gaming",
+    "description": "Épica aventura de Kratos y Atreus por los nueve reinos nórdicos.",
+    "basePrice": 39.99,
+    "weight": 0.3,
+    "totalPriceUsd": 47.64,
+    "image": "https://m.media-amazon.com/images/I/81B4O1YXCSL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81B4O1YXCSL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.9,
+    "reviews": 28400,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 62.68,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 62,
+    "name": "Marvel's Spider-Man 2 PS5",
+    "slug": "marvel-s-spider-man-2-ps5",
+    "category": "gaming",
+    "description": "Sé Peter Parker y Miles Morales en esta aventura por Nueva York.",
+    "basePrice": 49.99,
+    "weight": 0.3,
+    "totalPriceUsd": 59.14,
+    "image": "https://m.media-amazon.com/images/I/81a0x92JUHL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81a0x92JUHL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 19800,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 69.44,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 63,
+    "name": "Razer DeathAdder V3 Gaming Mouse",
+    "slug": "razer-deathadder-v3-gaming-mouse",
+    "category": "gaming",
+    "description": "Mouse gaming ultraliviano con sensor Focus Pro 30K de máxima precisión.",
+    "basePrice": 69.99,
+    "weight": 0.3,
+    "totalPriceUsd": 82.14,
+    "image": "https://m.media-amazon.com/images/I/61lJr8-L8BL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61lJr8-L8BL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 14600,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 89.43,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 64,
+    "name": "Razer Huntsman Mini 60% Teclado",
+    "slug": "razer-huntsman-mini-60-teclado",
+    "category": "gaming",
+    "description": "Teclado gaming compacto 60% con switches ópticos y RGB Chroma.",
+    "basePrice": 79.99,
+    "weight": 0.8,
+    "totalPriceUsd": 96.39,
+    "image": "https://m.media-amazon.com/images/I/61OVY4u3DRL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61OVY4u3DRL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 9200,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 65,
+    "name": "Silla Gaming Secretlab Titan Evo",
+    "slug": "silla-gaming-secretlab-titan-evo",
+    "category": "gaming",
+    "description": "Silla gaming premium con soporte lumbar ajustable y materiales de primera.",
+    "basePrice": 449,
+    "weight": 65,
+    "totalPriceUsd": 873.85,
+    "image": "https://m.media-amazon.com/images/I/71bXpXNaAOL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71bXpXNaAOL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 6800,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 942.19,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 66,
+    "name": "Xbox Game Pass Ultimate 3 Meses",
+    "slug": "xbox-game-pass-ultimate-3-meses",
+    "category": "gaming",
+    "description": "Acceso a cientos de juegos en Xbox y PC + EA Play y Xbox Live Gold.",
+    "basePrice": 44.99,
+    "weight": 0.1,
+    "totalPriceUsd": 52.29,
+    "image": "https://m.media-amazon.com/images/I/71Ppm+xAJZL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Ppm+xAJZL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 52000,
+    "badge": "",
+    "specs": {
+      "Garantía": "1 año",
+      "Plataforma": "Multi",
+      "Condición": "Nuevo",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 56.4,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 18,
+    "name": "Dyson Airwrap Multi-Styler Complete",
+    "slug": "dyson-airwrap-multi-styler-complete",
+    "category": "beauty",
+    "description": "Estilizador multiusos con tecnología Coanda para rizar, alisar y secar.",
+    "basePrice": 479.99,
+    "weight": 2.5,
+    "totalPriceUsd": 565.74,
+    "image": "https://m.media-amazon.com/images/I/61eIQb2a6YL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61eIQb2a6YL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 7600,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 601.57,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 19,
+    "name": "CeraVe Moisturizing Cream 19oz",
+    "slug": "cerave-moisturizing-cream-19oz",
+    "category": "beauty",
+    "description": "Crema hidratante con ceramidas y ácido hialurónico, recomendada por dermatólogos.",
+    "basePrice": 17.39,
+    "weight": 1.3,
+    "totalPriceUsd": 27.15,
+    "image": "https://m.media-amazon.com/images/I/61S7BrCBj7L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61S7BrCBj7L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 98200,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 20,
+    "name": "Revlon One-Step Hair Dryer & Volumizer",
+    "slug": "revlon-one-step-hair-dryer-volumizer",
+    "category": "beauty",
+    "description": "Secador y voluminizador en un solo paso, reduce el frizz y da brillo.",
+    "basePrice": 34.99,
+    "weight": 1.6,
+    "totalPriceUsd": 49.04,
+    "image": "https://m.media-amazon.com/images/I/71D9e3NRPhL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71D9e3NRPhL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 315000,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 21,
+    "name": "Maybelline Lash Sensational Mascara",
+    "slug": "maybelline-lash-sensational-mascara",
+    "category": "beauty",
+    "description": "Máscara que atrapa hasta las pestañas más pequeñas con efecto abanico.",
+    "basePrice": 9.97,
+    "weight": 0.2,
+    "totalPriceUsd": 12.57,
+    "image": "https://m.media-amazon.com/images/I/61Y9QTfzIoL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61Y9QTfzIoL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 84500,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 67,
+    "name": "MAC Matte Lipstick - Ruby Woo",
+    "slug": "mac-matte-lipstick-ruby-woo",
+    "category": "beauty",
+    "description": "El labial rojo icónico de MAC, acabado matte intenso y larga duración.",
+    "basePrice": 23,
+    "weight": 0.2,
+    "totalPriceUsd": 27.55,
+    "image": "https://m.media-amazon.com/images/I/71oYV1FafkL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71oYV1FafkL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 42800,
+    "badge": "Popular",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 68,
+    "name": "NYX Professional Setting Spray Matte",
+    "slug": "nyx-professional-setting-spray-matte",
+    "category": "beauty",
+    "description": "Spray fijador de maquillaje con acabado matte que dura todo el día.",
+    "basePrice": 8.99,
+    "weight": 0.5,
+    "totalPriceUsd": 13.09,
+    "image": "https://m.media-amazon.com/images/I/71Ywjf8t6yL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Ywjf8t6yL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 67300,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 69,
+    "name": "The Ordinary Niacinamide 10% + Zinc 1%",
+    "slug": "the-ordinary-niacinamide-10-zinc-1",
+    "category": "beauty",
+    "description": "Sérum para reducir poros y marcas, fórmula vegana y libre de crueldad.",
+    "basePrice": 6.5,
+    "weight": 0.2,
+    "totalPriceUsd": 8.57,
+    "image": "https://m.media-amazon.com/images/I/61z50jmb3jL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61z50jmb3jL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 128000,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 70,
+    "name": "Olaplex No.7 Bonding Oil 30ml",
+    "slug": "olaplex-no-7-bonding-oil-30ml",
+    "category": "beauty",
+    "description": "Aceite reparador ultraligero que protege y da brillo sin engrasar.",
+    "basePrice": 28,
+    "weight": 0.2,
+    "totalPriceUsd": 33.3,
+    "image": "https://m.media-amazon.com/images/I/71VVbCvP5LL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71VVbCvP5LL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 15600,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 38.1,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 71,
+    "name": "Neutrogena Ultra Sheer SPF 70",
+    "slug": "neutrogena-ultra-sheer-spf-70",
+    "category": "beauty",
+    "description": "Protector solar de amplio espectro, textura ligera y no grasa.",
+    "basePrice": 12.97,
+    "weight": 0.5,
+    "totalPriceUsd": 17.67,
+    "image": "https://m.media-amazon.com/images/I/71e5RBIU4bL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71e5RBIU4bL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 54200,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 19.43,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 72,
+    "name": "L'Oréal Excellence Creme Hair Color",
+    "slug": "l-oreal-excellence-creme-hair-color",
+    "category": "beauty",
+    "description": "Tinte permanente con triple protección y cobertura 100% de canas.",
+    "basePrice": 10.97,
+    "weight": 0.6,
+    "totalPriceUsd": 15.92,
+    "image": "https://m.media-amazon.com/images/I/71IIBX6KDLL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71IIBX6KDLL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 38700,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 21.24,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 73,
+    "name": "BaBylissPRO Nano Titanium Flat Iron 1″",
+    "slug": "babylisspro-nano-titanium-flat-iron-1",
+    "category": "beauty",
+    "description": "Plancha de titanio con calentamiento ultrarrápido y temperatura regulable.",
+    "basePrice": 69.99,
+    "weight": 0.8,
+    "totalPriceUsd": 84.89,
+    "image": "https://m.media-amazon.com/images/I/71Gc0+RuoYL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Gc0+RuoYL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 28400,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 106.75,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 74,
+    "name": "Bioderma Sensibio H2O Micellar Water 500ml",
+    "slug": "bioderma-sensibio-h2o-micellar-water-500ml",
+    "category": "beauty",
+    "description": "Agua micelar original para piel sensible, limpia y desmaquilla sin irritar.",
+    "basePrice": 14.99,
+    "weight": 1.2,
+    "totalPriceUsd": 23.84,
+    "image": "https://m.media-amazon.com/images/I/61bqbDl1GmL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61bqbDl1GmL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 72100,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 31.89,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 75,
+    "name": "Dove Body Wash Deep Moisture 22oz",
+    "slug": "dove-body-wash-deep-moisture-22oz",
+    "category": "beauty",
+    "description": "Gel de ducha hidratante con NutriumMoisture para piel suave por 24 horas.",
+    "basePrice": 7.49,
+    "weight": 1.5,
+    "totalPriceUsd": 16.86,
+    "image": "https://m.media-amazon.com/images/I/61JcQxu8E8L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61JcQxu8E8L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 110000,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 20.73,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 22,
+    "name": "Nike Air Max 270 — Hombre",
+    "slug": "nike-air-max-270-hombre",
+    "category": "shoes",
+    "description": "Zapatillas con la unidad Air más grande de Nike para máxima amortiguación.",
+    "basePrice": 159.99,
+    "weight": 1.5,
+    "totalPriceUsd": 192.24,
+    "image": "https://m.media-amazon.com/images/I/71GSZPJTU2L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71GSZPJTU2L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 18700,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 23,
+    "name": "Adidas Ultraboost 23 — Hombre",
+    "slug": "adidas-ultraboost-23-hombre",
+    "category": "shoes",
+    "description": "Zapatillas de running con retorno de energía Boost y ajuste Primeknit.",
+    "basePrice": 119,
+    "weight": 1.4,
+    "totalPriceUsd": 144.55,
+    "image": "https://m.media-amazon.com/images/I/71rQmP+HBjL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71rQmP+HBjL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 5400,
+    "badge": "Oferta",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 160.81,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 24,
+    "name": "New Balance 574 Classic — Unisex",
+    "slug": "new-balance-574-classic-unisex",
+    "category": "shoes",
+    "description": "El clásico de New Balance que combina estilo retro con comodidad moderna.",
+    "basePrice": 89.99,
+    "weight": 1.3,
+    "totalPriceUsd": 110.64,
+    "image": "https://m.media-amazon.com/images/I/61xQNKgtnLL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61xQNKgtnLL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 28900,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 25,
+    "name": "Nike Air Force 1 '07 — Hombre",
+    "slug": "nike-air-force-1-07-hombre",
+    "category": "shoes",
+    "description": "El ícono del streetwear con amortiguación Air y piel premium.",
+    "basePrice": 114.99,
+    "weight": 1.6,
+    "totalPriceUsd": 141.04,
+    "image": "https://m.media-amazon.com/images/I/71WiGMpDOcL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71WiGMpDOcL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 42100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 184.43,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 26,
+    "name": "Crocs Classic Clog — Unisex",
+    "slug": "crocs-classic-clog-unisex",
+    "category": "shoes",
+    "description": "El clog original ultraliviano y cómodo con Croslite y ventilación.",
+    "basePrice": 34.99,
+    "weight": 0.5,
+    "totalPriceUsd": 42.99,
+    "image": "https://m.media-amazon.com/images/I/71sL2JCU+6L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71sL2JCU+6L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 521000,
+    "badge": "Oferta",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 51.72,
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 76,
+    "name": "Converse Chuck Taylor All Star",
+    "slug": "converse-chuck-taylor-all-star",
+    "category": "shoes",
+    "description": "El clásico eterno de lona, perfecto para cualquier estilo.",
+    "basePrice": 55,
+    "weight": 1.2,
+    "totalPriceUsd": 69.85,
+    "image": "https://m.media-amazon.com/images/I/81LhGv3LHWL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81LhGv3LHWL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 186000,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.468Z"
+  },
+  {
+    "id": 77,
+    "name": "Puma RS-X Reinvention",
+    "slug": "puma-rs-x-reinvention",
+    "category": "shoes",
+    "description": "Zapatillas chunky retro-futuristas con tecnología RS de amortiguación.",
+    "basePrice": 89.99,
+    "weight": 1.4,
+    "totalPriceUsd": 111.19,
+    "image": "https://m.media-amazon.com/images/I/71SCXT5X2kL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71SCXT5X2kL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 8700,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 149.14,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 78,
+    "name": "ASICS Gel-Kayano 31",
+    "slug": "asics-gel-kayano-31",
+    "category": "shoes",
+    "description": "Zapatilla premium de estabilidad con gel FF Blast+ y soporte 4D.",
+    "basePrice": 159.95,
+    "weight": 1.5,
+    "totalPriceUsd": 192.19,
+    "image": "https://m.media-amazon.com/images/I/71kJRKlB5YL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71kJRKlB5YL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 4200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 79,
+    "name": "Vans Old Skool — Unisex",
+    "slug": "vans-old-skool-unisex",
+    "category": "shoes",
+    "description": "El clásico de Vans con la icónica franja lateral y suela waffle.",
+    "basePrice": 69.99,
+    "weight": 1.2,
+    "totalPriceUsd": 87.09,
+    "image": "https://m.media-amazon.com/images/I/61oy59tnM0L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61oy59tnM0L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 94300,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 100.31,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 81,
+    "name": "UGG Classic Mini II — Mujer",
+    "slug": "ugg-classic-mini-ii-mujer",
+    "category": "shoes",
+    "description": "Bota corta de piel de oveja genuina, cálida y acogedora.",
+    "basePrice": 149.99,
+    "weight": 1.8,
+    "totalPriceUsd": 182.39,
+    "image": "https://m.media-amazon.com/images/I/71dC5DvqkvL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71dC5DvqkvL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 47800,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 222.72,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 82,
+    "name": "Skechers Go Walk 7 — Unisex",
+    "slug": "skechers-go-walk-7-unisex",
+    "category": "shoes",
+    "description": "Zapatillas ultralivianas con Hyper Pillar para caminar todo el día.",
+    "basePrice": 69.99,
+    "weight": 0.9,
+    "totalPriceUsd": 85.44,
+    "image": "https://m.media-amazon.com/images/I/71V5sNsK6+L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71V5sNsK6+L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 62100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 111.73,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 83,
+    "name": "Timberland 6″",
+    "slug": "timberland-6",
+    "category": "shoes",
+    "description": "La bota icónica resistente al agua con piel nubuck premium.",
+    "basePrice": 198,
+    "weight": 3.5,
+    "totalPriceUsd": 246.95,
+    "image": "https://m.media-amazon.com/images/I/81ZT5KLhJfL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81ZT5KLhJfL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 38900,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 299.36,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 84,
+    "name": "Levi's 501 Original Fit Jeans — Hombre",
+    "slug": "levi-s-501-original-fit-jeans-hombre",
+    "category": "clothing",
+    "description": "El jean original desde 1873, corte recto clásico que nunca pasa de moda.",
+    "basePrice": 49.98,
+    "weight": 1.8,
+    "totalPriceUsd": 67.38,
+    "image": "https://m.media-amazon.com/images/I/51v3P9QJHLL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/51v3P9QJHLL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 89400,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 85,
+    "name": "Calvin Klein Cotton Stretch Boxer 3-Pack",
+    "slug": "calvin-klein-cotton-stretch-boxer-3-pack",
+    "category": "clothing",
+    "description": "Pack de 3 boxers de algodón con elastano para máxima comodidad.",
+    "basePrice": 29.5,
+    "weight": 0.5,
+    "totalPriceUsd": 36.67,
+    "image": "https://m.media-amazon.com/images/I/71GhbN+YOML._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71GhbN+YOML._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 67200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 44.29,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 86,
+    "name": "Champion Reverse Weave Hoodie",
+    "slug": "champion-reverse-weave-hoodie",
+    "category": "clothing",
+    "description": "Sudadera con capucha icónica con tejido Reverse Weave anti-encogimiento.",
+    "basePrice": 55,
+    "weight": 1.5,
+    "totalPriceUsd": 71.5,
+    "image": "https://m.media-amazon.com/images/I/71bBR-R4CQL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71bBR-R4CQL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 34100,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 87,
+    "name": "Columbia Omni-Heat Jacket — Hombre",
+    "slug": "columbia-omni-heat-jacket-hombre",
+    "category": "clothing",
+    "description": "Chaqueta térmica con tecnología Omni-Heat reflectante para el frío.",
+    "basePrice": 89.99,
+    "weight": 2,
+    "totalPriceUsd": 114.49,
+    "image": "https://m.media-amazon.com/images/I/71GNMI7j7gL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71GNMI7j7gL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 12400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 134.4,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 88,
+    "name": "Hanes EcoSmart T-Shirt 6 Pack",
+    "slug": "hanes-ecosmart-t-shirt-6-pack",
+    "category": "clothing",
+    "description": "Pack de 6 camisetas básicas de algodón suave, perfectas para el día a día.",
+    "basePrice": 21,
+    "weight": 1.5,
+    "totalPriceUsd": 32.4,
+    "image": "https://m.media-amazon.com/images/I/71-FG2E6nHL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71-FG2E6nHL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 142000,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 41.45,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 89,
+    "name": "Under Armour Tech 2.0 Shorts — Hombre",
+    "slug": "under-armour-tech-2-0-shorts-hombre",
+    "category": "clothing",
+    "description": "Shorts deportivos ultraligeros con tecnología anti-olor y secado rápido.",
+    "basePrice": 24.99,
+    "weight": 0.4,
+    "totalPriceUsd": 30.94,
+    "image": "https://m.media-amazon.com/images/I/71L1RG04yPL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71L1RG04yPL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 45600,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 41.54,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 90,
+    "name": "Tommy Hilfiger Classic Polo — Hombre",
+    "slug": "tommy-hilfiger-classic-polo-hombre",
+    "category": "clothing",
+    "description": "Polo clásico de Tommy con fit regular y la icónica bandera bordada.",
+    "basePrice": 49.5,
+    "weight": 0.5,
+    "totalPriceUsd": 59.67,
+    "image": "https://m.media-amazon.com/images/I/81-2dBcq6+L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81-2dBcq6+L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 28700,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 76.77,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 91,
+    "name": "Ralph Lauren Classic Cap",
+    "slug": "ralph-lauren-classic-cap",
+    "category": "clothing",
+    "description": "Gorra clásica con el icónico pony bordado, ajustable para todos.",
+    "basePrice": 44.99,
+    "weight": 0.3,
+    "totalPriceUsd": 53.39,
+    "image": "https://m.media-amazon.com/images/I/71tBLFnx7RL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71tBLFnx7RL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 52300,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 92,
+    "name": "Carhartt Acrylic Watch Hat Beanie",
+    "slug": "carhartt-acrylic-watch-hat-beanie",
+    "category": "clothing",
+    "description": "El gorro Carhartt más vendido del mundo, cálido y duradero.",
+    "basePrice": 17.99,
+    "weight": 0.2,
+    "totalPriceUsd": 21.79,
+    "image": "https://m.media-amazon.com/images/I/71b3j9LJIML._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71b3j9LJIML._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 198000,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 93,
+    "name": "Nike Sportswear Club Joggers — Hombre",
+    "slug": "nike-sportswear-club-joggers-hombre",
+    "category": "clothing",
+    "description": "Joggers de fleece cepillado con corte cónico moderno y bolsillos.",
+    "basePrice": 49.99,
+    "weight": 0.8,
+    "totalPriceUsd": 61.89,
+    "image": "https://m.media-amazon.com/images/I/71e7OXx+JHL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71e7OXx+JHL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 72400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 94,
+    "name": "Adidas Essentials 3-Stripes Track Jacket",
+    "slug": "adidas-essentials-3-stripes-track-jacket",
+    "category": "clothing",
+    "description": "Chaqueta track clásica de Adidas con las 3 rayas icónicas.",
+    "basePrice": 45,
+    "weight": 0.7,
+    "totalPriceUsd": 55.6,
+    "image": "https://m.media-amazon.com/images/I/61Gy-qLQ0tL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61Gy-qLQ0tL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 38200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 72.29,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 95,
+    "name": "Ray-Ban Aviator Classic RB3025",
+    "slug": "ray-ban-aviator-classic-rb3025",
+    "category": "clothing",
+    "description": "Los lentes aviador más icónicos del mundo con cristal G-15.",
+    "basePrice": 163,
+    "weight": 0.3,
+    "totalPriceUsd": 189.1,
+    "image": "https://m.media-amazon.com/images/I/71sSCJWpXdL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71sSCJWpXdL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 64100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Material": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 240.87,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 27,
+    "name": "Instant Pot Duo 7-in-1 6Qt",
+    "slug": "instant-pot-duo-7-in-1-6qt",
+    "category": "home",
+    "description": "Olla multifunción: presión, cocción lenta, arroz, vapor, sauté y más.",
+    "basePrice": 79.99,
+    "weight": 12,
+    "totalPriceUsd": 157.99,
+    "image": "https://m.media-amazon.com/images/I/71V1LiDZJCL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71V1LiDZJCL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 172000,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 28,
+    "name": "Dyson V15 Detect Aspiradora",
+    "slug": "dyson-v15-detect-aspiradora",
+    "category": "home",
+    "description": "Aspiradora inalámbrica con láser que revela polvo microscópico.",
+    "basePrice": 549.99,
+    "weight": 6.8,
+    "totalPriceUsd": 669.89,
+    "image": "https://m.media-amazon.com/images/I/61nzPMNY7zL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61nzPMNY7zL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 4200,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 826.91,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 29,
+    "name": "iRobot Roomba j7+ Robot Aspiradora",
+    "slug": "irobot-roomba-j7-robot-aspiradora",
+    "category": "home",
+    "description": "Robot inteligente que evita obstáculos y se vacía solo.",
+    "basePrice": 399,
+    "weight": 7.5,
+    "totalPriceUsd": 500.1,
+    "image": "https://m.media-amazon.com/images/I/61K7wMifBBL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61K7wMifBBL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 8100,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 30,
+    "name": "Ninja Creami Ice Cream Maker NC301",
+    "slug": "ninja-creami-ice-cream-maker-nc301",
+    "category": "home",
+    "description": "Haz helados, sorbetes, batidos y más desde ingredientes congelados.",
+    "basePrice": 149.99,
+    "weight": 11,
+    "totalPriceUsd": 232.99,
+    "image": "https://m.media-amazon.com/images/I/71bXpXNaAOL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71bXpXNaAOL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 38400,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 31,
+    "name": "Keurig K-Supreme Coffee Maker",
+    "slug": "keurig-k-supreme-coffee-maker",
+    "category": "home",
+    "description": "Cafetera de cápsulas con tecnología MultiStream para café más intenso.",
+    "basePrice": 99.99,
+    "weight": 8.2,
+    "totalPriceUsd": 160.09,
+    "image": "https://m.media-amazon.com/images/I/61IMR6AUVOL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61IMR6AUVOL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 21300,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 180.65,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 96,
+    "name": "Cosori Air Fryer Pro 5.8Qt",
+    "slug": "cosori-air-fryer-pro-5-8qt",
+    "category": "home",
+    "description": "Freidora de aire con 11 funciones, pantalla táctil y cesta antiadherente.",
+    "basePrice": 99.99,
+    "weight": 10,
+    "totalPriceUsd": 169.99,
+    "image": "https://m.media-amazon.com/images/I/71kB+xNnXeL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71kB+xNnXeL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 89400,
+    "badge": "Popular",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 97,
+    "name": "Vitamix E310 Explorian Blender",
+    "slug": "vitamix-e310-explorian-blender",
+    "category": "home",
+    "description": "Licuadora profesional con motor potente para sopas, batidos y más.",
+    "basePrice": 289.95,
+    "weight": 10.5,
+    "totalPriceUsd": 391.19,
+    "image": "https://m.media-amazon.com/images/I/81A2p4v7N4L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81A2p4v7N4L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 14200,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 510.45,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 98,
+    "name": "Amazon Echo Dot 5ta Gen con Alexa",
+    "slug": "amazon-echo-dot-5ta-gen-con-alexa",
+    "category": "home",
+    "description": "Altavoz inteligente compacto con Alexa, sonido mejorado y sensor de temperatura.",
+    "basePrice": 29.99,
+    "weight": 0.7,
+    "totalPriceUsd": 38.34,
+    "image": "https://m.media-amazon.com/images/I/51CkaHdGSeL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/51CkaHdGSeL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 312000,
+    "badge": "Oferta",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 48.86,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 99,
+    "name": "Ring Video Doorbell 4",
+    "slug": "ring-video-doorbell-4",
+    "category": "home",
+    "description": "Timbre inteligente con video 1080p, detección de movimiento y audio bidireccional.",
+    "basePrice": 199.99,
+    "weight": 0.6,
+    "totalPriceUsd": 233.29,
+    "image": "https://m.media-amazon.com/images/I/71pRpi5fB1L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71pRpi5fB1L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 48700,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 293.27,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 100,
+    "name": "Etekcity Digital Kitchen Scale",
+    "slug": "etekcity-digital-kitchen-scale",
+    "category": "home",
+    "description": "Báscula de cocina de precisión con pantalla LCD retroiluminada.",
+    "basePrice": 11.99,
+    "weight": 0.8,
+    "totalPriceUsd": 18.19,
+    "image": "https://m.media-amazon.com/images/I/71PoVxm5JpL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71PoVxm5JpL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 167000,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 20.86,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 101,
+    "name": "Cuisinart DBM-8 Supreme Grind Coffee Mill",
+    "slug": "cuisinart-dbm-8-supreme-grind-coffee-mill",
+    "category": "home",
+    "description": "Molinillo de café con 18 niveles de molienda para café perfecto.",
+    "basePrice": 49.95,
+    "weight": 2.5,
+    "totalPriceUsd": 71.19,
+    "image": "https://m.media-amazon.com/images/I/71gPYxBQ0eL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71gPYxBQ0eL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 18900,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 81.68,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 102,
+    "name": "Le Creuset Enameled Dutch Oven 5.5Qt",
+    "slug": "le-creuset-enameled-dutch-oven-5-5qt",
+    "category": "home",
+    "description": "La olla de hierro esmaltado más prestigiosa del mundo, hecha en Francia.",
+    "basePrice": 369.95,
+    "weight": 12,
+    "totalPriceUsd": 491.44,
+    "image": "https://m.media-amazon.com/images/I/71e+RgLJRZL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71e+RgLJRZL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 8400,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 103,
+    "name": "TP-Link Kasa Smart Plug 4-Pack",
+    "slug": "tp-link-kasa-smart-plug-4-pack",
+    "category": "home",
+    "description": "Enchufes inteligentes WiFi para controlar aparatos con voz o app.",
+    "basePrice": 26.99,
+    "weight": 0.5,
+    "totalPriceUsd": 33.79,
+    "image": "https://m.media-amazon.com/images/I/61oq-u6L7oL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61oq-u6L7oL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 142000,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Uso": "Hogar"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 45.1,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 32,
+    "name": "Optimum Nutrition Gold Standard Whey 5lbs",
+    "slug": "optimum-nutrition-gold-standard-whey-5lbs",
+    "category": "health",
+    "description": "La proteína whey más vendida del mundo con 24g de proteína por servicio.",
+    "basePrice": 62.99,
+    "weight": 5.4,
+    "totalPriceUsd": 102.14,
+    "image": "https://m.media-amazon.com/images/I/71ky7YNrcML._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71ky7YNrcML._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 102000,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 33,
+    "name": "Nature Made Multivitamin 300 Tablets",
+    "slug": "nature-made-multivitamin-300-tablets",
+    "category": "health",
+    "description": "Multivitamínico completo con vitaminas y minerales esenciales.",
+    "basePrice": 15.99,
+    "weight": 0.8,
+    "totalPriceUsd": 22.79,
+    "image": "https://m.media-amazon.com/images/I/71Rd-c+B0jL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Rd-c+B0jL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 47800,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 34,
+    "name": "Fitbit Charge 6 Fitness Tracker",
+    "slug": "fitbit-charge-6-fitness-tracker",
+    "category": "health",
+    "description": "Pulsera fitness con GPS, ritmo cardíaco y más de 40 modos de ejercicio.",
+    "basePrice": 119.95,
+    "weight": 0.3,
+    "totalPriceUsd": 139.59,
+    "image": "https://m.media-amazon.com/images/I/71TZcnvE8jL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71TZcnvE8jL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.2,
+    "reviews": 6700,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 161.24,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 104,
+    "name": "Creatine Monohydrate 5g - 300g",
+    "slug": "creatine-monohydrate-5g-300g",
+    "category": "health",
+    "description": "Creatina monohidratada micronizada para fuerza y rendimiento muscular.",
+    "basePrice": 24.99,
+    "weight": 0.8,
+    "totalPriceUsd": 33.14,
+    "image": "https://m.media-amazon.com/images/I/71hSmbAvE0L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71hSmbAvE0L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 68400,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 105,
+    "name": "Nature Made Fish Oil Omega-3 200 Softgels",
+    "slug": "nature-made-fish-oil-omega-3-200-softgels",
+    "category": "health",
+    "description": "Aceite de pescado purificado con 1200mg EPA+DHA para salud cardiovascular.",
+    "basePrice": 14.49,
+    "weight": 0.7,
+    "totalPriceUsd": 20.51,
+    "image": "https://m.media-amazon.com/images/I/71dESw-6ILL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71dESw-6ILL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 84200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 25.6,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 106,
+    "name": "NatureWise Vitamin D3 5000 IU 360 Softgels",
+    "slug": "naturewise-vitamin-d3-5000-iu-360-softgels",
+    "category": "health",
+    "description": "Vitamina D3 de alta potencia para huesos, inmunidad y estado de ánimo.",
+    "basePrice": 14.26,
+    "weight": 0.4,
+    "totalPriceUsd": 18.6,
+    "image": "https://m.media-amazon.com/images/I/71KkkGJqGQL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71KkkGJqGQL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 92100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 22.99,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 107,
+    "name": "Vital Proteins Collagen Peptides 20oz",
+    "slug": "vital-proteins-collagen-peptides-20oz",
+    "category": "health",
+    "description": "Péptidos de colágeno para piel, cabello, uñas y articulaciones.",
+    "basePrice": 27,
+    "weight": 1.4,
+    "totalPriceUsd": 38.75,
+    "image": "https://m.media-amazon.com/images/I/71ItL-sDqgL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71ItL-sDqgL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 58300,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 47.77,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 108,
+    "name": "Fit Simplify Resistance Bands Set",
+    "slug": "fit-simplify-resistance-bands-set",
+    "category": "health",
+    "description": "Set de 5 bandas de resistencia de diferentes niveles para ejercicio en casa.",
+    "basePrice": 10.95,
+    "weight": 0.5,
+    "totalPriceUsd": 15.34,
+    "image": "https://m.media-amazon.com/images/I/71L0Ct-X7GL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71L0Ct-X7GL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 218000,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 109,
+    "name": "LuxFit Premium High Density Foam Roller",
+    "slug": "luxfit-premium-high-density-foam-roller",
+    "category": "health",
+    "description": "Rodillo de espuma de alta densidad para recuperación muscular y masaje.",
+    "basePrice": 21.95,
+    "weight": 1.8,
+    "totalPriceUsd": 35.14,
+    "image": "https://m.media-amazon.com/images/I/71PoG4cZMRL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71PoG4cZMRL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 34200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 40.17,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 110,
+    "name": "Omron Platinum Blood Pressure Monitor",
+    "slug": "omron-platinum-blood-pressure-monitor",
+    "category": "health",
+    "description": "Monitor de presión arterial de brazo con Bluetooth y almacenamiento ilimitado.",
+    "basePrice": 74.99,
+    "weight": 1.5,
+    "totalPriceUsd": 94.49,
+    "image": "https://m.media-amazon.com/images/I/71Lkm+qSCtL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Lkm+qSCtL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 18400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 109.17,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 111,
+    "name": "Oral-B iO Series 5 Electric Toothbrush",
+    "slug": "oral-b-io-series-5-electric-toothbrush",
+    "category": "health",
+    "description": "Cepillo eléctrico con IA que guía tu cepillado para una limpieza perfecta.",
+    "basePrice": 89.99,
+    "weight": 0.8,
+    "totalPriceUsd": 107.89,
+    "image": "https://m.media-amazon.com/images/I/71BHBH7TBJL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71BHBH7TBJL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 24600,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Certificación": "FDA",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 35,
+    "name": "Graco Modes Pramette Travel System",
+    "slug": "graco-modes-pramette-travel-system",
+    "category": "baby",
+    "description": "Sistema de viaje completo con coche y silla de auto para bebé.",
+    "basePrice": 329.99,
+    "weight": 35,
+    "totalPriceUsd": 571.99,
+    "image": "https://m.media-amazon.com/images/I/71hgdz1+20L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71hgdz1+20L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 4500,
+    "badge": "Oferta",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 603.44,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 36,
+    "name": "Pampers Swaddlers Size 1 (198 count)",
+    "slug": "pampers-swaddlers-size-1-198-count",
+    "category": "baby",
+    "description": "Los pañales más vendidos con indicador de humedad y suavidad premium.",
+    "basePrice": 44.99,
+    "weight": 8,
+    "totalPriceUsd": 95.74,
+    "image": "https://m.media-amazon.com/images/I/81qQDU1z+5L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81qQDU1z+5L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 87400,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 112,
+    "name": "VTech DM221 Audio Baby Monitor",
+    "slug": "vtech-dm221-audio-baby-monitor",
+    "category": "baby",
+    "description": "Monitor de audio para bebé con alcance de 300m y modo nocturno.",
+    "basePrice": 29.99,
+    "weight": 0.6,
+    "totalPriceUsd": 37.79,
+    "image": "https://m.media-amazon.com/images/I/71dQMgrFYkL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71dQMgrFYkL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 42100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 40.68,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 113,
+    "name": "Dr. Brown's Anti-Colic Bottles 8oz 4-Pack",
+    "slug": "dr-brown-s-anti-colic-bottles-8oz-4-pack",
+    "category": "baby",
+    "description": "Biberones anti-cólico con sistema de ventilación interna.",
+    "basePrice": 22.49,
+    "weight": 1,
+    "totalPriceUsd": 31.36,
+    "image": "https://m.media-amazon.com/images/I/71oMiDqEFzL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71oMiDqEFzL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 58900,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 114,
+    "name": "Graco 4Ever DLX 4-in-1 Car Seat",
+    "slug": "graco-4ever-dlx-4-in-1-car-seat",
+    "category": "baby",
+    "description": "Silla de auto que crece con tu hijo desde recién nacido hasta 54kg.",
+    "basePrice": 229.99,
+    "weight": 22,
+    "totalPriceUsd": 385.49,
+    "image": "https://m.media-amazon.com/images/I/71gY0I+P3uL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71gY0I+P3uL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 18400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 478.93,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 115,
+    "name": "Carter's Baby 8-Pack Bodysuits",
+    "slug": "carter-s-baby-8-pack-bodysuits",
+    "category": "baby",
+    "description": "Pack de 8 bodies de algodón suave con broches fáciles de abrir.",
+    "basePrice": 19.99,
+    "weight": 0.5,
+    "totalPriceUsd": 25.74,
+    "image": "https://m.media-amazon.com/images/I/81mCaVrPPwL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81mCaVrPPwL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 34200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 29.03,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 116,
+    "name": "Nuby Ice Gel Teether Keys",
+    "slug": "nuby-ice-gel-teether-keys",
+    "category": "baby",
+    "description": "Mordedor con gel frío que alivia las encías del bebé de forma segura.",
+    "basePrice": 5.49,
+    "weight": 0.2,
+    "totalPriceUsd": 7.41,
+    "image": "https://m.media-amazon.com/images/I/71b9r0cGYBL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71b9r0cGYBL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 86700,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 9.75,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 117,
+    "name": "Baby Einstein Take Along Tunes Musical Toy",
+    "slug": "baby-einstein-take-along-tunes-musical-toy",
+    "category": "baby",
+    "description": "Juguete musical con 7 melodías clásicas y luces suaves para bebés.",
+    "basePrice": 9.99,
+    "weight": 0.3,
+    "totalPriceUsd": 13.14,
+    "image": "https://m.media-amazon.com/images/I/71KMz1cOYhL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71KMz1cOYhL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 92400,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 37,
+    "name": "Bowflex SelectTech 552 Dumbbells (Par)",
+    "slug": "bowflex-selecttech-552-dumbbells-par",
+    "category": "sports",
+    "description": "Mancuernas ajustables de 2.3 a 23.8kg cada una, reemplazan 15 pares.",
+    "basePrice": 349,
+    "weight": 70,
+    "totalPriceUsd": 786.35,
+    "image": "https://m.media-amazon.com/images/I/71kB+xNnXeL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71kB+xNnXeL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 18200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 930.88,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 38,
+    "name": "Manduka PRO Yoga Mat 71″",
+    "slug": "manduka-pro-yoga-mat-71",
+    "category": "sports",
+    "description": "Mat de yoga premium de alta densidad, antideslizante y duradero.",
+    "basePrice": 92,
+    "weight": 7.5,
+    "totalPriceUsd": 147.05,
+    "image": "https://m.media-amazon.com/images/I/716wg-E-URL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/716wg-E-URL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 5100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 118,
+    "name": "Brooks Ghost 15 Running — Hombre",
+    "slug": "brooks-ghost-15-running-hombre",
+    "category": "sports",
+    "description": "Zapatilla de running neutral con amortiguación DNA LOFT suave y cómoda.",
+    "basePrice": 119.95,
+    "weight": 1.5,
+    "totalPriceUsd": 146.19,
+    "image": "https://m.media-amazon.com/images/I/71YX2KQMZ+L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71YX2KQMZ+L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 22800,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 119,
+    "name": "WOD Nation Speed Jump Rope",
+    "slug": "wod-nation-speed-jump-rope",
+    "category": "sports",
+    "description": "Cuerda de saltar ajustable con rodamientos de bola para velocidad máxima.",
+    "basePrice": 15.95,
+    "weight": 0.3,
+    "totalPriceUsd": 19.99,
+    "image": "https://m.media-amazon.com/images/I/71-yjjhYE1L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71-yjjhYE1L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 34200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 25.93,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 120,
+    "name": "Hydro Flask 32oz Wide Mouth",
+    "slug": "hydro-flask-32oz-wide-mouth",
+    "category": "sports",
+    "description": "Botella de agua aislada al vacío que mantiene frío 24h o caliente 12h.",
+    "basePrice": 44.95,
+    "weight": 1,
+    "totalPriceUsd": 57.19,
+    "image": "https://m.media-amazon.com/images/I/81JvI1ZSIDL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81JvI1ZSIDL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 87600,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 121,
+    "name": "Coleman Sundome 4-Person Tent",
+    "slug": "coleman-sundome-4-person-tent",
+    "category": "sports",
+    "description": "Carpa para 4 personas con montaje rápido en 10 minutos.",
+    "basePrice": 79.99,
+    "weight": 9.5,
+    "totalPriceUsd": 144.24,
+    "image": "https://m.media-amazon.com/images/I/71MZUVNYqhL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71MZUVNYqhL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 34800,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 186.53,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 122,
+    "name": "Osprey Atmos AG 65 Backpack",
+    "slug": "osprey-atmos-ag-65-backpack",
+    "category": "sports",
+    "description": "Mochila de trekking con sistema Anti-Gravity para máxima comodidad.",
+    "basePrice": 270,
+    "weight": 4.3,
+    "totalPriceUsd": 334.15,
+    "image": "https://m.media-amazon.com/images/I/71VQ7bsFhQL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71VQ7bsFhQL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 8900,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 428.02,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 123,
+    "name": "Yes4All Doorway Pull-Up Bar",
+    "slug": "yes4all-doorway-pull-up-bar",
+    "category": "sports",
+    "description": "Barra de dominadas para puerta, sin tornillos, soporta hasta 136kg.",
+    "basePrice": 29.99,
+    "weight": 3.5,
+    "totalPriceUsd": 53.74,
+    "image": "https://m.media-amazon.com/images/I/71CQWH1vb6L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71CQWH1vb6L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 68400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 60.46,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 124,
+    "name": "Trideer Exercise Ball 65cm",
+    "slug": "trideer-exercise-ball-65cm",
+    "category": "sports",
+    "description": "Pelota de ejercicio anti-explosión para fitness, yoga y oficina.",
+    "basePrice": 17.99,
+    "weight": 2.2,
+    "totalPriceUsd": 32.79,
+    "image": "https://m.media-amazon.com/images/I/71dMi+H-zQL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71dMi+H-zQL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 48200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 35.77,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 125,
+    "name": "Speedo Vanquisher 2.0 Swim Goggles",
+    "slug": "speedo-vanquisher-2-0-swim-goggles",
+    "category": "sports",
+    "description": "Goggles de natación con lentes panorámicas anti-fog y protección UV.",
+    "basePrice": 15,
+    "weight": 0.2,
+    "totalPriceUsd": 18.35,
+    "image": "https://m.media-amazon.com/images/I/71kBnKNwHcL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71kBnKNwHcL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 28900,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Garantía": "Fabricante",
+      "Uso": "Deportivo"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 21.47,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 39,
+    "name": "KONG Classic Dog Toy - Large",
+    "slug": "kong-classic-dog-toy-large",
+    "category": "pets",
+    "description": "El juguete para perro más popular del mundo, rellenable y ultraresistente.",
+    "basePrice": 13.99,
+    "weight": 0.5,
+    "totalPriceUsd": 18.84,
+    "image": "https://m.media-amazon.com/images/I/71YpANtv3QL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71YpANtv3QL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 142000,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 40,
+    "name": "Purina Pro Plan Adult Dog Food 35lbs",
+    "slug": "purina-pro-plan-adult-dog-food-35lbs",
+    "category": "pets",
+    "description": "Alimento premium para perro adulto con pollo real como ingrediente #1.",
+    "basePrice": 54.48,
+    "weight": 35,
+    "totalPriceUsd": 255.15,
+    "image": "https://m.media-amazon.com/images/I/81+SfxHyl4L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81+SfxHyl4L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 28000,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 300.2,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 126,
+    "name": "Purina Fancy Feast Cat Food 24-Pack",
+    "slug": "purina-fancy-feast-cat-food-24-pack",
+    "category": "pets",
+    "description": "Pack de 24 latas de comida gourmet para gato en salsa.",
+    "basePrice": 17.76,
+    "weight": 4.5,
+    "totalPriceUsd": 45.17,
+    "image": "https://m.media-amazon.com/images/I/81FSrO9fLcL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81FSrO9fLcL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 186000,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 127,
+    "name": "Best Friends by Sheri Donut Dog Bed",
+    "slug": "best-friends-by-sheri-donut-dog-bed",
+    "category": "pets",
+    "description": "Cama redonda tipo donut de peluche para perros y gatos.",
+    "basePrice": 34.99,
+    "weight": 3,
+    "totalPriceUsd": 56.74,
+    "image": "https://m.media-amazon.com/images/I/71SvLcK4oHL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71SvLcK4oHL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 78400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 64.02,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 128,
+    "name": "Sherpa Original Deluxe Pet Carrier",
+    "slug": "sherpa-original-deluxe-pet-carrier",
+    "category": "pets",
+    "description": "Transportador aprobado por aerolíneas con ventilación y comodidad.",
+    "basePrice": 37.99,
+    "weight": 3.5,
+    "totalPriceUsd": 62.94,
+    "image": "https://m.media-amazon.com/images/I/71sQ8fmKUhL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71sQ8fmKUhL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 42100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 80.34,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 129,
+    "name": "Frontline Plus Flea Treatment Dogs 6-Pack",
+    "slug": "frontline-plus-flea-treatment-dogs-6-pack",
+    "category": "pets",
+    "description": "Tratamiento antipulgas y garrapatas mensual para perros de 20-40kg.",
+    "basePrice": 55.99,
+    "weight": 0.3,
+    "totalPriceUsd": 66.04,
+    "image": "https://m.media-amazon.com/images/I/71-9QFWLE1L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71-9QFWLE1L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 67800,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 82.25,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 130,
+    "name": "Fresh Step Clean Paws Cat Litter 22.5lbs",
+    "slug": "fresh-step-clean-paws-cat-litter-22-5lbs",
+    "category": "pets",
+    "description": "Arena para gato con fórmula de patas limpias y control de olores 10 días.",
+    "basePrice": 16.99,
+    "weight": 22.5,
+    "totalPriceUsd": 143.29,
+    "image": "https://m.media-amazon.com/images/I/81KqVJuPa0L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81KqVJuPa0L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 34200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 131,
+    "name": "PetSafe Healthy Pet Simply Feed Automatic",
+    "slug": "petsafe-healthy-pet-simply-feed-automatic",
+    "category": "pets",
+    "description": "Comedero automático programable con hasta 12 comidas al día.",
+    "basePrice": 89.95,
+    "weight": 4,
+    "totalPriceUsd": 125.44,
+    "image": "https://m.media-amazon.com/images/I/71Fd5z3zPFL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Fd5z3zPFL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 18900,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguro": "Sí",
+      "Tipo": "Premium"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 165.99,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 41,
+    "name": "Nutella Hazelnut Spread 26.5oz",
+    "slug": "nutella-hazelnut-spread-26-5oz",
+    "category": "food",
+    "description": "La crema de avellanas más famosa del mundo, perfecta para todo.",
+    "basePrice": 9.48,
+    "weight": 1.7,
+    "totalPriceUsd": 20.25,
+    "image": "https://m.media-amazon.com/images/I/81Lqeb-ASpL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81Lqeb-ASpL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 52400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 26.82,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 42,
+    "name": "Kirkland Signature Mixed Nuts 40oz",
+    "slug": "kirkland-signature-mixed-nuts-40oz",
+    "category": "food",
+    "description": "Mezcla premium de nueces sin sal: almendras, nueces, pistachos y más.",
+    "basePrice": 16.99,
+    "weight": 2.5,
+    "totalPriceUsd": 33.29,
+    "image": "https://m.media-amazon.com/images/I/81KU0JLIU4L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81KU0JLIU4L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 14200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 132,
+    "name": "Quest Protein Bars Variety 12-Pack",
+    "slug": "quest-protein-bars-variety-12-pack",
+    "category": "food",
+    "description": "Pack variado de 12 barras proteicas con 20g de proteína y bajo azúcar.",
+    "basePrice": 24.99,
+    "weight": 1.5,
+    "totalPriceUsd": 36.99,
+    "image": "https://m.media-amazon.com/images/I/71bSYOKfaUL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71bSYOKfaUL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 84200,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 133,
+    "name": "Lavazza Super Crema Coffee Beans 2.2lb",
+    "slug": "lavazza-super-crema-coffee-beans-2-2lb",
+    "category": "food",
+    "description": "Café en grano italiano premium, mezcla cremosa y aromática.",
+    "basePrice": 18.98,
+    "weight": 2.2,
+    "totalPriceUsd": 33.93,
+    "image": "https://m.media-amazon.com/images/I/61+xqC1bPpL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/61+xqC1bPpL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 42800,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 42.72,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 134,
+    "name": "Yellowbird Hot Sauce Variety 3-Pack",
+    "slug": "yellowbird-hot-sauce-variety-3-pack",
+    "category": "food",
+    "description": "Set de 3 salsas picantes artesanales: Habanero, Serrano, Ghost Pepper.",
+    "basePrice": 19.99,
+    "weight": 2,
+    "totalPriceUsd": 33.99,
+    "image": "https://m.media-amazon.com/images/I/71j2FBVCP1L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71j2FBVCP1L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 8900,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 135,
+    "name": "Bare Baked Crunchy Apple Chips 6-Pack",
+    "slug": "bare-baked-crunchy-apple-chips-6-pack",
+    "category": "food",
+    "description": "Chips de manzana horneadas, crujientes y saludables, sin azúcar añadida.",
+    "basePrice": 17.99,
+    "weight": 1,
+    "totalPriceUsd": 26.19,
+    "image": "https://m.media-amazon.com/images/I/71Vu+cJYqjL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71Vu+cJYqjL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 28400,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 34.96,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 136,
+    "name": "Jif Creamy Peanut Butter 40oz",
+    "slug": "jif-creamy-peanut-butter-40oz",
+    "category": "food",
+    "description": "La mantequilla de maní cremosa preferida de América.",
+    "basePrice": 7.98,
+    "weight": 2.5,
+    "totalPriceUsd": 22.93,
+    "image": "https://m.media-amazon.com/images/I/71NR8WuaAfL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71NR8WuaAfL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 124000,
+    "badge": "Más vendido",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 137,
+    "name": "Pompeian Extra Virgin Olive Oil 48oz",
+    "slug": "pompeian-extra-virgin-olive-oil-48oz",
+    "category": "food",
+    "description": "Aceite de oliva extra virgen de primera extracción en frío.",
+    "basePrice": 11.99,
+    "weight": 3.2,
+    "totalPriceUsd": 31.39,
+    "image": "https://m.media-amazon.com/images/I/71y5Bdi+6gL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71y5Bdi+6gL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.6,
+    "reviews": 56200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 38.19,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 138,
+    "name": "Nature Nate's Raw & Unfiltered Honey 32oz",
+    "slug": "nature-nate-s-raw-unfiltered-honey-32oz",
+    "category": "food",
+    "description": "Miel 100% pura, cruda y sin filtrar, directa de la colmena.",
+    "basePrice": 12.98,
+    "weight": 2.1,
+    "totalPriceUsd": 26.48,
+    "image": "https://m.media-amazon.com/images/I/71RStKD3wAL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71RStKD3wAL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 72100,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 139,
+    "name": "Kirkland Trail Mix 4lb",
+    "slug": "kirkland-trail-mix-4lb",
+    "category": "food",
+    "description": "Mezcla de frutos secos, chocolate y frutas deshidratadas, bolsa grande.",
+    "basePrice": 14.99,
+    "weight": 4,
+    "totalPriceUsd": 39.24,
+    "image": "https://m.media-amazon.com/images/I/81Gre7eKp+L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81Gre7eKp+L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 18200,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Tipo": "Importado USA",
+      "Fecha": "Vigente",
+      "Original": "Sí"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 43,
+    "name": "Mobil 1 Advanced Full Synthetic 5W-30 5Qt",
+    "slug": "mobil-1-advanced-full-synthetic-5w-30-5qt",
+    "category": "auto",
+    "description": "Aceite sintético completo de alto rendimiento para máxima protección.",
+    "basePrice": 27.97,
+    "weight": 10,
+    "totalPriceUsd": 87.17,
+    "image": "https://m.media-amazon.com/images/I/71pmgnspksL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71pmgnspksL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 64300,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 104.62,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 44,
+    "name": "NOCO Boost Plus GB40 Jump Starter",
+    "slug": "noco-boost-plus-gb40-jump-starter",
+    "category": "auto",
+    "description": "Arrancador portátil de 1000A para motores de hasta 6L gasolina.",
+    "basePrice": 99.95,
+    "weight": 2.4,
+    "totalPriceUsd": 128.14,
+    "image": "https://m.media-amazon.com/images/I/71ztGFaAiqL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71ztGFaAiqL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 231000,
+    "badge": "Más vendido",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 140,
+    "name": "ThisWorx Car Vacuum Cleaner",
+    "slug": "thisworx-car-vacuum-cleaner",
+    "category": "auto",
+    "description": "Aspiradora portátil para auto con cable de 4.9m y succión potente.",
+    "basePrice": 29.99,
+    "weight": 2,
+    "totalPriceUsd": 45.49,
+    "image": "https://m.media-amazon.com/images/I/71-NNz4Y3kL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71-NNz4Y3kL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.3,
+    "reviews": 142000,
+    "badge": "Popular",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 141,
+    "name": "Vantrue N1 Pro 2K Dash Cam",
+    "slug": "vantrue-n1-pro-2k-dash-cam",
+    "category": "auto",
+    "description": "Cámara para auto con grabación 2K, visión nocturna y sensor G.",
+    "basePrice": 89.99,
+    "weight": 0.5,
+    "totalPriceUsd": 106.24,
+    "image": "https://m.media-amazon.com/images/I/71tn4Qzqa6L._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71tn4Qzqa6L._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 24600,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 114.22,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 142,
+    "name": "AstroAI Tire Inflator Portable",
+    "slug": "astroai-tire-inflator-portable",
+    "category": "auto",
+    "description": "Inflador de neumáticos portátil con pantalla digital y auto-stop.",
+    "basePrice": 29.99,
+    "weight": 2.5,
+    "totalPriceUsd": 48.24,
+    "image": "https://m.media-amazon.com/images/I/71-Lb3ZFPCL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71-Lb3ZFPCL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 86700,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 64.11,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 143,
+    "name": "Anker USB-C Car Charger 52.5W",
+    "slug": "anker-usb-c-car-charger-52-5w",
+    "category": "auto",
+    "description": "Cargador de auto dual USB-C + USB-A con carga rápida PowerIQ 3.0.",
+    "basePrice": 15.99,
+    "weight": 0.2,
+    "totalPriceUsd": 19.49,
+    "image": "https://m.media-amazon.com/images/I/71WGBbz8TjL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71WGBbz8TjL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.7,
+    "reviews": 48200,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 25.7,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 144,
+    "name": "Fahren H11 LED Headlight Bulbs",
+    "slug": "fahren-h11-led-headlight-bulbs",
+    "category": "auto",
+    "description": "Bombillos LED H11 de alto brillo, 300% más luminosos que halógenos.",
+    "basePrice": 32.99,
+    "weight": 0.5,
+    "totalPriceUsd": 40.69,
+    "image": "https://m.media-amazon.com/images/I/71EvJoFCMSL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71EvJoFCMSL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 67800,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 43.27,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 145,
+    "name": "Armor All Complete Car Care Kit",
+    "slug": "armor-all-complete-car-care-kit",
+    "category": "auto",
+    "description": "Kit completo de limpieza para auto con 8 productos esenciales.",
+    "basePrice": 19.99,
+    "weight": 4.5,
+    "totalPriceUsd": 47.74,
+    "image": "https://m.media-amazon.com/images/I/81SvFqrR1oL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81SvFqrR1oL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.4,
+    "reviews": 38200,
+    "badge": "",
+    "specs": {
+      "Garantía": "Fabricante",
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Compatible": "Universal"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 53.23,
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 146,
+    "name": "LEGO Star Wars Millennium Falcon 75375",
+    "slug": "lego-star-wars-millennium-falcon-75375",
+    "category": "toys",
+    "description": "Set de 1351 piezas del Halcón Milenario con 7 minifiguras.",
+    "basePrice": 169.99,
+    "weight": 3.5,
+    "totalPriceUsd": 214.74,
+    "image": "https://m.media-amazon.com/images/I/81v5DKaDFjL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/81v5DKaDFjL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.8,
+    "reviews": 8400,
+    "badge": "Popular",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Edad": "3+"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "createdAt": "2026-03-13T02:16:08.469Z"
+  },
+  {
+    "id": 147,
+    "name": "Barbie Dreamhouse 2024",
+    "slug": "barbie-dreamhouse-2024",
+    "category": "toys",
+    "description": "Casa de ensueño de Barbie con 3 pisos, tobogán y 75+ accesorios.",
+    "basePrice": 179.99,
+    "weight": 14,
+    "totalPriceUsd": 283.99,
+    "image": "https://m.media-amazon.com/images/I/71J5l9qsFoL._AC_SL1500_.jpg",
+    "images": [
+      "https://m.media-amazon.com/images/I/71J5l9qsFoL._AC_SL1500_.jpg"
+    ],
+    "rating": 4.5,
+    "reviews": 12800,
+    "badge": "",
+    "specs": {
+      "Condición": "Nuevo",
+      "Original": "Sí",
+      "Seguridad": "Certificado",
+      "Edad": "3+"
+    },
+    "isActive": true,
+    "isManual": false,
+    "amazonAsin": "",
+    "oldPrice": 328.2,
+    "createdAt": "2026-03-13T02:16:08.469Z"
   }
 ]
