@@ -109,3 +109,47 @@ export async function sendStatusUpdateEmail(order: any, user: any, newStatus: st
       </div>`,
   });
 }
+
+
+export async function sendWelcomeEmail(user: any) {
+  const t = getTransporter();
+  if (!t) return;
+  try {
+    await t.sendMail({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: "Bienvenido a CopikonUSA",
+      html: `<h1>Bienvenido ${user.name || user.email}!</h1><p>Gracias por registrarte en CopikonUSA.</p>`,
+    });
+  } catch (e) { console.error("Email error:", e); }
+}
+
+export async function sendOrderConfirmation(order: any, user: any) {
+  return sendOrderConfirmationEmail(order, user);
+}
+
+export async function sendPaymentConfirmed(order: any, user: any) {
+  const t = getTransporter();
+  if (!t) return;
+  try {
+    await t.sendMail({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: `Pago Confirmado - Pedido #${order.id}`,
+      html: `<h1>Pago Confirmado</h1><p>Tu pago para el pedido #${order.id} ha sido confirmado.</p>`,
+    });
+  } catch (e) { console.error("Email error:", e); }
+}
+
+export async function sendStatusUpdate(order: any, user: any, status: string) {
+  const t = getTransporter();
+  if (!t) return;
+  try {
+    await t.sendMail({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: `Actualizacion de Pedido #${order.id}`,
+      html: `<h1>Estado Actualizado</h1><p>Tu pedido #${order.id} ahora esta: ${status}</p>`,
+    });
+  } catch (e) { console.error("Email error:", e); }
+}
