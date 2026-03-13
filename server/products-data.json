@@ -1,1 +1,50 @@
-WwogIHsKICAgICJpZCI6IDEsCiAgICAibmFtZSI6ICJBcHBsZSBNYWNCb29rIEFpciBNMyAxNeKAsyIsCiAgICAic2x1ZyI6ICJhcHBsZS1tYWNib29rLWFpci1tMy0xNSIsCiAgICAiY2F0ZWdvcnkiOiAidGVjaCIsCiAgICAiZGVzY3JpcHRpb24iOiAiTGFwdG9wIHVsdHJhbGl2aWFuYSBjb24gY2hpcCBNMywgcGFudGFsbGEgTGlxdWlkIFJldGluYSBkZSAxNSBwdWxnYWRhcyB5IGhhc3RhIDE4IGhvcmFzIGRlIGJhdGVyw61hLiIsCiAgICAiYmFzZVByaWNlIjogMTA5OSwKICAgICJ3ZWlnaHQiOiAzLjUsCiAgICAidG90YWxQcmljZVVzZCI6IDEyODMuMSwKICAgICJpbWFnZSI6ICJodHRwczovL20ubWVkaWEtYW1hem9uLmNvbS9pbWFnZXMvSS83MWY1RXU1bEpTTC5fQUNfU0wxNTAwXy5qcGciLAogICAgImltYWdlcyI6IFsKICAgICAgImh0dHBzOi8vbS5tZWRpYS1hbWF6b24uY29tL2ltYWdlcy9JLzcxZjVFdTVsSlNMLl9BQ19TTDE1MDBfLmpwZyIKICAgIF0sCiAgICAicmF0aW5nIjogNC44LAogICAgInJldmlld3MiOiAzMjQxLAogICAgImJhZGdlIjogIk3DoXMgdmVuZGlkbyIsCiAgICAic3BlY3MiOiB7CiAgICAgICJHYXJhbnTDrWEiOiAiMSBhw7FvIiwKICAgICAgIkVudsOtbyI6ICJBw6lyZW8gYSBWZW5lenVlbGEiLAogICAgICAiQ29uZGljacOzbiI6ICJOdWV2byIsCiAgICAgICJPcmlnaW5hbCI6ICJTw60iCiAgICB9LAogICAgImlzQWN0aXZlIjogdHJ1ZSwKICAgICJpc01hbnVhbCI6IGZhbHNlLAogICAgImFtYXpvbkFzaW4iOiAiIiwKICAgICJjcmVhdGVkQXQiOiAiMjAyNi0wMy0xM1QwMjoxNjowOC40NjhaIgogIH0KXQ==
+[
+  {
+    "id": 1,
+    "name": "Toner Compatible HP 85A",
+    "slug": "toner-hp-85a",
+    "description": "Toner compatible de alta calidad para impresoras HP LaserJet",
+    "price": 24.99,
+    "comparePrice": 35.00,
+    "category": "toners",
+    "brand": "HP Compatible",
+    "sku": "COP-TN-85A",
+    "stock": 150,
+    "images": ["/placeholder.svg"],
+    "featured": true,
+    "rating": 4.5,
+    "reviewCount": 28
+  },
+  {
+    "id": 2,
+    "name": "Tinta Epson 544 Negro",
+    "slug": "tinta-epson-544-negro",
+    "description": "Tinta compatible para impresoras Epson EcoTank",
+    "price": 8.99,
+    "comparePrice": 12.00,
+    "category": "tintas",
+    "brand": "Epson Compatible",
+    "sku": "COP-TI-544BK",
+    "stock": 300,
+    "images": ["/placeholder.svg"],
+    "featured": true,
+    "rating": 4.8,
+    "reviewCount": 45
+  },
+  {
+    "id": 3,
+    "name": "Papel Fotogr\u00e1fico A4 Glossy",
+    "slug": "papel-fotografico-a4",
+    "description": "Papel fotogr\u00e1fico brillante premium 200g",
+    "price": 12.99,
+    "comparePrice": 18.00,
+    "category": "papeleria",
+    "brand": "CopikonUSA",
+    "sku": "COP-PP-A4GL",
+    "stock": 200,
+    "images": ["/placeholder.svg"],
+    "featured": false,
+    "rating": 4.3,
+    "reviewCount": 15
+  }
+]
