@@ -295,6 +295,57 @@ export async function registerRoutes(
     }
   });
 
+  // ===== IMPORT SEARCH RESULT AS PRODUCT =====
+  app.post("/api/search/import", async (req, res) => {
+    try {
+      const { asin, name, image, price, weight, rating, reviews } = req.body;
+      if (!asin || !name) return res.status(400).json({ message: "Faltan datos" });
+
+      // Check if product already exists by ASIN
+      const existing = await storage.getProducts({ search: asin, limit: 1 });
+      const found = (existing.products || []).find((p: any) => {
+        const specs = p.specs as any;
+        return p.amazonAsin === asin || specs?.ASIN === asin;
+      });
+
+      if (found) {
+        return res.json({ slug: found.slug, id: found.id });
+      }
+
+      // Create new product from search result
+      const basePrice = price || 0;
+      const w = weight || 1;
+      const shippingPerLb = 5.50;
+      const totalPriceUsd = +(basePrice * 1.15 + w * shippingPerLb).toFixed(2);
+
+      const slug = name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim().slice(0, 100);
+
+      const product = await storage.createProduct({
+        name,
+        slug,
+        category: "tech", // default category, admin can change
+        description: name,
+        basePrice,
+        weight: w,
+        totalPriceUsd,
+        image: image || "",
+        images: image ? [image] : [],
+        rating: rating || 0,
+        reviews: reviews || 0,
+        badge: "",
+        specs: { ASIN: asin },
+        isActive: true,
+        isManual: false,
+        amazonAsin: asin,
+      } as any);
+
+      res.json({ slug: product.slug, id: product.id });
+    } catch (e: any) {
+      console.error("Import error:", e.message);
+      res.status(500).json({ message: "Error importando producto" });
+    }
+  });
+
   // ===== PRODUCT DETAIL (Amazon enrichment) =====
   const detailCache = new Map<string, { data: any; timestamp: number }>();
   const DETAIL_CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours
