@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { ShoppingCart, Heart, Star, Truck, Shield, ChevronRight, Minus, Plus, Check, Package, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -303,6 +303,7 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
 
 export default function ProductDetail() {
   const [, params] = useRoute("/producto/:slug");
+  const [, navigate] = useLocation();
   const slug = params?.slug || "";
   const { addItem } = useCart();
   const { isAuthenticated, token } = useAuth();
@@ -382,7 +383,7 @@ export default function ProductDetail() {
         <a href="#/" className="hover:text-copikon-red">Inicio</a>
         <ChevronRight className="w-3 h-3" />
         <a href={`#/catalogo?category=${product.category}`}
-          onClick={(e) => { e.preventDefault(); window.location.hash = `/catalogo?category=${product.category}`; }}
+          onClick={(e) => { e.preventDefault(); navigate(`/catalogo?category=${product.category}`); }}
           className="hover:text-copikon-red cursor-pointer">{catName}</a>
         <ChevronRight className="w-3 h-3" />
         <span className="text-gray-700 truncate max-w-[250px]">{product.name}</span>
