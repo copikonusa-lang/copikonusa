@@ -96,16 +96,41 @@ function ImageGallery({ mainImage, images, productName }: { mainImage: string; i
 function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
   if (!variants || variants.length === 0) return null;
 
-  // Group by attribute name
+  // Group by attribute name from structured attributes
   const attrGroups = new Map<string, Set<string>>();
+  let hasStructuredAttrs = false;
   variants.forEach(v => {
     v.attributes?.forEach(a => {
+      hasStructuredAttrs = true;
       if (!attrGroups.has(a.name)) attrGroups.set(a.name, new Set());
       attrGroups.get(a.name)!.add(a.value);
     });
   });
 
-  // Only show groups relevant to e-commerce (Size, Color, Style, etc.)
+  // If no structured attributes, parse from text (e.g. "11.5 Wide Dream State/Incense")
+  if (!hasStructuredAttrs && variants.length > 0) {
+    const sizes = new Set<string>();
+    const colors = new Set<string>();
+    const sizePattern = /^([\d]+\.?[\d]*\s*(?:Wide|Narrow|Medium|X-Wide)?)/i;
+    
+    variants.forEach(v => {
+      const text = (v.text || "").trim();
+      const sizeMatch = text.match(sizePattern);
+      if (sizeMatch) {
+        sizes.add(sizeMatch[1].trim());
+        const rest = text.slice(sizeMatch[0].length).trim();
+        if (rest) colors.add(rest);
+      } else {
+        // No size prefix - might just be a color or style variant
+        if (text) colors.add(text);
+      }
+    });
+
+    if (sizes.size > 0) attrGroups.set("Size", sizes);
+    if (colors.size > 0 && colors.size <= 30) attrGroups.set("Color", colors);
+  }
+
+  // Only show groups relevant to e-commerce
   const relevantKeys = ["Size", "Color", "Style", "Pattern", "Flavor", "Scent"];
   const filtered = [...attrGroups.entries()].filter(
     ([name]) => relevantKeys.some(k => name.toLowerCase().includes(k.toLowerCase()))
@@ -113,7 +138,6 @@ function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
 
   if (filtered.length === 0) return null;
 
-  // Translation map
   const nameMap: Record<string, string> = {
     Size: "Talla / Tamaño",
     Color: "Color",
@@ -130,25 +154,28 @@ function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
           <p className="text-sm font-semibold text-gray-700 mb-2">
             {nameMap[name] || name}:
           </p>
-          <div className="flex flex-wrap gap-2">
-            {[...values].slice(0, 12).map((val, i) => (
+          <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto">
+            {[...values].slice(0, 20).map((val, i) => (
               <button
                 key={val}
-                className={`px-3 py-1.5 text-xs border rounded-md transition-all ${
+                className={`px-2.5 py-1 text-xs border rounded-md transition-all ${
                   i === 0
                     ? "border-copikon-red bg-red-50 text-copikon-red font-medium"
                     : "border-gray-300 text-gray-600 hover:border-gray-500"
                 }`}
                 data-testid={`variant-${name}-${i}`}
               >
-                {val}
+                {val.length > 35 ? val.slice(0, 32) + "..." : val}
               </button>
             ))}
+            {[...values].length > 20 && (
+              <span className="text-xs text-gray-400 self-center">+{[...values].length - 20} más</span>
+            )}
           </div>
         </div>
       ))}
       <p className="text-xs text-gray-400 italic">
-        Las variantes mostradas son informativas. Indica tu preferencia al momento de pagar.
+        Las variantes son informativas. Indica tu preferencia en el campo de notas al pagar.
       </p>
     </div>
   );
