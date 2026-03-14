@@ -160,24 +160,22 @@ function Header() {
         </form>
       </div>
 
-      {/* Category nav */}
-      <div className="hidden lg:block border-t border-gray-100 bg-gray-50">
+      {/* Category nav - horizontal bar */}
+      <nav className="border-t border-gray-100 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-1 overflow-x-auto py-1.5 text-sm scrollbar-hide">
-            <Link href="/catalogo" className="px-3 py-1 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy" data-testid="link-all-categories">
+          <div className="flex items-center gap-0.5 overflow-x-auto py-1.5 text-sm" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            <Link href="/catalogo" className="inline-flex items-center px-3 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy shrink-0" data-testid="link-all-categories">
               Todos
             </Link>
-            {CATEGORIES.slice(0, 8).map(cat => (
-              <Link key={cat.id} href={`/catalogo?category=${cat.id}`} className="px-3 py-1 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700" data-testid={`link-category-${cat.id}`}>
-                {cat.icon} {cat.name}
+            {CATEGORIES.map(cat => (
+              <Link key={cat.id} href={`/catalogo?category=${cat.id}`} className="inline-flex items-center px-2.5 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700 text-xs shrink-0" data-testid={`link-category-${cat.id}`}>
+                <span className="mr-1">{cat.icon}</span> {cat.name}
               </Link>
             ))}
-            <Link href="/catalogo" className="px-3 py-1 rounded-md hover:bg-gray-200 whitespace-nowrap text-copikon-red font-medium" data-testid="link-more-categories">
-              + Más
-            </Link>
           </div>
         </div>
-      </div>
+        <style>{`.nav-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+      </nav>
 
       {/* Mobile menu */}
       {menuOpen && (

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
-import { searchProducts as canopySearch, getProductByAsin, canopyToProduct } from "./canopy";
+import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail } from "./canopy";
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate } from "./email";
 import { PgStorage } from "./pg-storage";
 
@@ -292,6 +292,50 @@ export async function registerRoutes(
     } catch (e: any) {
       console.error("Amazon search error:", e.message);
       res.status(500).json({ message: "Error buscando productos", error: e.message });
+    }
+  });
+
+  // ===== PRODUCT DETAIL (Amazon enrichment) =====
+  const detailCache = new Map<string, { data: any; timestamp: number }>();
+  const DETAIL_CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours
+
+  app.get("/api/products/:id/amazon-detail", async (req, res) => {
+    try {
+      const product = await storage.getProduct(+req.params.id);
+      if (!product) return res.status(404).json({ message: "Producto no encontrado" });
+      if (!product.amazonAsin) return res.json({ images: [], featureBullets: [], variants: [] });
+
+      // Check cache
+      const cached = detailCache.get(product.amazonAsin);
+      if (cached && Date.now() - cached.timestamp < DETAIL_CACHE_TTL) {
+        return res.json(cached.data);
+      }
+
+      const detail = await getFullProductDetail(product.amazonAsin);
+      if (!detail) return res.json({ images: [], featureBullets: [], variants: [] });
+
+      const result = {
+        images: [detail.mainImageUrl, ...(detail.imageUrls || [])].filter(Boolean),
+        featureBullets: detail.featureBullets || [],
+        variants: (detail.variants || []).map(v => ({
+          asin: v.asin,
+          text: v.text,
+          attributes: v.attributes || [],
+        })),
+        brand: detail.brand || "",
+      };
+
+      // Cache
+      detailCache.set(product.amazonAsin, { data: result, timestamp: Date.now() });
+      if (detailCache.size > 300) {
+        const oldest = [...detailCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+        if (oldest) detailCache.delete(oldest[0]);
+      }
+
+      res.json(result);
+    } catch (e: any) {
+      console.error("Amazon detail error:", e.message);
+      res.json({ images: [], featureBullets: [], variants: [] });
     }
   });
 

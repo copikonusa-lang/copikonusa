@@ -53,6 +53,70 @@ export async function getProductByAsin(asin: string): Promise<CanopyProduct> {
   return data?.data?.amazonProduct || data;
 }
 
+// Full product detail via GraphQL (images, featureBullets, variants)
+const GRAPHQL_BASE = "https://graphql.canopyapi.co";
+
+export interface ProductVariant {
+  asin: string;
+  text: string;
+  price: { display: string; value: number } | null;
+  attributes: { name: string; value: string }[];
+}
+
+export interface FullProductDetail {
+  title: string;
+  asin: string;
+  brand: string;
+  imageUrls: string[];
+  mainImageUrl: string;
+  featureBullets: string[];
+  variants: ProductVariant[];
+  rating: number;
+  ratingsTotal: number;
+  price: { value: number; display: string; currency: string };
+  isPrime: boolean;
+}
+
+export async function getFullProductDetail(asin: string): Promise<FullProductDetail | null> {
+  if (!CANOPY_API_KEY) return null;
+  try {
+    const query = `query {
+      amazonProduct(input: { asin: "${asin}" }) {
+        title
+        asin
+        brand
+        mainImageUrl
+        imageUrls
+        featureBullets
+        rating
+        ratingsTotal
+        isPrime
+        price { value display currency }
+        variants {
+          asin
+          text
+          price { display value }
+          attributes { name value }
+        }
+      }
+    }`;
+    const res = await fetch(GRAPHQL_BASE, {
+      method: "POST",
+      headers: {
+        "API-KEY": CANOPY_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.data?.amazonProduct || null;
+  } catch {
+    return null;
+  }
+}
+
 export function canopyToProduct(cp: CanopyProduct, category: string, weight: number = 1): Omit<Product, "id"> & { id: number } {
   const basePrice = cp.price?.value || 0;
   const shippingPerLb = 5.50;
