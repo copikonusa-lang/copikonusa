@@ -102,39 +102,64 @@ function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
   variants.forEach(v => {
     v.attributes?.forEach(a => {
       hasStructuredAttrs = true;
-      if (!attrGroups.has(a.name)) attrGroups.set(a.name, new Set());
-      attrGroups.get(a.name)!.add(a.value);
+      const key = a.name || "Opción";
+      if (!attrGroups.has(key)) attrGroups.set(key, new Set());
+      attrGroups.get(key)!.add(a.value);
     });
   });
 
-  // If no structured attributes, parse from text (e.g. "11.5 Wide Dream State/Incense")
+  // If no structured attributes, parse from text aggressively
   if (!hasStructuredAttrs && variants.length > 0) {
     const sizes = new Set<string>();
     const colors = new Set<string>();
-    const sizePattern = /^([\d]+\.?[\d]*\s*(?:Wide|Narrow|Medium|X-Wide)?)/i;
     
+    // Multiple patterns for size detection
+    const sizePatterns = [
+      /^([\d]+\.?[\d]*\s*(?:Wide|Narrow|Medium|X-Wide|W|M|D)?)/i, // "11.5 Wide"
+      /^((?:X?S|S|M|L|XL|XXL|XXXL|2XL|3XL|4XL|One Size))/i, // "S", "M", "L", etc.
+      /^(\d+(?:\/\d+)?(?:\s*-\s*\d+(?:\/\d+)?)?)/i, // "7/8" or "28-30"
+    ];
+
     variants.forEach(v => {
       const text = (v.text || "").trim();
-      const sizeMatch = text.match(sizePattern);
-      if (sizeMatch) {
-        sizes.add(sizeMatch[1].trim());
-        const rest = text.slice(sizeMatch[0].length).trim();
-        if (rest) colors.add(rest);
-      } else {
-        // No size prefix - might just be a color or style variant
-        if (text) colors.add(text);
+      if (!text) return;
+      
+      let matchedSize = false;
+      for (const pattern of sizePatterns) {
+        const sizeMatch = text.match(pattern);
+        if (sizeMatch && sizeMatch[1]) {
+          sizes.add(sizeMatch[1].trim());
+          const rest = text.slice(sizeMatch[0].length).replace(/^[\s,\/]+/, "").trim();
+          if (rest && rest.length > 1) colors.add(rest);
+          matchedSize = true;
+          break;
+        }
+      }
+      
+      if (!matchedSize) {
+        // Could be just a color/style name
+        if (text.length < 50) colors.add(text);
       }
     });
 
     if (sizes.size > 0) attrGroups.set("Size", sizes);
-    if (colors.size > 0 && colors.size <= 30) attrGroups.set("Color", colors);
+    if (colors.size > 0 && colors.size <= 40) attrGroups.set("Color", colors);
+    
+    // If nothing was parsed, show all variants as options
+    if (sizes.size === 0 && colors.size === 0) {
+      const options = new Set<string>();
+      variants.forEach(v => {
+        const text = (v.text || "").trim();
+        if (text && text.length < 60) options.add(text);
+      });
+      if (options.size > 0 && options.size <= 30) {
+        attrGroups.set("Opción", options);
+      }
+    }
   }
 
-  // Only show groups relevant to e-commerce
-  const relevantKeys = ["Size", "Color", "Style", "Pattern", "Flavor", "Scent"];
-  const filtered = [...attrGroups.entries()].filter(
-    ([name]) => relevantKeys.some(k => name.toLowerCase().includes(k.toLowerCase()))
-  );
+  // Show all groups (not just filtered by name)
+  const filtered = [...attrGroups.entries()].filter(([, values]) => values.size > 0);
 
   if (filtered.length === 0) return null;
 
@@ -145,37 +170,51 @@ function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
     Pattern: "Patrón",
     Flavor: "Sabor",
     Scent: "Fragancia",
+    size_name: "Talla",
+    color_name: "Color",
+    style_name: "Estilo",
+    "Opción": "Opciones disponibles",
   };
 
+  const [selected, setSelected] = useState<Record<string, string>>({});
+
   return (
-    <div className="space-y-3">
-      {filtered.map(([name, values]) => (
-        <div key={name}>
-          <p className="text-sm font-semibold text-gray-700 mb-2">
-            {nameMap[name] || name}:
-          </p>
-          <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto">
-            {[...values].slice(0, 20).map((val, i) => (
-              <button
-                key={val}
-                className={`px-2.5 py-1 text-xs border rounded-md transition-all ${
-                  i === 0
-                    ? "border-copikon-red bg-red-50 text-copikon-red font-medium"
-                    : "border-gray-300 text-gray-600 hover:border-gray-500"
-                }`}
-                data-testid={`variant-${name}-${i}`}
-              >
-                {val.length > 35 ? val.slice(0, 32) + "..." : val}
-              </button>
-            ))}
-            {[...values].length > 20 && (
-              <span className="text-xs text-gray-400 self-center">+{[...values].length - 20} más</span>
-            )}
+    <div className="space-y-3 bg-gray-50 rounded-lg p-4 border border-gray-100">
+      <h4 className="text-sm font-bold text-gray-900">Opciones del producto</h4>
+      {filtered.map(([name, values]) => {
+        const displayName = nameMap[name] || name.charAt(0).toUpperCase() + name.slice(1);
+        const valuesArr = [...values];
+        const selectedVal = selected[name] || valuesArr[0];
+        
+        return (
+          <div key={name}>
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              {displayName}: <span className="font-normal text-gray-500">{selectedVal}</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto">
+              {valuesArr.slice(0, 24).map((val) => (
+                <button
+                  key={val}
+                  onClick={() => setSelected(prev => ({ ...prev, [name]: val }))}
+                  className={`px-3 py-1.5 text-xs border rounded-lg transition-all ${
+                    val === selectedVal
+                      ? "border-copikon-red bg-red-50 text-copikon-red font-semibold shadow-sm"
+                      : "border-gray-300 text-gray-600 hover:border-copikon-red hover:bg-red-50/50"
+                  }`}
+                  data-testid={`variant-${name}-${val}`}
+                >
+                  {val.length > 30 ? val.slice(0, 28) + "..." : val}
+                </button>
+              ))}
+              {valuesArr.length > 24 && (
+                <span className="text-xs text-gray-400 self-center ml-1">+{valuesArr.length - 24} más</span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <p className="text-xs text-gray-400 italic">
-        Las variantes son informativas. Indica tu preferencia en el campo de notas al pagar.
+        Indica tu preferencia de variante en las notas al momento de pagar.
       </p>
     </div>
   );
@@ -227,7 +266,7 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
           </li>
           <li className="flex items-center gap-2">
             <Check className="w-3.5 h-3.5 text-copikon-red" />
-            Envío aéreo Miami → Venezuela incluido
+            Envío aéreo USA → Venezuela incluido
           </li>
           <li className="flex items-center gap-2">
             <Check className="w-3.5 h-3.5 text-copikon-red" />
@@ -250,7 +289,7 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
           </div>
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4 text-copikon-navy" />
-            <span>Desde Miami, FL</span>
+            <span>Desde USA</span>
           </div>
           <div className="flex items-center gap-2">
             <Check className="w-4 h-4 text-green-600" />
@@ -342,7 +381,9 @@ export default function ProductDetail() {
       <div className="text-sm text-gray-500 mb-4 flex items-center gap-1 flex-wrap" data-testid="breadcrumb">
         <a href="#/" className="hover:text-copikon-red">Inicio</a>
         <ChevronRight className="w-3 h-3" />
-        <a href={`#/catalogo?category=${product.category}`} className="hover:text-copikon-red">{catName}</a>
+        <a href={`#/catalogo?category=${product.category}`}
+          onClick={(e) => { e.preventDefault(); window.location.hash = `/catalogo?category=${product.category}`; }}
+          className="hover:text-copikon-red cursor-pointer">{catName}</a>
         <ChevronRight className="w-3 h-3" />
         <span className="text-gray-700 truncate max-w-[250px]">{product.name}</span>
       </div>
@@ -420,7 +461,7 @@ export default function ProductDetail() {
             <Truck className="w-5 h-5 shrink-0 text-green-600" />
             <div>
               <p className="font-semibold">Entrega estimada: {estimatedDelivery}</p>
-              <p className="text-xs text-green-600">Envío aéreo semanal Miami → Venezuela</p>
+              <p className="text-xs text-green-600">Envío aéreo semanal USA → Venezuela</p>
             </div>
           </div>
 
@@ -523,7 +564,7 @@ export default function ProductDetail() {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-700">Envío</td>
-                    <td className="px-4 py-3 text-gray-600">Aéreo semanal Miami → Venezuela</td>
+                    <td className="px-4 py-3 text-gray-600">Aéreo semanal USA → Venezuela</td>
                   </tr>
                 </tbody>
               </table>
