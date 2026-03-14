@@ -372,5 +372,49 @@ export async function registerRoutes(
     }
   });
 
+  // Bulk seed products endpoint (admin only)
+  app.post("/api/admin/products/seed", requireAdmin, async (req, res) => {
+    try {
+      if (!(storage instanceof PgStorage)) {
+        return res.status(400).json({ message: "Seed solo disponible con PostgreSQL" });
+      }
+      const products = req.body;
+      if (!Array.isArray(products) || products.length === 0) {
+        return res.status(400).json({ message: "Se requiere un array de productos" });
+      }
+      const results = [];
+      for (const p of products) {
+        try {
+          const { id: _id, ...data } = p;
+          if (!data.createdAt) data.createdAt = new Date().toISOString();
+          const saved = await (storage as PgStorage).createProduct(data);
+          results.push({ name: saved.name, id: saved.id, status: "ok" });
+        } catch (err: any) {
+          results.push({ name: p.name, status: "error", error: err.message });
+        }
+      }
+      const ok = results.filter(r => r.status === "ok").length;
+      const fail = results.filter(r => r.status === "error").length;
+      res.json({ message: `Seed completado: ${ok} creados, ${fail} errores`, total: ok, errors: fail, details: results });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "Error en seed" });
+    }
+  });
+
+  // Admin: Create single product manually
+  app.post("/api/admin/products", requireAdmin, async (req, res) => {
+    try {
+      if (!(storage instanceof PgStorage)) {
+        return res.status(400).json({ message: "Solo disponible con PostgreSQL" });
+      }
+      const data = req.body;
+      if (!data.createdAt) data.createdAt = new Date().toISOString();
+      const saved = await (storage as PgStorage).createProduct(data);
+      res.json(saved);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "Error creando producto" });
+    }
+  });
+
   return httpServer;
 }
