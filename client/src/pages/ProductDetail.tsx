@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductCard from "@/components/ProductCard";
+import ProductImage from "@/components/ProductImage";
 import type { Product, Review } from "@shared/schema";
 import { CATEGORIES } from "@shared/schema";
 import { useCart } from "@/lib/cart";
@@ -99,7 +100,7 @@ export default function ProductDetail() {
           {product.badge && (
             <Badge className="absolute top-4 left-4 bg-copikon-red text-white">{product.badge}</Badge>
           )}
-          <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" data-testid="img-product-detail" />
+          <ProductImage src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" containerClassName="w-full h-full flex items-center justify-center" />
         </div>
 
         {/* Info */}

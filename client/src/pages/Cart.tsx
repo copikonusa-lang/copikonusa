@@ -3,6 +3,7 @@ import { Trash2, Minus, Plus, ShoppingCart, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { formatUSD, formatBs } from "@/lib/utils";
+import { proxyImageUrl } from "@/lib/imageProxy";
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalItems, totalUsd, clearCart } = useCart();
@@ -35,7 +36,7 @@ export default function Cart() {
           {items.map(({ product, quantity }) => (
             <div key={product.id} className="bg-white rounded-lg border border-gray-200 p-4 flex gap-4" data-testid={`cart-item-${product.id}`}>
               <Link href={`/producto/${product.slug}`}>
-                <img src={product.image} alt={product.name} className="w-20 h-20 object-contain rounded bg-gray-50" />
+                <img src={proxyImageUrl(product.image)} alt={product.name} className="w-20 h-20 object-contain rounded bg-gray-50" />
               </Link>
               <div className="flex-1 min-w-0">
                 <Link href={`/producto/${product.slug}`}>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { formatUSD, formatBs, formatDate, formatShortDate } from "@/lib/utils";
+import { proxyImageUrl } from "@/lib/imageProxy";
 import type { Order, ClientOrderStatus } from "@shared/schema";
 import { CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, PAYMENT_METHOD_LABELS } from "@shared/schema";
 
@@ -92,7 +93,7 @@ export default function OrderDetail() {
         <div className="space-y-3">
           {order.items.map((item, i) => (
             <div key={i} className="flex gap-3 text-sm">
-              <img src={item.image} alt="" className="w-12 h-12 object-contain rounded bg-gray-50" />
+              <img src={proxyImageUrl(item.image)} alt="" className="w-12 h-12 object-contain rounded bg-gray-50" />
               <div className="flex-1">
                 <p className="font-medium">{item.name}</p>
                 <p className="text-gray-500 text-xs">Cantidad: {item.quantity} · Peso: {item.weight} lbs</p>

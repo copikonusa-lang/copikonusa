@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
+import { proxyImageUrl } from "@/lib/imageProxy";
 import { apiRequest } from "@/lib/queryClient";
 import { formatUSD, formatBs } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -222,7 +223,7 @@ export default function Checkout() {
             <div className="space-y-3 mb-4">
               {items.map(({ product, quantity }) => (
                 <div key={product.id} className="flex gap-2 text-sm">
-                  <img src={product.image} alt="" className="w-10 h-10 object-contain rounded bg-gray-50" />
+                  <img src={proxyImageUrl(product.image)} alt="" className="w-10 h-10 object-contain rounded bg-gray-50" />
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-gray-700">{product.name}</p>
                     <p className="text-gray-500 text-xs">x{quantity}</p>

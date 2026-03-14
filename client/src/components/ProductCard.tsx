@@ -1,10 +1,11 @@
 import { Link } from "wouter";
-import { ShoppingCart, Star, Heart } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@shared/schema";
 import { useCart } from "@/lib/cart";
 import { formatUSD, formatBs } from "@/lib/utils";
+import ProductImage from "./ProductImage";
 
 interface ProductCardProps {
   product: Product;
@@ -19,14 +20,14 @@ export default function ProductCard({ product, bcvRate = 62 }: ProductCardProps)
       {/* Image */}
       <Link href={`/producto/${product.slug}`}>
         <div className="relative aspect-square bg-white p-4 flex items-center justify-center overflow-hidden">
-          <img
+          <ProductImage
             src={product.image}
             alt={product.name}
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
+            containerClassName="w-full h-full flex items-center justify-center"
           />
           {product.badge && (
-            <Badge className="absolute top-2 left-2 bg-copikon-red text-white text-xs">
+            <Badge className="absolute top-2 left-2 bg-copikon-red text-white text-xs z-10">
               {product.badge}
             </Badge>
           )}
