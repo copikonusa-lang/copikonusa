@@ -172,46 +172,43 @@ export async function registerRoutes(
   const autocompleteCache = new Map<string, { results: any[]; timestamp: number }>();
   
   app.get("/api/autocomplete", async (req, res) => {
-    const q = ((req.query.q as string) || "").trim().toLowerCase();
+    const q = ((req.query.q as string) || "").trim();
     if (!q || q.length < 2) return res.json([]);
     
-    const cached = autocompleteCache.get(q);
+    const cacheKey = q.toLowerCase();
+    const cached = autocompleteCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < 60000) return res.json(cached.results);
     
     try {
       if (!(storage instanceof PgStorage)) return res.json([]);
       const db = (storage as PgStorage).db;
       const { productsTable } = await import("@shared/schema");
+      const { ilike, eq: eqOp, and: andOp, desc: descOp } = await import("drizzle-orm");
       
-      // Fast trigram search with limit
-      const rows = await db.execute(sql`
-        SELECT id, name, slug, image, total_price_usd, rating, reviews, badge, category
-        FROM products 
-        WHERE is_active = true 
-          AND name ILIKE ${'%' + q + '%'}
-        ORDER BY reviews DESC
-        LIMIT 8
-      `);
+      const pattern = `%${q}%`;
+      const rows = await db.select({
+        id: productsTable.id,
+        name: productsTable.name,
+        slug: productsTable.slug,
+        image: productsTable.image,
+        totalPriceUsd: productsTable.totalPriceUsd,
+        rating: productsTable.rating,
+        reviews: productsTable.reviews,
+        badge: productsTable.badge,
+        category: productsTable.category,
+      })
+      .from(productsTable)
+      .where(andOp(eqOp(productsTable.isActive, true), ilike(productsTable.name, pattern)))
+      .orderBy(descOp(productsTable.reviews))
+      .limit(8);
       
-      const results = (rows.rows || rows || []).map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        slug: r.slug,
-        image: r.image,
-        totalPriceUsd: parseFloat(r.total_price_usd),
-        rating: parseFloat(r.rating || '0'),
-        reviews: parseInt(r.reviews || '0'),
-        badge: r.badge,
-        category: r.category,
-      }));
-      
-      autocompleteCache.set(q, { results, timestamp: Date.now() });
+      autocompleteCache.set(cacheKey, { results: rows, timestamp: Date.now() });
       if (autocompleteCache.size > 500) {
         const oldest = [...autocompleteCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
         if (oldest) autocompleteCache.delete(oldest[0]);
       }
       
-      res.json(results);
+      res.json(rows);
     } catch (e: any) {
       console.error('Autocomplete error:', e.message);
       res.json([]);
