@@ -857,7 +857,7 @@ export async function registerRoutes(
     // Find products with English titles (simple heuristic: contains common English words)
     const allProducts = await db.select({ id: productsTable.id, name: productsTable.name })
       .from(productsTable)
-      .where(sql`${productsTable.name} ~* '(\bfor\b|\bwith\b|\band\b|\bthe\b|\binch\b|\bpack\b|\bset\b|\bblack\b|\bwhite\b|\bcompatible\b|\bwireless\b|\bportable\b)'`);
+      .where(sql`${productsTable.name} ~* '( for | with | and | the | inch| pack|black|white|compatible|wireless|portable|charger|headphone|earbuds|battery|speaker)'`);
 
     const [log] = await db.insert(syncLogsTable).values({
       type: "translation",
