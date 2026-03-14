@@ -35,7 +35,7 @@ export default function About() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
             { icon: Shield, title: "Productos Originales", desc: "Todo 100% original y nuevo, directo de Estados Unidos." },
-            { icon: Truck, title: "Envío Aéreo Semanal", desc: "Cada viernes sale un envío desde Miami directo a Venezuela." },
+            { icon: Truck, title: "Envío Aéreo Semanal", desc: "Cada viernes sale un envío desde USA directo a Venezuela." },
             { icon: Users, title: "Atención Personalizada", desc: "Soporte por WhatsApp 24/7 para resolver cualquier duda." },
             { icon: Globe, title: "Catálogo Amplio", desc: "Más de 145 productos en 15 categorías diferentes." },
             { icon: MapPin, title: "4 Sucursales", desc: "Recoge tu pedido en Caracas, Barquisimeto, Valencia o Maracay." },
