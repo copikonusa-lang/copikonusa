@@ -10,7 +10,19 @@ import { CATEGORIES, type Product } from "@shared/schema";
 
 export default function Catalog() {
   const [location] = useLocation();
-  const params = new URLSearchParams(location.split("?")[1] || "");
+  // wouter hash-mode navigate puts query params in window.location.search
+  const getParams = () => {
+    const fromSearch = new URLSearchParams(window.location.search);
+    // Also check hash for legacy links that embed query in hash
+    const hashParts = window.location.hash.split("?");
+    const fromHash = hashParts.length > 1 ? new URLSearchParams(hashParts[1]) : new URLSearchParams();
+    // Merge: window.location.search takes priority
+    const merged = new URLSearchParams();
+    fromHash.forEach((v, k) => merged.set(k, v));
+    fromSearch.forEach((v, k) => merged.set(k, v));
+    return merged;
+  };
+  const params = getParams();
 
   const [category, setCategory] = useState(params.get("category") || "");
   const [search, setSearch] = useState(params.get("search") || "");
@@ -20,7 +32,7 @@ export default function Catalog() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    const p = new URLSearchParams(location.split("?")[1] || "");
+    const p = getParams();
     setCategory(p.get("category") || "");
     setSearch(p.get("search") || "");
     setPage(1);
