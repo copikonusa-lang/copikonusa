@@ -3,7 +3,7 @@ import {
   type Review, type Setting, type InsertUser, type InsertOrder,
   type InsertReview, type OrderItem, type OrderStatus,
   usersTable, productsTable, ordersTable, wishlistTable,
-  reviewsTable, settingsTable,
+  reviewsTable, settingsTable, syncLogsTable,
 } from "@shared/schema";
 import { eq, ilike, and, or, gte, lte, desc, asc, sql, count } from "drizzle-orm";
 import { getDb } from "./db";
@@ -50,7 +50,7 @@ function buildAmazonCartUrl(items: OrderItem[]): string {
 }
 
 export class PgStorage implements IStorage {
-  private db;
+  public db;
 
   constructor() {
     this.db = getDb()!;
@@ -58,6 +58,24 @@ export class PgStorage implements IStorage {
   }
 
   private async seed() {
+    // Ensure sync_logs table exists
+    await this.db.execute(sql`
+      CREATE TABLE IF NOT EXISTS sync_logs (
+        id SERIAL PRIMARY KEY,
+        type TEXT NOT NULL,
+        started_at TEXT NOT NULL,
+        completed_at TEXT,
+        total_products INTEGER DEFAULT 0,
+        updated INTEGER DEFAULT 0,
+        deactivated INTEGER DEFAULT 0,
+        reactivated INTEGER DEFAULT 0,
+        price_alerts INTEGER DEFAULT 0,
+        errors INTEGER DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'running',
+        details JSONB DEFAULT '{}'
+      )
+    `);
+
     // Check if admin exists
     const existing = await this.db.select().from(usersTable).where(eq(usersTable.email, "admin@copikonusa.com")).limit(1);
     if (existing.length === 0) {
