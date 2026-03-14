@@ -529,7 +529,11 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/products", requireAdmin, async (req, res) => {
-    const result = await storage.getProducts({ limit: 200 });
+    const { page, limit } = req.query;
+    const result = await storage.getProducts({ 
+      page: page ? +page : 1, 
+      limit: limit ? +limit : 200 
+    });
     res.json(result);
   });
 
