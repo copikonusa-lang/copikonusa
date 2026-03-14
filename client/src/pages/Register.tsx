@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { BRANCHES } from "@shared/schema";
-import logoImg from "@assets/logo-copikonusa.png";
+import { CopikonLogo } from "@/components/CopikonLogo";
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -35,7 +35,7 @@ export default function Register() {
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <img src={logoImg} alt="CopikonUSA" className="h-12 mx-auto mb-4" />
+          <div className="flex justify-center mb-4"><CopikonLogo height={48} /></div>
           <h1 className="font-display font-bold text-xl">Crear Cuenta</h1>
           <p className="text-sm text-gray-500 mt-1">Regístrate para empezar a comprar</p>
         </div>

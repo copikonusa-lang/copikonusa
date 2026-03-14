@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import logoImg from "@assets/logo-copikonusa.png";
+import { CopikonLogo } from "@/components/CopikonLogo";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -29,7 +29,7 @@ export default function Login() {
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src={logoImg} alt="CopikonUSA" className="h-12 mx-auto mb-4" />
+          <div className="flex justify-center mb-4"><CopikonLogo height={48} /></div>
           <h1 className="font-display font-bold text-xl">Iniciar Sesión</h1>
           <p className="text-sm text-gray-500 mt-1">Accede a tu cuenta CopikonUSA</p>
         </div>

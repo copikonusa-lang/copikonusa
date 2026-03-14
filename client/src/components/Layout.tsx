@@ -1,14 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { ShoppingCart, Heart, User, Menu, X, Search, ChevronDown, Package, LogOut, Settings, LayoutDashboard, Home, Phone } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import type { ReactNode } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES } from "@shared/schema";
-import logoHeader from "@assets/logo-header.png";
-import logoFooterWhite from "@assets/logo-footer-white.png";
+import { CopikonLogo } from "./CopikonLogo";
 import { PerplexityAttribution } from "./PerplexityAttribution";
 
 function Header() {
@@ -68,7 +66,7 @@ function Header() {
 
           {/* Logo */}
           <Link href="/" className="shrink-0">
-            <img src={logoHeader} alt="CopikonUSA" className="h-9 sm:h-10" data-testid="img-logo" />
+            <CopikonLogo height={36} data-testid="img-logo" />
           </Link>
 
           {/* Search */}
@@ -226,7 +224,7 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <img src={logoFooterWhite} alt="CopikonUSA" className="h-10 mb-4" />
+            <CopikonLogo height={36} variant="white" className="mb-4" />
             <p className="text-gray-300 text-sm leading-relaxed">
               Tu tienda americana favorita. Los mejores productos de Estados Unidos con envío aéreo semanal a Venezuela.
             </p>

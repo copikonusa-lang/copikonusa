@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProductCard from "@/components/ProductCard";
 import { CATEGORIES, type Product } from "@shared/schema";
-import heroImg from "@assets/hero.jpg";
 import { useState, useEffect } from "react";
 
 function HeroSection() {
@@ -19,8 +18,14 @@ function HeroSection() {
 
   return (
     <section className="relative bg-gradient-to-br from-copikon-navy via-copikon-navy to-gray-900 text-white overflow-hidden">
-      <div className="absolute inset-0 opacity-20">
-        <img src={heroImg} alt="" className="w-full h-full object-cover" />
+      {/* Decorative pattern overlay instead of hero image */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(227,30,36,0.3) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(27,42,74,0.4) 0%, transparent 50%)`,
+        }} />
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
       </div>
       <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
         <div className="max-w-2xl">
