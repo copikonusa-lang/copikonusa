@@ -76,6 +76,19 @@ export class PgStorage implements IStorage {
       )
     `);
 
+    // Create pg_trgm extension and search indexes for fast search
+    try {
+      await this.db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
+      await this.db.execute(sql`CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON products USING gin (name gin_trgm_ops)`);
+      await this.db.execute(sql`CREATE INDEX IF NOT EXISTS idx_products_category ON products (category)`);
+      await this.db.execute(sql`CREATE INDEX IF NOT EXISTS idx_products_reviews ON products (reviews DESC)`);
+      await this.db.execute(sql`CREATE INDEX IF NOT EXISTS idx_products_active ON products (is_active)`);
+      await this.db.execute(sql`CREATE INDEX IF NOT EXISTS idx_products_active_cat ON products (is_active, category)`);
+      console.log('[DB] Search indexes created/verified');
+    } catch (e) {
+      console.log('[DB] Index creation note:', (e as any).message);
+    }
+
     // Check if admin exists
     const existing = await this.db.select().from(usersTable).where(eq(usersTable.email, "admin@copikonusa.com")).limit(1);
     if (existing.length === 0) {
@@ -173,8 +186,8 @@ export class PgStorage implements IStorage {
       const q = `%${filters.search}%`;
       conditions.push(
         or(
-          ilike(productsTable.name, q),
-          ilike(productsTable.description, q),
+          sql`${productsTable.name} ILIKE ${q}`,
+          sql`${productsTable.description} ILIKE ${q}`,
           ilike(productsTable.category, q),
         )
       );
