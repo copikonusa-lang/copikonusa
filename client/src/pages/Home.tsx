@@ -92,7 +92,7 @@ function HeroBanner() {
 // ===== VALUE PROPS BAR =====
 function ValueProps() {
   const props = [
-    { icon: Truck, title: "Envío Aéreo Semanal", desc: "Miami → Venezuela cada viernes" },
+    { icon: Truck, title: "Envío Aéreo Semanal", desc: "USA → Venezuela cada viernes" },
     { icon: Shield, title: "100% Originales", desc: "Productos con garantía" },
     { icon: CreditCard, title: "Paga como quieras", desc: "Zelle, Binance, Bolívares" },
     { icon: Clock, title: "Entrega 7-10 días", desc: "El más rápido del mercado" },
