@@ -1,7 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import https from "https";
-import http from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
@@ -59,47 +57,28 @@ export async function registerRoutes(
       return res.send(cached.data);
     }
 
-    // Fetch from source
+    // Fetch from source using global fetch (Node 18+)
     try {
-      const fetchModule = url.startsWith("https") ? https : http;
-      const imageData = await new Promise<{ data: Buffer; contentType: string }>((resolve, reject) => {
-        const request = fetchModule.get(url, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.amazon.com/",
-          },
-          timeout: 10000,
-        }, (response) => {
-          // Follow redirects
-          if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-            fetchModule.get(response.headers.location, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Referer": "https://www.amazon.com/",
-              },
-              timeout: 10000,
-            }, (resp2) => {
-              const chunks: Buffer[] = [];
-              resp2.on("data", (chunk: Buffer) => chunks.push(chunk));
-              resp2.on("end", () => resolve({ data: Buffer.concat(chunks), contentType: resp2.headers["content-type"] || "image/jpeg" }));
-              resp2.on("error", reject);
-            }).on("error", reject);
-            return;
-          }
-          if (response.statusCode !== 200) {
-            reject(new Error(`HTTP ${response.statusCode}`));
-            return;
-          }
-          const chunks: Buffer[] = [];
-          response.on("data", (chunk: Buffer) => chunks.push(chunk));
-          response.on("end", () => resolve({ data: Buffer.concat(chunks), contentType: response.headers["content-type"] || "image/jpeg" }));
-          response.on("error", reject);
-        });
-        request.on("error", reject);
-        request.on("timeout", () => { request.destroy(); reject(new Error("Timeout")); });
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Referer": "https://www.amazon.com/",
+        },
+        signal: AbortSignal.timeout(15000),
+        redirect: "follow",
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const imageData = {
+        data: Buffer.from(arrayBuffer),
+        contentType: response.headers.get("content-type") || "image/jpeg",
+      };
 
       // Store in cache (limit cache size to 500 entries)
       if (imageCache.size > 500) {
