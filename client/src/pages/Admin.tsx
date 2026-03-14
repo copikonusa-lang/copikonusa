@@ -97,6 +97,7 @@ function DashboardTab({ token }: { token: string }) {
         ))}
       </div>
 
+      {/* Recent orders */}
       {data?.recentOrders?.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h3 className="font-display font-bold text-sm mb-3">Pedidos Recientes</h3>
@@ -391,6 +392,7 @@ export default function Admin() {
     <div className="flex min-h-[calc(100vh-120px)]">
       <AdminSidebar tab={tab} setTab={setTab} />
 
+      {/* Mobile nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 flex">
         {[
           { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },

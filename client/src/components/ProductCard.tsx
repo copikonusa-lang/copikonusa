@@ -1,80 +1,85 @@
 import { Link } from "wouter";
 import { ShoppingCart, Star, Heart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/lib/cart";
-import { useAuth } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import type { Product } from "@shared/schema";
+import { useCart } from "@/lib/cart";
+import { formatUSD, formatBs } from "@/lib/utils";
 
-export default function ProductCard({ product }: { product: Product }) {
+interface ProductCardProps {
+  product: Product;
+  bcvRate?: number;
+}
+
+export default function ProductCard({ product, bcvRate = 62 }: ProductCardProps) {
   const { addItem } = useCart();
-  const { token } = useAuth();
-  const { toast } = useToast();
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.totalPriceUsd,
-      image: product.image,
-      asin: product.amazonAsin || undefined,
-    });
-    toast({ title: "Agregado al carrito", description: product.name });
-  };
-
-  const handleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!token) { toast({ title: "Inicia sesión para guardar favoritos", variant: "destructive" }); return; }
-    await fetch("/api/wishlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ productId: product.id }),
-    });
-    toast({ title: "Guardado en favoritos" });
-  };
 
   return (
-    <Link href={`/product/${product.id}`}>
-      <div className="group relative bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
-        <div className="aspect-square overflow-hidden bg-gray-50 relative">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden group hover:shadow-md transition-shadow" data-testid={`card-product-${product.id}`}>
+      {/* Image */}
+      <Link href={`/producto/${product.slug}`}>
+        <div className="relative aspect-square bg-white p-4 flex items-center justify-center overflow-hidden">
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-product.png"; }}
+            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
           />
           {product.badge && (
-            <Badge className="absolute top-2 left-2 bg-copikon-red text-white border-0">{product.badge}</Badge>
+            <Badge className="absolute top-2 left-2 bg-copikon-red text-white text-xs">
+              {product.badge}
+            </Badge>
           )}
-          <button onClick={handleWishlist} className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Heart className="h-4 w-4 text-gray-600" />
-          </button>
         </div>
-        <div className="p-3">
-          <p className="text-xs text-gray-400 mb-1">{product.category}</p>
-          <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2">{product.name}</h3>
-          {product.rating > 0 && (
-            <div className="flex items-center gap-1 mb-2">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span className="text-xs text-gray-500">{product.rating} ({product.reviews})</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="font-bold text-gray-900">{formatCurrency(product.totalPriceUsd)}</span>
-              {product.oldPrice && <span className="text-xs text-gray-400 line-through ml-1">{formatCurrency(product.oldPrice)}</span>}
-            </div>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-copikon-red/10 hover:text-copikon-red" onClick={handleAddToCart}>
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
+      </Link>
+
+      {/* Info */}
+      <div className="p-3 space-y-2">
+        <Link href={`/producto/${product.slug}`}>
+          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-copikon-red transition-colors leading-tight" data-testid={`text-product-name-${product.id}`}>
+            {product.name}
+          </h3>
+        </Link>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className={`w-3 h-3 ${i < Math.round(product.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+            ))}
           </div>
+          <span className="text-xs text-gray-500">({product.reviews.toLocaleString()})</span>
         </div>
+
+        {/* Price */}
+        <div>
+          <p className="text-lg font-bold text-copikon-red font-display" data-testid={`text-price-usd-${product.id}`}>
+            {formatUSD(product.totalPriceUsd)}
+          </p>
+          <p className="text-xs text-gray-500" data-testid={`text-price-bs-${product.id}`}>
+            {formatBs(product.totalPriceUsd, bcvRate)}
+          </p>
+          {product.oldPrice && (
+            <p className="text-xs text-gray-400 line-through">
+              {formatUSD(product.oldPrice)}
+            </p>
+          )}
+        </div>
+
+        {/* Add to cart */}
+        <Button
+          size="sm"
+          className="w-full bg-copikon-red hover:bg-red-800 text-white text-xs"
+          onClick={(e) => {
+            e.preventDefault();
+            addItem(product);
+          }}
+          data-testid={`button-add-cart-${product.id}`}
+        >
+          <ShoppingCart className="w-3.5 h-3.5 mr-1" />
+          Agregar al carrito
+        </Button>
       </div>
-    </Link>
+    </div>
   );
 }
