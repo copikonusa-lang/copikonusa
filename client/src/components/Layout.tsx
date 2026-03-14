@@ -43,7 +43,7 @@ function Header() {
       {/* Top bar */}
       <div className="bg-copikon-navy text-white text-xs py-1.5">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <span>Envío aéreo semanal Miami → Venezuela</span>
+          <span>Envío aéreo semanal USA → Venezuela</span>
           <div className="hidden sm:flex items-center gap-4">
             <a href="https://wa.me/584120000000" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 flex items-center gap-1">
               <Phone className="w-3 h-3" /> WhatsApp
@@ -164,13 +164,17 @@ function Header() {
       <nav className="border-t border-gray-100 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-0.5 overflow-x-auto py-1.5 text-sm" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <Link href="/catalogo" className="inline-flex items-center px-3 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy shrink-0" data-testid="link-all-categories">
+            <a href="#/catalogo" className="inline-flex items-center px-3 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy shrink-0" data-testid="link-all-categories"
+              onClick={(e) => { e.preventDefault(); window.location.hash = '/catalogo'; }}
+            >
               Todos
-            </Link>
+            </a>
             {CATEGORIES.map(cat => (
-              <Link key={cat.id} href={`/catalogo?category=${cat.id}`} className="inline-flex items-center px-2.5 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700 text-xs shrink-0" data-testid={`link-category-${cat.id}`}>
+              <a key={cat.id} href={`#/catalogo?category=${cat.id}`} className="inline-flex items-center px-2.5 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700 text-xs shrink-0" data-testid={`link-category-${cat.id}`}
+                onClick={(e) => { e.preventDefault(); window.location.hash = `/catalogo?category=${cat.id}`; }}
+              >
                 <span className="mr-1">{cat.icon}</span> {cat.name}
-              </Link>
+              </a>
             ))}
           </div>
         </div>
@@ -189,9 +193,11 @@ function Header() {
             </Link>
             <div className="border-t border-gray-100 my-2" />
             {CATEGORIES.map(cat => (
-              <Link key={cat.id} href={`/catalogo?category=${cat.id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm" onClick={() => setMenuOpen(false)}>
+              <a key={cat.id} href={`#/catalogo?category=${cat.id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
+                onClick={(e) => { e.preventDefault(); window.location.hash = `/catalogo?category=${cat.id}`; setMenuOpen(false); }}
+              >
                 <span>{cat.icon}</span> {cat.name}
-              </Link>
+              </a>
             ))}
             <div className="border-t border-gray-100 my-2" />
             <Link href="/faq" className="block px-3 py-2 rounded-lg hover:bg-gray-50 text-sm" onClick={() => setMenuOpen(false)}>Preguntas Frecuentes</Link>
@@ -213,7 +219,7 @@ function Footer() {
           <div>
             <CopikonLogo height={36} variant="white" className="mb-4" />
             <p className="text-gray-300 text-sm leading-relaxed">
-              Tu tienda americana favorita. Los mejores productos de Estados Unidos con envío aéreo semanal a Venezuela.
+              Tu tienda americana favorita. Los mejores productos de Estados Unidos con envío aéreo semanal desde USA a Venezuela.
             </p>
           </div>
 
