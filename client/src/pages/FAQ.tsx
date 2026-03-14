@@ -2,7 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 const faqs = [
   { q: "¿Cómo funciona CopikonUSA?", a: "Somos tu tienda americana en Venezuela. Tú eliges el producto en nuestra web, realizas tu pago, nosotros gestionamos la compra en Estados Unidos y te lo entregamos en tu sucursal más cercana." },
-  { q: "¿Cuánto tarda la entrega?", a: "El tiempo promedio es de 7 a 16 días. El producto llega a nuestro almacén en Miami en 2-3 días, el envío aéreo sale cada viernes y llega el martes a Venezuela. El miércoles está disponible en tu sucursal." },
+  { q: "¿Cuánto tarda la entrega?", a: "El tiempo promedio es de 7 a 16 días. El producto llega a nuestro almacén en USA en 2-3 días, el envío aéreo sale cada viernes y llega el martes a Venezuela. El miércoles está disponible en tu sucursal." },
   { q: "¿Los productos son originales?", a: "Sí, todos los productos son 100% originales y nuevos, comprados directamente de proveedores autorizados en Estados Unidos." },
   { q: "¿Cómo se calcula el precio?", a: "El precio que ves en nuestra web ya incluye todo: costo del producto, gestión de compra y envío aéreo. Sin sorpresas ni cargos ocultos." },
   { q: "¿Qué métodos de pago aceptan?", a: "Aceptamos Zelle (USD), Binance USDT, y transferencia/pago móvil en bolívares. Los precios en bolívares se calculan a 1.50x la tasa BCV del día." },
