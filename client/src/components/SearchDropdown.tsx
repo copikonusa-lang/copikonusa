@@ -136,7 +136,7 @@ export default function SearchDropdown() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onFocus={() => { if (query.trim().length >= 2 && (results.length > 0 || localResults.length > 0)) setOpen(true); }}
-          placeholder="Buscar cualquier producto de Amazon..."
+          placeholder="Buscar cualquier producto de EE.UU..."
           className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:border-copikon-red text-sm"
           data-testid="input-search"
         />
@@ -192,14 +192,14 @@ export default function SearchDropdown() {
           {loading && results.length === 0 && (
             <div className="px-4 py-8 text-center text-gray-500 text-sm">
               <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
-              Buscando en todo Amazon...
+              Buscando productos en EE.UU...
             </div>
           )}
 
           {results.length > 0 && (
             <div>
               <div className="px-3 py-2 bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                <Search className="w-3.5 h-3.5" /> Resultados de Amazon ({results.length})
+                <Search className="w-3.5 h-3.5" /> Más resultados ({results.length})
               </div>
               {results.slice(0, 12).map((p) => (
                 <div
@@ -218,7 +218,7 @@ export default function SearchDropdown() {
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-sm font-bold text-copikon-red">{formatUSD(p.totalPriceUsd)}</span>
                       <span className="text-xs text-gray-400">{formatBs(p.totalPriceUsd)}</span>
-                      {p.isPrime && <span className="text-[10px] bg-blue-100 text-blue-800 px-1 rounded font-medium">Prime</span>}
+                      {p.isPrime && <span className="text-[10px] bg-blue-100 text-blue-800 px-1 rounded font-medium">Envío rápido</span>}
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
                       <div className="flex">
