@@ -1,11 +1,11 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { CartProvider } from "./lib/cart";
-import { AuthProvider } from "./lib/auth";
+import { AuthProvider } from "@/lib/auth";
+import { CartProvider } from "@/lib/cart";
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import Catalog from "@/pages/Catalog";
@@ -14,38 +14,37 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
-import Profile from "@/pages/Profile";
 import MyOrders from "@/pages/MyOrders";
 import OrderDetail from "@/pages/OrderDetail";
 import Wishlist from "@/pages/Wishlist";
-import PaymentMethods from "@/pages/PaymentMethods";
-import Returns from "@/pages/Returns";
-import About from "@/pages/About";
+import Profile from "@/pages/Profile";
 import FAQ from "@/pages/FAQ";
+import PaymentMethods from "@/pages/PaymentMethods";
+import About from "@/pages/About";
 import Terms from "@/pages/Terms";
+import Returns from "@/pages/Returns";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
-function Router() {
-  const [location] = useHashLocation();
+function AppRouter() {
   return (
-    <Switch location={location}>
+    <Switch>
       <Route path="/" component={Home} />
-      <Route path="/catalog" component={Catalog} />
-      <Route path="/product/:id" component={ProductDetail} />
-      <Route path="/cart" component={Cart} />
+      <Route path="/catalogo" component={Catalog} />
+      <Route path="/producto/:slug" component={ProductDetail} />
+      <Route path="/carrito" component={Cart} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/my-orders" component={MyOrders} />
-      <Route path="/orders/:id" component={OrderDetail} />
+      <Route path="/registro" component={Register} />
+      <Route path="/mis-pedidos" component={MyOrders} />
+      <Route path="/pedido/:id" component={OrderDetail} />
       <Route path="/wishlist" component={Wishlist} />
-      <Route path="/payment-methods" component={PaymentMethods} />
-      <Route path="/returns" component={Returns} />
-      <Route path="/about" component={About} />
+      <Route path="/perfil" component={Profile} />
       <Route path="/faq" component={FAQ} />
-      <Route path="/terms" component={Terms} />
+      <Route path="/metodos-de-pago" component={PaymentMethods} />
+      <Route path="/sobre-nosotros" component={About} />
+      <Route path="/terminos" component={Terms} />
+      <Route path="/devoluciones" component={Returns} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
@@ -55,16 +54,18 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CartProvider>
-          <TooltipProvider>
-            <Layout>
-              <Router />
-            </Layout>
+      <TooltipProvider>
+        <AuthProvider>
+          <CartProvider>
             <Toaster />
-          </TooltipProvider>
-        </CartProvider>
-      </AuthProvider>
+            <Router hook={useHashLocation}>
+              <Layout>
+                <AppRouter />
+              </Layout>
+            </Router>
+          </CartProvider>
+        </AuthProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
