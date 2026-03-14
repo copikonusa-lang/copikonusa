@@ -240,6 +240,13 @@ export async function registerRoutes(
   // Title translation: English -> Spanish for product names
   function translateTitle(title: string): string {
     const replacements: [RegExp, string][] = [
+      // Amazon cleanup - MUST be first
+      [/Amazon Basics/gi, "Copikon Basics"],
+      [/Amazon Echo/gi, "Echo"],
+      [/Amazon Fire/gi, "Fire"],
+      [/Amazon Kids/gi, "Kids"],
+      [/Amazon Exclusive/gi, "Exclusivo"],
+      [/Amazon/gi, ""],
       // Common product descriptors
       [/\bWireless\b/gi, "Inalámbrico"],
       [/\bPortable\b/gi, "Portátil"],
