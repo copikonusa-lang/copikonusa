@@ -237,6 +237,65 @@ export async function registerRoutes(
     return +(amazonPrice * 1.15 + weightLbs * 5.50).toFixed(2);
   }
 
+  // Title translation: English -> Spanish for product names
+  function translateTitle(title: string): string {
+    const replacements: [RegExp, string][] = [
+      // Common product descriptors
+      [/\bWireless\b/gi, "Inalámbrico"],
+      [/\bPortable\b/gi, "Portátil"],
+      [/\bRechargeable\b/gi, "Recargable"],
+      [/\bWaterproof\b/gi, "Resistente al agua"],
+      [/\bAdjustable\b/gi, "Ajustable"],
+      [/\bFoldable\b/gi, "Plegable"],
+      [/\bStainless Steel\b/gi, "Acero inoxidable"],
+      [/\bNoise Cancell?ing\b/gi, "Cancelación de ruido"],
+      // Colors
+      [/\bBlack\b/g, "Negro"], [/\bWhite\b/g, "Blanco"], [/\bBlue\b/g, "Azul"],
+      [/\bRed\b/g, "Rojo"], [/\bGreen\b/g, "Verde"], [/\bPink\b/g, "Rosa"],
+      [/\bGold\b/g, "Dorado"], [/\bSilver\b/g, "Plateado"], [/\bGray\b/g, "Gris"],
+      [/\bPurple\b/g, "Morado"], [/\bOrange\b/g, "Naranja"], [/\bYellow\b/g, "Amarillo"],
+      // Prepositions & connectors
+      [/\bfor\b/gi, "para"], [/\bwith\b/gi, "con"], [/\band\b/gi, "y"],
+      [/\bPack of (\d+)\b/gi, "Paquete de $1"], [/\b(\d+)[- ]?Pack\b/gi, "Paquete de $1"],
+      [/\bSet of (\d+)\b/gi, "Set de $1"],
+      [/\bCompatible with\b/gi, "Compatible con"],
+      // Units
+      [/\bInch\b/gi, "Pulgadas"], [/\binches\b/gi, "Pulgadas"],
+      [/\bPound\b/gi, "Libras"], [/\bpounds\b/gi, "Libras"],
+      // Product types
+      [/\bHeadphones\b/gi, "Audífonos"], [/\bEarbuds\b/gi, "Auriculares"],
+      [/\bSpeaker\b/gi, "Altavoz"], [/\bCharger\b/gi, "Cargador"],
+      [/\bCase\b/g, "Funda"], [/\bCover\b/gi, "Funda"],
+      [/\bScreen Protector\b/gi, "Protector de pantalla"],
+      [/\bKeyboard\b/gi, "Teclado"], [/\bMouse\b/g, "Ratón"],
+      [/\bLaptop\b/gi, "Portátil"], [/\bTablet\b/gi, "Tableta"],
+      [/\bWatch\b/g, "Reloj"], [/\bBattery\b/gi, "Batería"],
+      [/\bCable\b/gi, "Cable"], [/\bAdapter\b/gi, "Adaptador"],
+      [/\bHolder\b/gi, "Soporte"], [/\bStand\b/g, "Soporte"],
+      [/\bBag\b/g, "Bolsa"], [/\bBackpack\b/gi, "Mochila"],
+      [/\bBottle\b/gi, "Botella"], [/\bBlanket\b/gi, "Manta"],
+      [/\bPillow\b/gi, "Almohada"], [/\bTowel\b/gi, "Toalla"],
+      [/\bShoes\b/gi, "Zapatos"], [/\bRunning\b/gi, "Correr"],
+      [/\bTraining\b/gi, "Entrenamiento"],
+      [/\bMen\b/g, "Hombre"], [/\bWomen\b/g, "Mujer"],
+      [/\bBoys\b/g, "Niños"], [/\bGirls\b/g, "Niñas"],
+      [/\bKids\b/gi, "Niños"], [/\bBaby\b/gi, "Bebé"],
+      [/\bLight\b/g, "Luz"], [/\bLights\b/gi, "Luces"],
+      [/\bSmall\b/gi, "Pequeño"], [/\bLarge\b/gi, "Grande"],
+      [/\bMini\b/gi, "Mini"], [/\bHeavy Duty\b/gi, "Resistente"],
+      // Remove Amazon-specific branding phrases
+      [/\bAmazon's? Choice\b/gi, ""],
+      [/\bBest Seller\b/gi, ""],
+    ];
+    let result = title;
+    for (const [pattern, replacement] of replacements) {
+      result = result.replace(pattern, replacement);
+    }
+    // Clean up extra spaces
+    result = result.replace(/\s+/g, " ").trim();
+    return result;
+  }
+
   app.get("/api/search/amazon", async (req, res) => {
     try {
       const query = (req.query.q as string || "").trim();
@@ -667,6 +726,191 @@ export async function registerRoutes(
   });
 
   // Admin: Create single product manually
+  // ===== CRON: PRICE & AVAILABILITY SYNC =====
+  app.post("/api/admin/sync/prices", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { syncLogsTable, productsTable } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    // Create sync log
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "price_sync",
+      startedAt: new Date().toISOString(),
+      status: "running",
+    }).returning();
+
+    res.json({ message: "Sincronización iniciada", logId: log.id });
+
+    // Run sync in background
+    (async () => {
+      let updated = 0, deactivated = 0, reactivated = 0, priceAlerts = 0, errors = 0;
+      const alerts: any[] = [];
+      try {
+        const allProducts = await db.select().from(productsTable);
+        const batchSize = 5; // Process 5 at a time to avoid rate limits
+        
+        for (let i = 0; i < allProducts.length; i += batchSize) {
+          const batch = allProducts.slice(i, i + batchSize);
+          await Promise.all(batch.map(async (product) => {
+            try {
+              const asin = (product.specs as any)?.ASIN || product.amazonAsin;
+              if (!asin) return;
+
+              const detail = await getProductByAsin(asin);
+              if (!detail || !detail.price?.value) {
+                // Product unavailable
+                if (product.isActive) {
+                  await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+                  deactivated++;
+                }
+                return;
+              }
+
+              // Reactivate if was inactive
+              if (!product.isActive) {
+                reactivated++;
+              }
+
+              const newBasePrice = detail.price.value;
+              const weight = product.weight || 1;
+              const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.50).toFixed(2);
+              const oldTotalPrice = product.totalPriceUsd;
+              
+              // Check for large price change (>20%)
+              const priceChange = oldTotalPrice > 0 ? Math.abs(newTotalPriceUsd - oldTotalPrice) / oldTotalPrice : 0;
+              if (priceChange > 0.20) {
+                priceAlerts++;
+                alerts.push({
+                  productId: product.id,
+                  name: product.name,
+                  oldPrice: oldTotalPrice,
+                  newPrice: newTotalPriceUsd,
+                  change: `${(priceChange * 100).toFixed(0)}%`,
+                });
+              }
+
+              const updates: any = {
+                basePrice: newBasePrice,
+                totalPriceUsd: newTotalPriceUsd,
+                isActive: true,
+                rating: detail.rating || product.rating,
+                reviews: detail.ratingsTotal || product.reviews,
+              };
+
+              // Update image if changed
+              if (detail.mainImageUrl && detail.mainImageUrl !== product.image) {
+                updates.image = detail.mainImageUrl;
+              }
+
+              // Update badge
+              const reviews = detail.ratingsTotal || 0;
+              const rating = detail.rating || 0;
+              updates.badge = reviews >= 50000 ? "Más vendido" : reviews >= 10000 ? "Popular" : (reviews >= 5000 && rating >= 4.5) ? "Popular" : "";
+
+              // Save old price for "was $X" display
+              if (oldTotalPrice !== newTotalPriceUsd) {
+                updates.oldPrice = oldTotalPrice;
+                updated++;
+              }
+
+              await db.update(productsTable).set(updates).where(eq(productsTable.id, product.id));
+            } catch (e: any) {
+              errors++;
+            }
+          }));
+          // Rate limit: wait between batches
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        await db.update(syncLogsTable).set({
+          completedAt: new Date().toISOString(),
+          totalProducts: allProducts.length,
+          updated,
+          deactivated,
+          reactivated,
+          priceAlerts,
+          errors,
+          status: "completed",
+          details: { alerts },
+        }).where(eq(syncLogsTable.id, log.id));
+
+        console.log(`[SYNC] Completed: ${updated} updated, ${deactivated} deactivated, ${reactivated} reactivated, ${priceAlerts} alerts, ${errors} errors`);
+      } catch (e: any) {
+        await db.update(syncLogsTable).set({
+          completedAt: new Date().toISOString(),
+          status: "failed",
+          details: { error: e.message },
+        }).where(eq(syncLogsTable.id, log.id));
+        console.error(`[SYNC] Failed:`, e.message);
+      }
+    })();
+  });
+
+  // ===== CRON: TRANSLATE TITLES =====
+  app.post("/api/admin/sync/translate", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable, syncLogsTable } = await import("@shared/schema");
+    const { eq, sql } = await import("drizzle-orm");
+
+    // Find products with English titles (simple heuristic: contains common English words)
+    const allProducts = await db.select({ id: productsTable.id, name: productsTable.name })
+      .from(productsTable)
+      .where(sql`${productsTable.name} ~* '(\bfor\b|\bwith\b|\band\b|\bthe\b|\binch\b|\bpack\b|\bset\b|\bblack\b|\bwhite\b|\bcompatible\b|\bwireless\b|\bportable\b)'`);
+
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "translation",
+      startedAt: new Date().toISOString(),
+      totalProducts: allProducts.length,
+      status: "running",
+    }).returning();
+
+    res.json({ message: `Traducción iniciada para ${allProducts.length} productos`, logId: log.id });
+
+    // Background translation
+    (async () => {
+      let translated = 0, errors = 0;
+      const BATCH = 20;
+      for (let i = 0; i < allProducts.length; i += BATCH) {
+        const batch = allProducts.slice(i, i + BATCH);
+        const titles = batch.map(p => p.name);
+        try {
+          // Use a simple translation approach: key English->Spanish word replacements
+          for (const product of batch) {
+            try {
+              const translated_name = translateTitle(product.name);
+              if (translated_name !== product.name) {
+                await db.update(productsTable)
+                  .set({ name: translated_name })
+                  .where(eq(productsTable.id, product.id));
+                translated++;
+              }
+            } catch { errors++; }
+          }
+        } catch { errors += batch.length; }
+      }
+
+      await db.update(syncLogsTable).set({
+        completedAt: new Date().toISOString(),
+        updated: translated,
+        errors,
+        status: "completed",
+      }).where(eq(syncLogsTable.id, log.id));
+      console.log(`[TRANSLATE] Done: ${translated} translated, ${errors} errors`);
+    })();
+  });
+
+  // ===== GET SYNC LOGS =====
+  app.get("/api/admin/sync/logs", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.json([]);
+    const db = (storage as PgStorage).db;
+    const { syncLogsTable } = await import("@shared/schema");
+    const { desc } = await import("drizzle-orm");
+    const logs = await db.select().from(syncLogsTable).orderBy(desc(syncLogsTable.id)).limit(50);
+    res.json(logs);
+  });
+
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
       if (!(storage instanceof PgStorage)) {
