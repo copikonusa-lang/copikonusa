@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import https from "https";
+import http from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
@@ -25,6 +27,100 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ===== IMAGE PROXY =====
+  // Proxy images from Amazon CDN to avoid hotlinking blocks
+  const imageCache = new Map<string, { data: Buffer; contentType: string; timestamp: number }>();
+  const IMAGE_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+  app.get("/api/img", async (req, res) => {
+    const url = req.query.url as string;
+    if (!url) return res.status(400).send("Missing url parameter");
+
+    // Only allow Amazon image URLs
+    try {
+      const parsed = new URL(url);
+      const allowedHosts = ["m.media-amazon.com", "images-na.ssl-images-amazon.com", "images-eu.ssl-images-amazon.com", "ecx.images-amazon.com"];
+      if (!allowedHosts.some(h => parsed.hostname === h || parsed.hostname.endsWith("." + h))) {
+        return res.status(403).send("Dominio no permitido");
+      }
+    } catch {
+      return res.status(400).send("URL inválida");
+    }
+
+    // Check cache
+    const cached = imageCache.get(url);
+    if (cached && Date.now() - cached.timestamp < IMAGE_CACHE_TTL) {
+      res.set({
+        "Content-Type": cached.contentType,
+        "Cache-Control": "public, max-age=86400",
+        "X-Cache": "HIT",
+      });
+      return res.send(cached.data);
+    }
+
+    // Fetch from source
+    try {
+      const fetchModule = url.startsWith("https") ? https : http;
+      const imageData = await new Promise<{ data: Buffer; contentType: string }>((resolve, reject) => {
+        const request = fetchModule.get(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.amazon.com/",
+          },
+          timeout: 10000,
+        }, (response) => {
+          // Follow redirects
+          if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+            fetchModule.get(response.headers.location, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Referer": "https://www.amazon.com/",
+              },
+              timeout: 10000,
+            }, (resp2) => {
+              const chunks: Buffer[] = [];
+              resp2.on("data", (chunk: Buffer) => chunks.push(chunk));
+              resp2.on("end", () => resolve({ data: Buffer.concat(chunks), contentType: resp2.headers["content-type"] || "image/jpeg" }));
+              resp2.on("error", reject);
+            }).on("error", reject);
+            return;
+          }
+          if (response.statusCode !== 200) {
+            reject(new Error(`HTTP ${response.statusCode}`));
+            return;
+          }
+          const chunks: Buffer[] = [];
+          response.on("data", (chunk: Buffer) => chunks.push(chunk));
+          response.on("end", () => resolve({ data: Buffer.concat(chunks), contentType: response.headers["content-type"] || "image/jpeg" }));
+          response.on("error", reject);
+        });
+        request.on("error", reject);
+        request.on("timeout", () => { request.destroy(); reject(new Error("Timeout")); });
+      });
+
+      // Store in cache (limit cache size to 500 entries)
+      if (imageCache.size > 500) {
+        const oldest = [...imageCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+        if (oldest) imageCache.delete(oldest[0]);
+      }
+      imageCache.set(url, { ...imageData, timestamp: Date.now() });
+
+      res.set({
+        "Content-Type": imageData.contentType,
+        "Cache-Control": "public, max-age=86400",
+        "X-Cache": "MISS",
+      });
+      res.send(imageData.data);
+    } catch (e: any) {
+      // Return a 1x1 transparent pixel as fallback
+      const pixel = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
+      res.set({ "Content-Type": "image/gif", "Cache-Control": "no-cache" });
+      res.status(502).send(pixel);
+    }
+  });
 
   // ===== AUTH =====
   app.post("/api/auth/register", async (req, res) => {

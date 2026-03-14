@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { formatUSD, formatShortDate } from "@/lib/utils";
+import { proxyImageUrl } from "@/lib/imageProxy";
 import type { Order, Product, Setting } from "@shared/schema";
 import { ADMIN_STATUS_LABELS, PAYMENT_METHOD_LABELS, type OrderStatus } from "@shared/schema";
 
@@ -247,7 +248,7 @@ function ProductsTab({ token }: { token: string }) {
         <div className="space-y-1">
           {data?.products?.map(p => (
             <div key={p.id} className="bg-white rounded-lg border border-gray-200 p-3 flex items-center gap-3 text-sm" data-testid={`admin-product-${p.id}`}>
-              <img src={p.image} alt="" className="w-10 h-10 object-contain rounded bg-gray-50" />
+              <img src={proxyImageUrl(p.image)} alt="" className="w-10 h-10 object-contain rounded bg-gray-50" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{p.name}</p>
                 <p className="text-xs text-gray-500">{p.category} · {p.weight} lbs</p>
