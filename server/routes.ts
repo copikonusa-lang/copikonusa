@@ -168,6 +168,56 @@ export async function registerRoutes(
     res.json(safe);
   });
 
+  // ===== FAST AUTOCOMPLETE =====
+  const autocompleteCache = new Map<string, { results: any[]; timestamp: number }>();
+  
+  app.get("/api/autocomplete", async (req, res) => {
+    const q = ((req.query.q as string) || "").trim().toLowerCase();
+    if (!q || q.length < 2) return res.json([]);
+    
+    const cached = autocompleteCache.get(q);
+    if (cached && Date.now() - cached.timestamp < 60000) return res.json(cached.results);
+    
+    try {
+      if (!(storage instanceof PgStorage)) return res.json([]);
+      const db = (storage as PgStorage).db;
+      const { productsTable } = await import("@shared/schema");
+      
+      // Fast trigram search with limit
+      const rows = await db.execute(sql`
+        SELECT id, name, slug, image, total_price_usd, rating, reviews, badge, category
+        FROM products 
+        WHERE is_active = true 
+          AND name ILIKE ${'%' + q + '%'}
+        ORDER BY reviews DESC
+        LIMIT 8
+      `);
+      
+      const results = (rows.rows || rows || []).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        image: r.image,
+        totalPriceUsd: parseFloat(r.total_price_usd),
+        rating: parseFloat(r.rating || '0'),
+        reviews: parseInt(r.reviews || '0'),
+        badge: r.badge,
+        category: r.category,
+      }));
+      
+      autocompleteCache.set(q, { results, timestamp: Date.now() });
+      if (autocompleteCache.size > 500) {
+        const oldest = [...autocompleteCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+        if (oldest) autocompleteCache.delete(oldest[0]);
+      }
+      
+      res.json(results);
+    } catch (e: any) {
+      console.error('Autocomplete error:', e.message);
+      res.json([]);
+    }
+  });
+
   // ===== PRODUCTS =====
   app.get("/api/products", async (req, res) => {
     const { category, search, minPrice, maxPrice, minRating, sort, page, limit } = req.query;
