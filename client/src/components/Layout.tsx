@@ -165,14 +165,13 @@ function Header() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-0.5 overflow-x-auto py-1.5 text-sm" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
             <a href="#/catalogo" className="inline-flex items-center px-3 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy shrink-0" data-testid="link-all-categories"
-              onClick={(e) => { e.preventDefault(); window.location.hash = '/catalogo'; }}
+              onClick={(e) => { e.preventDefault(); setLocation('/catalogo'); }}
             >
               Todos
             </a>
             {CATEGORIES.map(cat => (
               <a key={cat.id} href={`#/catalogo?category=${cat.id}`} className="inline-flex items-center px-2.5 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700 text-xs shrink-0" data-testid={`link-category-${cat.id}`}
-                onClick={(e) => { e.preventDefault(); window.location.hash = `/catalogo?category=${cat.id}`; }}
-              >
+                onClick={(e) => { e.preventDefault(); setLocation(`/catalogo?category=${cat.id}`); }}>
                 <span className="mr-1">{cat.icon}</span> {cat.name}
               </a>
             ))}
@@ -194,7 +193,7 @@ function Header() {
             <div className="border-t border-gray-100 my-2" />
             {CATEGORIES.map(cat => (
               <a key={cat.id} href={`#/catalogo?category=${cat.id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
-                onClick={(e) => { e.preventDefault(); window.location.hash = `/catalogo?category=${cat.id}`; setMenuOpen(false); }}
+                onClick={(e) => { e.preventDefault(); setLocation(`/catalogo?category=${cat.id}`); setMenuOpen(false); }}
               >
                 <span>{cat.icon}</span> {cat.name}
               </a>
