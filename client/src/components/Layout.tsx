@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { CATEGORIES } from "@shared/schema";
 import { CopikonLogo } from "./CopikonLogo";
 import { PerplexityAttribution } from "./PerplexityAttribution";
+import SearchDropdown from "./SearchDropdown";
 
 function Header() {
   const [location, setLocation] = useLocation();
@@ -69,22 +70,10 @@ function Header() {
             <CopikonLogo height={36} data-testid="img-logo" />
           </Link>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl">
-            <div className="flex w-full">
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar productos..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:border-copikon-red text-sm"
-                data-testid="input-search"
-              />
-              <button type="submit" className="bg-copikon-red text-white px-4 rounded-r-lg hover:bg-red-800 transition" data-testid="button-search">
-                <Search className="w-4 h-4" />
-              </button>
-            </div>
-          </form>
+          {/* Search - Real-time Amazon search with dropdown */}
+          <div className="hidden md:flex flex-1 max-w-xl">
+            <SearchDropdown />
+          </div>
 
           {/* Right icons */}
           <div className="flex items-center gap-2 ml-auto">

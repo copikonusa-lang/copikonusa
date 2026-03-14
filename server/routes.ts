@@ -206,6 +206,95 @@ export async function registerRoutes(
     res.json(cats);
   });
 
+  // ===== REAL-TIME AMAZON SEARCH =====
+  // Search cache: query -> { results, timestamp }
+  const searchCache = new Map<string, { results: any[]; pageInfo: any; timestamp: number }>();
+  const SEARCH_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
+
+  // Weight estimates by detected category
+  const WEIGHT_MAP: Record<string, number> = {
+    tech: 3.0, phones: 0.5, gaming: 1.5, beauty: 0.5, shoes: 2.0,
+    clothing: 1.0, home: 5.0, health: 1.5, baby: 3.0, sports: 3.0,
+    pets: 2.0, food: 2.0, auto: 3.0, toys: 2.0, office: 1.0, default: 2.0
+  };
+
+  function estimateWeight(title: string): number {
+    const t = title.toLowerCase();
+    if (/laptop|monitor|tv|television/i.test(t)) return 6.0;
+    if (/phone|case|earbuds|airpods|charger/i.test(t)) return 0.5;
+    if (/headphone|speaker|camera/i.test(t)) return 1.5;
+    if (/shoes|sneaker|boot/i.test(t)) return 2.0;
+    if (/shirt|jacket|dress|pants/i.test(t)) return 1.0;
+    if (/vitamin|supplement|cream|serum/i.test(t)) return 0.5;
+    if (/stroller|car seat/i.test(t)) return 15.0;
+    if (/dumbbell|weight|bench/i.test(t)) return 20.0;
+    if (/vacuum|blender|mixer/i.test(t)) return 8.0;
+    if (/toy|lego|game/i.test(t)) return 2.0;
+    return 2.0;
+  }
+
+  function calculateCopikonPrice(amazonPrice: number, weightLbs: number) {
+    return +(amazonPrice * 1.15 + weightLbs * 5.50).toFixed(2);
+  }
+
+  app.get("/api/search/amazon", async (req, res) => {
+    try {
+      const query = (req.query.q as string || "").trim();
+      const page = Math.max(1, Math.min(5, +(req.query.page || 1)));
+      if (!query || query.length < 2) {
+        return res.json({ products: [], pageInfo: {} });
+      }
+
+      const cacheKey = `${query.toLowerCase()}:${page}`;
+      const cached = searchCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < SEARCH_CACHE_TTL) {
+        return res.json({ products: cached.results, pageInfo: cached.pageInfo, source: "cache" });
+      }
+
+      // Search via Canopy
+      const { results, pageInfo } = await canopySearch(query, page);
+
+      // Transform to CopikonUSA products
+      const products = results
+        .filter((r: any) => !r.sponsored) // Skip sponsored
+        .filter((r: any) => r.price?.value > 0) // Must have price
+        .map((r: any) => {
+          const amazonPrice = r.price?.value || 0;
+          const weight = estimateWeight(r.title || "");
+          const copikonPrice = calculateCopikonPrice(amazonPrice, weight);
+          let title = (r.title || "").trim();
+          if (title.length > 120) title = title.slice(0, 117) + "...";
+
+          return {
+            asin: r.asin,
+            name: title,
+            image: (r.mainImageUrl || "").replace("._AC_UY218_", "._AC_SL1500_").replace("._AC_UL320_", "._AC_SL1500_"),
+            amazonPrice,
+            totalPriceUsd: copikonPrice,
+            weight,
+            rating: r.rating || 0,
+            reviews: r.ratingsTotal || 0,
+            isPrime: r.isPrime || false,
+            badge: (r.ratingsTotal || 0) >= 50000 ? "Más vendido" : (r.ratingsTotal || 0) >= 10000 ? "Popular" : null,
+          };
+        })
+        .filter((p: any) => p.weight <= 150); // Filter <= 150 lbs
+
+      // Cache results
+      searchCache.set(cacheKey, { results: products, pageInfo, timestamp: Date.now() });
+      // Limit cache size
+      if (searchCache.size > 200) {
+        const oldest = [...searchCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+        if (oldest) searchCache.delete(oldest[0]);
+      }
+
+      res.json({ products, pageInfo, source: "live" });
+    } catch (e: any) {
+      console.error("Amazon search error:", e.message);
+      res.status(500).json({ message: "Error buscando productos", error: e.message });
+    }
+  });
+
   // ===== ORDERS =====
   app.post("/api/orders", async (req, res) => {
     const userId = getUserIdFromToken(req);
