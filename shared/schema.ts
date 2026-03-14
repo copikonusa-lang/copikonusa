@@ -82,6 +82,21 @@ export const settingsTable = pgTable("settings", {
   value: text("value").notNull(),
 });
 
+export const syncLogsTable = pgTable("sync_logs", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'price_sync' | 'translation' | 'availability'
+  startedAt: text("started_at").notNull(),
+  completedAt: text("completed_at"),
+  totalProducts: integer("total_products").default(0),
+  updated: integer("updated").default(0),
+  deactivated: integer("deactivated").default(0),
+  reactivated: integer("reactivated").default(0),
+  priceAlerts: integer("price_alerts").default(0),
+  errors: integer("errors").default(0),
+  status: text("status").notNull().default("running"), // 'running' | 'completed' | 'failed'
+  details: jsonb("details").$type<any>().default({}),
+});
+
 // ============ TYPES ============
 
 export interface User {
