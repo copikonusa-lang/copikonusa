@@ -303,15 +303,17 @@ export async function registerRoutes(
     try {
       const product = await storage.getProduct(+req.params.id);
       if (!product) return res.status(404).json({ message: "Producto no encontrado" });
-      if (!product.amazonAsin) return res.json({ images: [], featureBullets: [], variants: [] });
+      // Try amazonAsin field first, then specs.ASIN
+      const asin = product.amazonAsin || (product.specs as any)?.ASIN || "";
+      if (!asin) return res.json({ images: [], featureBullets: [], variants: [] });
 
       // Check cache
-      const cached = detailCache.get(product.amazonAsin);
+      const cached = detailCache.get(asin);
       if (cached && Date.now() - cached.timestamp < DETAIL_CACHE_TTL) {
         return res.json(cached.data);
       }
 
-      const detail = await getFullProductDetail(product.amazonAsin);
+      const detail = await getFullProductDetail(asin);
       if (!detail) return res.json({ images: [], featureBullets: [], variants: [] });
 
       const result = {
@@ -326,7 +328,7 @@ export async function registerRoutes(
       };
 
       // Cache
-      detailCache.set(product.amazonAsin, { data: result, timestamp: Date.now() });
+      detailCache.set(asin, { data: result, timestamp: Date.now() });
       if (detailCache.size > 300) {
         const oldest = [...detailCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
         if (oldest) detailCache.delete(oldest[0]);
