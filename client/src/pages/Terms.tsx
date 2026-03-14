@@ -13,7 +13,7 @@ export default function Terms() {
         <p>El cliente tiene 6 horas para realizar el pago después de crear su pedido. Si el pago no se realiza en ese plazo, el pedido se cancela automáticamente.</p>
 
         <h2 className="font-display font-bold text-base mt-6">3. Envíos</h2>
-        <p>Los envíos son exclusivamente por vía aérea desde Miami, Florida. Los despachos salen cada viernes y llegan a Venezuela el martes siguiente. El producto estará disponible en la sucursal seleccionada el miércoles.</p>
+        <p>Los envíos son exclusivamente por vía aérea desde Estados Unidos. Los despachos salen cada viernes y llegan a Venezuela el martes siguiente. El producto estará disponible en la sucursal seleccionada el miércoles.</p>
         <p>El peso máximo por producto es de 150 libras. Para productos más pesados, contactar a nuestro equipo.</p>
 
         <h2 className="font-display font-bold text-base mt-6">4. Productos</h2>
