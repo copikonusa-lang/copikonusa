@@ -1,11 +1,23 @@
 import { Link } from "wouter";
 import { ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { Product } from "@shared/schema";
 import { useCart } from "@/lib/cart";
 import { formatUSD, formatBs } from "@/lib/utils";
 import ProductImage from "./ProductImage";
+
+function getBadgeStyle(badge: string) {
+  switch (badge) {
+    case "Más vendido":
+      return "bg-[#C45500] text-white";
+    case "Popular":
+      return "bg-[#007185] text-white";
+    case "Oferta":
+      return "bg-[#CC0C39] text-white";
+    default:
+      return "bg-[#C45500] text-white";
+  }
+}
 
 interface ProductCardProps {
   product: Product;
@@ -27,9 +39,9 @@ export default function ProductCard({ product, bcvRate = 62 }: ProductCardProps)
             containerClassName="w-full h-full flex items-center justify-center"
           />
           {product.badge && (
-            <Badge className="absolute top-2 left-2 bg-copikon-red text-white text-xs z-10">
+            <span className={`absolute top-2 right-2 px-2.5 py-1 text-[11px] font-bold rounded-sm z-10 shadow-sm ${getBadgeStyle(product.badge)}`}>
               {product.badge}
-            </Badge>
+            </span>
           )}
         </div>
       </Link>

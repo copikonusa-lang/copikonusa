@@ -98,7 +98,12 @@ export default function ProductDetail() {
         {/* Image */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 flex items-center justify-center aspect-square relative">
           {product.badge && (
-            <Badge className="absolute top-4 left-4 bg-copikon-red text-white">{product.badge}</Badge>
+            <span className={`absolute top-4 right-4 px-3 py-1.5 text-xs font-bold rounded-sm z-10 shadow-sm ${
+              product.badge === "Más vendido" ? "bg-[#C45500] text-white" :
+              product.badge === "Popular" ? "bg-[#007185] text-white" :
+              product.badge === "Oferta" ? "bg-[#CC0C39] text-white" :
+              "bg-[#C45500] text-white"
+            }`}>{product.badge}</span>
           )}
           <ProductImage src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" containerClassName="w-full h-full flex items-center justify-center" />
         </div>
