@@ -100,6 +100,7 @@ export default function ProductDetail() {
           {product.badge && (
             <span className={`absolute top-4 right-4 px-3 py-1.5 text-xs font-bold rounded-sm z-10 shadow-sm ${
               product.badge === "Más vendido" ? "bg-[#C45500] text-white" :
+              product.badge === "Nuevo" ? "bg-[#E47911] text-white" :
               product.badge === "Popular" ? "bg-[#007185] text-white" :
               product.badge === "Oferta" ? "bg-[#CC0C39] text-white" :
               "bg-[#C45500] text-white"
