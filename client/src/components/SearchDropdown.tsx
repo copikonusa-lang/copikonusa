@@ -238,18 +238,25 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     submitRef.current();
   };
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   // iOS Safari workaround: listen for native submit event on the form element
-  // iOS Safari sometimes fires the native submit but not the React onSubmit
+  // iOS Safari virtual keyboard "Search" button fires native submit, not React's.
+  // We capture it at the DOM level with highest priority to prevent page navigation.
   useEffect(() => {
-    const form = inputRef.current?.closest('form');
+    const form = formRef.current;
     if (!form) return;
     const nativeHandler = (e: Event) => {
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
       inputRef.current?.blur();
       submitRef.current();
+      return false;
     };
-    form.addEventListener('submit', nativeHandler);
-    return () => form.removeEventListener('submit', nativeHandler);
+    // Use capture phase to intercept before any other handler
+    form.addEventListener('submit', nativeHandler, true);
+    return () => form.removeEventListener('submit', nativeHandler, true);
   }, []);
 
   // Merge local + live results into a single interleaved list
@@ -321,7 +328,7 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
 
   return (
     <div ref={containerRef} className={`relative ${mobile ? 'w-full' : 'flex-1 max-w-2xl'}`}>
-      <form onSubmit={handleSubmit} action="#" className="flex w-full">
+      <form ref={formRef} onSubmit={handleSubmit} action="#" className="flex w-full">
         <div className="relative flex-1">
           <input
             ref={inputRef}
