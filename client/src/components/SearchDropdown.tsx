@@ -186,6 +186,10 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     if (!searchQuery.trim()) return;
     setOpen(false);
     setQuery(searchQuery.trim());
+    // Clean any stale query params from URL (iOS Safari form submit can add them)
+    if (window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+    }
     setLocation(`/catalogo?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
