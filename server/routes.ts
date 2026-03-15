@@ -1205,6 +1205,201 @@ export async function registerRoutes(
     res.json(order);
   });
 
+  // ===== ADMIN: AMAZON PURCHASE AUTOMATION =====
+
+  // Generate Amazon cart URL for an order (admin clicks after payment verified)
+  app.post("/api/admin/orders/:id/generate-cart", requireAdmin, async (req, res) => {
+    const order = await storage.getOrder(req.params.id);
+    if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+
+    // Build Amazon "Add to Cart" URL
+    // Amazon supports adding multiple items via URL: amazon.com/gp/aws/cart/add.html?ASIN.1=X&Quantity.1=Y
+    const cartParams = order.items.map((item, idx) => {
+      const n = idx + 1;
+      return `ASIN.${n}=${item.amazonAsin}&Quantity.${n}=${item.quantity}`;
+    }).join("&");
+    const amazonCartUrl = `https://www.amazon.com/gp/aws/cart/add.html?${cartParams}`;
+
+    // Also generate individual product links for manual fallback
+    const productLinks = order.items.map(item => ({
+      name: item.name,
+      asin: item.amazonAsin,
+      quantity: item.quantity,
+      priceUsd: item.priceUsd,
+      amazonUrl: `https://www.amazon.com/dp/${item.amazonAsin}`,
+    }));
+
+    // Calculate estimated Amazon cost (base prices without our markup)
+    let estimatedAmazonCost = 0;
+    if (storage instanceof PgStorage) {
+      const db = (storage as PgStorage).db;
+      const { productsTable } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      for (const item of order.items) {
+        const [product] = await db.select().from(productsTable).where(eq(productsTable.id, item.productId)).limit(1);
+        if (product) {
+          estimatedAmazonCost += (product.basePrice || 0) * item.quantity;
+        }
+      }
+    }
+
+    const estimatedProfit = order.totalUsd - estimatedAmazonCost - order.shippingUsd;
+
+    // Update order with cart URL and status
+    const updated = await storage.updateOrder(req.params.id, {
+      amazonCartUrl,
+      amazonPurchaseStatus: "cart_ready",
+      amazonCostUsd: +estimatedAmazonCost.toFixed(2),
+      profitUsd: +estimatedProfit.toFixed(2),
+    });
+
+    res.json({
+      amazonCartUrl,
+      productLinks,
+      estimatedAmazonCost: +estimatedAmazonCost.toFixed(2),
+      estimatedProfit: +estimatedProfit.toFixed(2),
+      totalChargedToCustomer: order.totalUsd,
+      order: updated,
+    });
+  });
+
+  // Confirm Amazon purchase completed (admin enters Amazon order IDs)
+  app.post("/api/admin/orders/:id/confirm-purchase", requireAdmin, async (req, res) => {
+    const { amazonOrderIds, actualCost, notes } = req.body;
+    const order = await storage.getOrder(req.params.id);
+    if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+
+    const cost = parseFloat(actualCost) || order.amazonCostUsd || 0;
+    const profit = order.totalUsd - cost - order.shippingUsd;
+
+    // Update order
+    const updated = await storage.updateOrder(req.params.id, {
+      amazonOrderIds: amazonOrderIds || [],
+      amazonPurchaseStatus: "purchased",
+      amazonPurchaseNotes: notes || "",
+      amazonCostUsd: +cost.toFixed(2),
+      profitUsd: +profit.toFixed(2),
+    });
+
+    // Auto-advance status to buying_amazon
+    if (order.status === "payment_verified") {
+      await storage.updateOrderStatus(req.params.id, "buying_amazon");
+      // Send status update email
+      const user = await storage.getUser(order.userId);
+      if (user) {
+        sendStatusUpdate(user.email, {
+          customerName: user.name,
+          orderNumber: order.orderNumber,
+          status: "buying_amazon",
+          statusLabel: CLIENT_STATUS_LABELS[ORDER_STATUS_MAP["buying_amazon"]],
+          branch: order.branch,
+        }).catch(() => {});
+      }
+    }
+
+    res.json(updated);
+  });
+
+  // Mark purchase issue (item unavailable, price changed drastically, etc)
+  app.post("/api/admin/orders/:id/purchase-issue", requireAdmin, async (req, res) => {
+    const { issue, affectedItems } = req.body;
+    const order = await storage.getOrder(req.params.id);
+    if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+
+    const updated = await storage.updateOrder(req.params.id, {
+      amazonPurchaseStatus: "issue",
+      amazonPurchaseNotes: `PROBLEMA: ${issue}${affectedItems ? ` | Items: ${affectedItems.join(", ")}` : ""}`,
+    });
+
+    res.json(updated);
+  });
+
+  // Verify current Amazon prices for an order before purchasing
+  app.post("/api/admin/orders/:id/verify-prices", requireAdmin, async (req, res) => {
+    const order = await storage.getOrder(req.params.id);
+    if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+
+    const verification = [];
+    let totalCurrentCost = 0;
+    let hasIssues = false;
+
+    for (const item of order.items) {
+      try {
+        const detail = await getProductByAsin(item.amazonAsin);
+        const currentPrice = detail?.price?.value || 0;
+        const available = !!(detail && detail.price?.value);
+        const originalBase = item.priceUsd / 1.15 - (item.weight * 5.50 / 1.15); // Reverse-calc base price
+        const priceChange = originalBase > 0 ? Math.abs(currentPrice - originalBase) / originalBase : 0;
+
+        if (!available || priceChange > 0.15) hasIssues = true;
+
+        totalCurrentCost += currentPrice * item.quantity;
+        verification.push({
+          name: item.name,
+          asin: item.amazonAsin,
+          quantity: item.quantity,
+          originalBasePrice: +originalBase.toFixed(2),
+          currentPrice: +currentPrice.toFixed(2),
+          priceChange: `${(priceChange * 100).toFixed(0)}%`,
+          available,
+          status: !available ? "NO DISPONIBLE" : priceChange > 0.15 ? "PRECIO CAMBIÓ" : "OK",
+        });
+      } catch (e: any) {
+        hasIssues = true;
+        verification.push({
+          name: item.name,
+          asin: item.amazonAsin,
+          quantity: item.quantity,
+          status: "ERROR",
+          error: e.message,
+        });
+      }
+    }
+
+    const estimatedProfit = order.totalUsd - totalCurrentCost - order.shippingUsd;
+
+    res.json({
+      verification,
+      totalCurrentCost: +totalCurrentCost.toFixed(2),
+      totalChargedToCustomer: order.totalUsd,
+      shippingCost: order.shippingUsd,
+      estimatedProfit: +estimatedProfit.toFixed(2),
+      hasIssues,
+      recommendation: hasIssues ? "REVISAR MANUALMENTE" : "LISTO PARA COMPRAR",
+    });
+  });
+
+  // Get purchase summary dashboard data
+  app.get("/api/admin/purchases/summary", requireAdmin, async (req, res) => {
+    const allOrders = await storage.getAllOrders();
+    const purchased = allOrders.filter(o => o.amazonPurchaseStatus === "purchased");
+    const pending = allOrders.filter(o => o.status === "payment_verified" && o.amazonPurchaseStatus !== "purchased");
+    const issues = allOrders.filter(o => o.amazonPurchaseStatus === "issue");
+    const cartReady = allOrders.filter(o => o.amazonPurchaseStatus === "cart_ready");
+
+    const totalRevenue = purchased.reduce((sum, o) => sum + o.totalUsd, 0);
+    const totalCost = purchased.reduce((sum, o) => sum + (o.amazonCostUsd || 0), 0);
+    const totalProfit = purchased.reduce((sum, o) => sum + (o.profitUsd || 0), 0);
+
+    res.json({
+      pendingPurchase: pending.length,
+      cartReady: cartReady.length,
+      purchased: purchased.length,
+      issues: issues.length,
+      totalRevenue: +totalRevenue.toFixed(2),
+      totalCost: +totalCost.toFixed(2),
+      totalProfit: +totalProfit.toFixed(2),
+      marginPct: totalRevenue > 0 ? +((totalProfit / totalRevenue) * 100).toFixed(1) : 0,
+      pendingOrders: pending.map(o => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        totalUsd: o.totalUsd,
+        items: o.items.length,
+        createdAt: o.createdAt,
+      })),
+    });
+  });
+
   app.get("/api/admin/customers", requireAdmin, async (_req, res) => {
     const users = await storage.getAllUsers();
     // Get order counts per user
@@ -1466,8 +1661,22 @@ export async function registerRoutes(
     if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
     const db = (storage as PgStorage).db;
     const { syncLogsTable, productsTable } = await import("@shared/schema");
-    const { eq } = await import("drizzle-orm");
+    const { eq, sql: sqlTag } = await import("drizzle-orm");
     
+    // Mark any stuck "running" syncs as failed before starting a new one
+    const stuckLogs = await db.select().from(syncLogsTable).where(eq(syncLogsTable.status, "running"));
+    for (const stuck of stuckLogs) {
+      const startedAt = new Date(stuck.startedAt).getTime();
+      if (Date.now() - startedAt > 30 * 60 * 1000) { // >30 min = stuck
+        await db.update(syncLogsTable).set({
+          completedAt: new Date().toISOString(),
+          status: "failed",
+          details: { error: "Marcado como fallido: timeout de 30 minutos" },
+        }).where(eq(syncLogsTable.id, stuck.id));
+        console.log(`[SYNC] Marked stuck log #${stuck.id} as failed`);
+      }
+    }
+
     // Create sync log
     const [log] = await db.insert(syncLogsTable).values({
       type: "price_sync",
@@ -1477,15 +1686,38 @@ export async function registerRoutes(
 
     res.json({ message: "Sincronización iniciada", logId: log.id });
 
-    // Run sync in background
+    // Run sync in background with safety limits
     (async () => {
       let updated = 0, deactivated = 0, reactivated = 0, priceAlerts = 0, errors = 0;
+      let processed = 0;
       const alerts: any[] = [];
+      const MAX_RUNTIME_MS = 25 * 60 * 1000; // 25 minute hard limit
+      const MAX_CONSECUTIVE_ERRORS = 20; // Stop if API is consistently failing
+      const startTime = Date.now();
+      let consecutiveErrors = 0;
+
       try {
-        const allProducts = await db.select().from(productsTable);
-        const batchSize = 5; // Process 5 at a time to avoid rate limits
+        // Only sync active products with ASINs, random sample of 500 per run
+        // This ensures every product gets synced within ~20 runs (10 days at 2x/day)
+        const allProducts = await db.select().from(productsTable)
+          .where(eq(productsTable.isActive, true))
+          .orderBy(sqlTag`RANDOM()`)
+          .limit(500);
+
+        const batchSize = 3; // Smaller batches for reliability
         
         for (let i = 0; i < allProducts.length; i += batchSize) {
+          // Check time limit
+          if (Date.now() - startTime > MAX_RUNTIME_MS) {
+            console.log(`[SYNC] Time limit reached after ${processed} products`);
+            break;
+          }
+          // Check consecutive error limit
+          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+            console.log(`[SYNC] Too many consecutive errors (${consecutiveErrors}), stopping`);
+            break;
+          }
+
           const batch = allProducts.slice(i, i + batchSize);
           await Promise.all(batch.map(async (product) => {
             try {
@@ -1493,8 +1725,10 @@ export async function registerRoutes(
               if (!asin) return;
 
               const detail = await getProductByAsin(asin);
+              consecutiveErrors = 0; // Reset on success
+              processed++;
+
               if (!detail || !detail.price?.value) {
-                // Product unavailable
                 if (product.isActive) {
                   await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
                   deactivated++;
@@ -1502,7 +1736,6 @@ export async function registerRoutes(
                 return;
               }
 
-              // Reactivate if was inactive
               if (!product.isActive) {
                 reactivated++;
               }
@@ -1512,7 +1745,6 @@ export async function registerRoutes(
               const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.50).toFixed(2);
               const oldTotalPrice = product.totalPriceUsd;
               
-              // Check for large price change (>20%)
               const priceChange = oldTotalPrice > 0 ? Math.abs(newTotalPriceUsd - oldTotalPrice) / oldTotalPrice : 0;
               if (priceChange > 0.20) {
                 priceAlerts++;
@@ -1533,17 +1765,14 @@ export async function registerRoutes(
                 reviews: detail.ratingsTotal || product.reviews,
               };
 
-              // Update image if changed
               if (detail.mainImageUrl && detail.mainImageUrl !== product.image) {
                 updates.image = detail.mainImageUrl;
               }
 
-              // Update badge
               const reviews = detail.ratingsTotal || 0;
               const rating = detail.rating || 0;
               updates.badge = reviews >= 50000 ? "Más vendido" : reviews >= 10000 ? "Popular" : (reviews >= 5000 && rating >= 4.5) ? "Popular" : "";
 
-              // Save old price for "was $X" display
               if (oldTotalPrice !== newTotalPriceUsd) {
                 updates.oldPrice = oldTotalPrice;
                 updated++;
@@ -1552,32 +1781,49 @@ export async function registerRoutes(
               await db.update(productsTable).set(updates).where(eq(productsTable.id, product.id));
             } catch (e: any) {
               errors++;
+              consecutiveErrors++;
             }
           }));
-          // Rate limit: wait between batches
-          await new Promise(r => setTimeout(r, 200));
+
+          // Update progress every 50 products
+          if (processed % 50 === 0) {
+            await db.update(syncLogsTable).set({
+              totalProducts: processed,
+              updated,
+              deactivated,
+              errors,
+              priceAlerts,
+              details: { alerts: alerts.slice(-10), progress: `${processed}/${allProducts.length}` },
+            }).where(eq(syncLogsTable.id, log.id));
+          }
+
+          // Rate limit: wait between batches (longer for reliability)
+          await new Promise(r => setTimeout(r, 500));
         }
 
         await db.update(syncLogsTable).set({
           completedAt: new Date().toISOString(),
-          totalProducts: allProducts.length,
+          totalProducts: processed,
           updated,
           deactivated,
           reactivated,
           priceAlerts,
           errors,
           status: "completed",
-          details: { alerts },
+          details: { alerts, runtime: `${Math.round((Date.now() - startTime) / 1000)}s` },
         }).where(eq(syncLogsTable.id, log.id));
 
-        console.log(`[SYNC] Completed: ${updated} updated, ${deactivated} deactivated, ${reactivated} reactivated, ${priceAlerts} alerts, ${errors} errors`);
+        console.log(`[SYNC] Completed: ${processed} checked, ${updated} updated, ${deactivated} deactivated, ${reactivated} reactivated, ${priceAlerts} alerts, ${errors} errors in ${Math.round((Date.now() - startTime) / 1000)}s`);
       } catch (e: any) {
         await db.update(syncLogsTable).set({
           completedAt: new Date().toISOString(),
+          totalProducts: processed,
+          updated,
+          errors,
           status: "failed",
-          details: { error: e.message },
+          details: { error: e.message, alerts, runtime: `${Math.round((Date.now() - startTime) / 1000)}s` },
         }).where(eq(syncLogsTable.id, log.id));
-        console.error(`[SYNC] Failed:`, e.message);
+        console.error(`[SYNC] Failed after ${processed} products:`, e.message);
       }
     })();
   });

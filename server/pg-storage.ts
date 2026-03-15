@@ -76,6 +76,18 @@ export class PgStorage implements IStorage {
       )
     `);
 
+    // Add purchase automation columns to orders table
+    try {
+      await this.db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS amazon_order_ids JSONB DEFAULT '[]'`);
+      await this.db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS amazon_purchase_status TEXT DEFAULT ''`);
+      await this.db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS amazon_purchase_notes TEXT DEFAULT ''`);
+      await this.db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS amazon_cost_usd REAL DEFAULT 0`);
+      await this.db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS profit_usd REAL DEFAULT 0`);
+      console.log('[DB] Purchase automation columns added/verified');
+    } catch (e) {
+      console.log('[DB] Column migration note:', (e as any).message);
+    }
+
     // Create pg_trgm extension and search indexes for fast search
     try {
       await this.db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`);

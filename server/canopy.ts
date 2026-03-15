@@ -22,6 +22,7 @@ export async function searchProducts(query: string, page = 1): Promise<any> {
       "API-KEY": CANOPY_API_KEY,
       "Content-Type": "application/json",
     },
+    signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -38,19 +39,33 @@ export async function searchProducts(query: string, page = 1): Promise<any> {
 
 export async function getProductByAsin(asin: string): Promise<CanopyProduct> {
   if (!CANOPY_API_KEY) throw new Error("CANOPY_API_KEY no configurada");
-  const res = await fetch(`${REST_BASE}/api/amazon/product?asin=${asin}`, {
-    headers: {
-      "API-KEY": CANOPY_API_KEY,
-      "Content-Type": "application/json",
-    },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Canopy API error ${res.status}: ${text}`);
+  // Retry up to 2 times with timeout
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`${REST_BASE}/api/amazon/product?asin=${asin}`, {
+        headers: {
+          "API-KEY": CANOPY_API_KEY,
+          "Content-Type": "application/json",
+        },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (res.status === 429) {
+        // Rate limited - wait and retry
+        await new Promise(r => setTimeout(r, 3000 * (attempt + 1)));
+        continue;
+      }
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Canopy API error ${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      return data?.data?.amazonProduct || data;
+    } catch (e: any) {
+      if (attempt === 1 || (e.name !== 'TimeoutError' && e.name !== 'AbortError')) throw e;
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
-  const data = await res.json();
-  // REST response: data.amazonProduct
-  return data?.data?.amazonProduct || data;
+  throw new Error(`Canopy API: max retries for ASIN ${asin}`);
 }
 
 // Full product detail via GraphQL (images, featureBullets, variants)

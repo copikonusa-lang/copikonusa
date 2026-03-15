@@ -56,6 +56,11 @@ export const ordersTable = pgTable("orders", {
   deliveryAddress: text("delivery_address").default(""),
   estimatedDelivery: text("estimated_delivery").notNull(),
   amazonCartUrl: text("amazon_cart_url").default(""),
+  amazonOrderIds: jsonb("amazon_order_ids").$type<string[]>().default([]),
+  amazonPurchaseStatus: text("amazon_purchase_status").default(""), // '' | 'cart_ready' | 'purchased' | 'partially_purchased' | 'issue'
+  amazonPurchaseNotes: text("amazon_purchase_notes").default(""),
+  amazonCostUsd: real("amazon_cost_usd").default(0),
+  profitUsd: real("profit_usd").default(0),
   notes: text("notes").default(""),
   createdAt: text("created_at").notNull(),
 });
@@ -181,6 +186,11 @@ export interface Order {
   deliveryAddress: string;
   estimatedDelivery: string;
   amazonCartUrl: string;
+  amazonOrderIds: string[];
+  amazonPurchaseStatus: string;
+  amazonPurchaseNotes: string;
+  amazonCostUsd: number;
+  profitUsd: number;
   notes: string;
   createdAt: string;
 }
