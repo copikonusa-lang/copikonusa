@@ -178,12 +178,13 @@ export class PgStorage implements IStorage {
   // ===== PRODUCTS =====
   async getProducts(filters?: any): Promise<{ products: Product[]; total: number }> {
     const conditions: any[] = [eq(productsTable.isActive, true)];
+    const searchTerm = filters?.search?.trim() || "";
 
     if (filters?.category) {
       conditions.push(eq(productsTable.category, filters.category));
     }
-    if (filters?.search) {
-      const q = `%${filters.search}%`;
+    if (searchTerm) {
+      const q = `%${searchTerm}%`;
       conditions.push(
         or(
           sql`${productsTable.name} ILIKE ${q}`,
@@ -208,12 +209,26 @@ export class PgStorage implements IStorage {
     const countResult = await this.db.select({ count: count() }).from(productsTable).where(where);
     const total = countResult[0]?.count || 0;
 
-    // Sort
+    // Sort — when searching, default to relevance ranking instead of reviews
     let orderBy;
     if (filters?.sort === "price_asc") orderBy = asc(productsTable.totalPriceUsd);
     else if (filters?.sort === "price_desc") orderBy = desc(productsTable.totalPriceUsd);
     else if (filters?.sort === "rating") orderBy = desc(productsTable.rating);
     else if (filters?.sort === "name") orderBy = asc(productsTable.name);
+    else if (searchTerm && !filters?.sort) {
+      // Relevance-based ordering when searching:
+      // Exact name start > exact phrase in name > shorter name (more specific) > similarity > reviews
+      const qLower = searchTerm.toLowerCase();
+      orderBy = sql`
+        CASE WHEN LOWER(name) LIKE ${qLower + '%'} THEN 100 ELSE 0 END
+        + CASE WHEN LOWER(name) LIKE ${'% ' + qLower + ' %'} THEN 40 ELSE 0 END
+        + CASE WHEN LOWER(name) ILIKE ${'%' + qLower + '%'} THEN 20 ELSE 0 END
+        + (50.0 / GREATEST(LENGTH(name), 1))
+        + similarity(LOWER(name), ${qLower}) * 30
+        + LEAST(COALESCE(reviews, 0)::float / 50000.0, 20)
+        DESC
+      `;
+    }
     else orderBy = desc(productsTable.reviews);
 
     // Pagination

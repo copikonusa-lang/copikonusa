@@ -183,32 +183,35 @@ export async function registerRoutes(
       if (!(storage instanceof PgStorage)) return res.json([]);
       const db = (storage as PgStorage).db;
       const { productsTable } = await import("@shared/schema");
-      const { ilike, eq: eqOp, and: andOp, desc: descOp } = await import("drizzle-orm");
+      const { sql: sqlTag } = await import("drizzle-orm");
       
-      const pattern = `%${q}%`;
-      const rows = await db.select({
-        id: productsTable.id,
-        name: productsTable.name,
-        slug: productsTable.slug,
-        image: productsTable.image,
-        totalPriceUsd: productsTable.totalPriceUsd,
-        rating: productsTable.rating,
-        reviews: productsTable.reviews,
-        badge: productsTable.badge,
-        category: productsTable.category,
-      })
-      .from(productsTable)
-      .where(andOp(eqOp(productsTable.isActive, true), ilike(productsTable.name, pattern)))
-      .orderBy(descOp(productsTable.reviews))
-      .limit(8);
+      // Relevance-ranked search:
+      // 1. Name starts with query (score 100)
+      // 2. Name contains query as exact phrase — shorter names rank higher (score 50 + length bonus)
+      // 3. pg_trgm similarity for fuzzy matches (score based on similarity)
+      // 4. Reviews as tiebreaker
+      const rows = await db.execute(sqlTag`
+        SELECT id, name, slug, image, total_price_usd as "totalPriceUsd", 
+               rating, reviews, badge, category
+        FROM products
+        WHERE is_active = true AND name ILIKE ${'%' + q + '%'}
+        ORDER BY
+          CASE WHEN LOWER(name) LIKE ${q.toLowerCase() + '%'} THEN 100 ELSE 0 END
+          + CASE WHEN LOWER(name) LIKE ${'% ' + q.toLowerCase() + ' %'} THEN 40 ELSE 0 END
+          + (50.0 / GREATEST(LENGTH(name), 1))
+          + similarity(LOWER(name), ${q.toLowerCase()}) * 30
+          + LEAST(COALESCE(reviews, 0)::float / 50000.0, 20)
+          DESC
+        LIMIT 8
+      `);
       
-      autocompleteCache.set(cacheKey, { results: rows, timestamp: Date.now() });
+      autocompleteCache.set(cacheKey, { results: rows.rows || rows, timestamp: Date.now() });
       if (autocompleteCache.size > 500) {
         const oldest = [...autocompleteCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
         if (oldest) autocompleteCache.delete(oldest[0]);
       }
       
-      res.json(rows);
+      res.json(rows.rows || rows);
     } catch (e: any) {
       console.error('Autocomplete error:', e.message);
       res.json([]);
