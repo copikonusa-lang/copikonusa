@@ -186,7 +186,7 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     if (!searchQuery.trim()) return;
     setOpen(false);
     setQuery(searchQuery.trim());
-    // Clean any stale query params from URL (iOS Safari form submit can add them)
+    // Clean any stale query params from URL first, then navigate
     if (window.location.search) {
       window.history.replaceState(null, '', window.location.pathname + window.location.hash);
     }
@@ -234,31 +234,26 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
   // Use a ref to hold latest submit logic so native event listener always has current state
   const submitRef = useRef<() => void>(() => {});
 
-  // Form submit → go to catalog (works on iOS Safari "Search" keyboard button)
+  // React form submit handler (backup — primary handling is via handleKeyDown and native listener)
   const handleSubmit = (e?: React.FormEvent | Event) => {
     if (e) e.preventDefault();
-    // Blur input to dismiss mobile keyboard
     inputRef.current?.blur();
     submitRef.current();
   };
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  // iOS Safari workaround: listen for native submit event on the form element
-  // iOS Safari virtual keyboard "Search" button fires native submit, not React's.
-  // We capture it at the DOM level with highest priority to prevent page navigation.
+  // Native submit listener — handles iOS Safari virtual keyboard "Search" button
+  // and any other native submit triggers. Uses capture phase to prevent form navigation.
   useEffect(() => {
     const form = formRef.current;
     if (!form) return;
     const nativeHandler = (e: Event) => {
       e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
+      // Blur input to dismiss mobile keyboard
       inputRef.current?.blur();
       submitRef.current();
-      return false;
     };
-    // Use capture phase to intercept before any other handler
     form.addEventListener('submit', nativeHandler, true);
     return () => form.removeEventListener('submit', nativeHandler, true);
   }, []);
@@ -295,13 +290,14 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     }
   };
 
-  // Keyboard navigation + iOS Safari Enter key fallback
+  // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // iOS Safari fallback: explicitly handle Enter key (keyCode 13)
-    // Some iOS versions don't fire form submit from virtual keyboard
     if (e.key === "Enter" || e.keyCode === 13) {
       e.preventDefault();
-      handleSubmit();
+      e.stopPropagation();
+      // Blur to dismiss any virtual keyboard
+      inputRef.current?.blur();
+      submitRef.current();
       return;
     }
     if (!open) return;
@@ -332,7 +328,7 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
 
   return (
     <div ref={containerRef} className={`relative ${mobile ? 'w-full' : 'flex-1 max-w-2xl'}`}>
-      <form ref={formRef} onSubmit={handleSubmit} action="#" className="flex w-full">
+      <form ref={formRef} onSubmit={handleSubmit} action="javascript:void(0)" method="get" className="flex w-full">
         <div className="relative flex-1">
           <input
             ref={inputRef}
