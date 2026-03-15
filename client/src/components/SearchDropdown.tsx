@@ -188,14 +188,21 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     setOpen(false);
     setQuery(trimmed);
     const encoded = encodeURIComponent(trimmed);
-    // Clean any stale page-level query params first
+    // Clean any stale page-level query params
     if (window.location.search) {
       window.history.replaceState(null, '', window.location.pathname + window.location.hash);
     }
-    // Navigate to catalogo. setLocation changes the hash; the search param
-    // ends up in window.location.search due to wouter hash routing quirk.
-    // The Catalog page polls for window.location.search changes every 300ms.
-    setLocation(`/catalogo?search=${encoded}`);
+    const currentHash = window.location.hash.replace(/^#/, '').split('?')[0];
+    if (currentHash === '/catalogo') {
+      // Already on catalogo — wouter won't re-navigate to same hash path.
+      // Force remount: briefly change hash so wouter unmounts Catalog, then navigate back.
+      window.location.hash = '/_r';
+      setTimeout(() => {
+        setLocation(`/catalogo?search=${encoded}`);
+      }, 20);
+    } else {
+      setLocation(`/catalogo?search=${encoded}`);
+    }
   };
 
   // Navigate to product (local — already in DB)
