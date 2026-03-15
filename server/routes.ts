@@ -1586,74 +1586,103 @@ export async function registerRoutes(
   app.post("/api/admin/sync/grow-catalog", requireAdmin, async (req, res) => {
     if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
     const pgStorage = storage as PgStorage;
+    const db = pgStorage.db;
+    const { syncLogsTable } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
     
     // Pick 5 random categories to search today
     const shuffled = [...GROWTH_CATEGORIES].sort(() => Math.random() - 0.5);
     const todaySearches = shuffled.slice(0, 5);
-    
-    let imported = 0;
-    let skipped = 0;
-    let errors = 0;
-    const details: any[] = [];
-    
-    for (const search of todaySearches) {
-      try {
-        const searchResult = await canopySearch(search.query);
-        const results = searchResult.results || [];
-        
-        for (const item of results.slice(0, 10)) { // top 10 per search
-          try {
-            const asin = item.asin;
-            if (!asin) continue;
-            
-            // Check if already in DB
-            const existing = await pgStorage.getProducts({ search: asin, limit: 1 });
-            const found = (existing.products || []).find((p: any) => 
-              p.amazonAsin === asin || (p.specs as any)?.ASIN === asin
-            );
-            
-            if (found) {
-              skipped++;
-              continue;
+
+    // Create sync log
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "catalog_growth",
+      startedAt: new Date().toISOString(),
+      status: "running",
+      details: { searches: todaySearches.map(s => s.query) },
+    }).returning();
+
+    // Respond immediately
+    res.json({ message: "Crecimiento de catálogo iniciado", logId: log.id, searches: todaySearches.map(s => s.query) });
+
+    // Process in background
+    (async () => {
+      let imported = 0;
+      let skipped = 0;
+      let errors = 0;
+      const details: any[] = [];
+      const startTime = Date.now();
+
+      for (const search of todaySearches) {
+        try {
+          const searchResult = await canopySearch(search.query);
+          const results = searchResult.results || [];
+          
+          for (const item of results.slice(0, 10)) {
+            try {
+              const asin = item.asin;
+              if (!asin) continue;
+              
+              // Check if already in DB by ASIN directly
+              const existing = await pgStorage.getProducts({ search: asin, limit: 1 });
+              const found = (existing.products || []).find((p: any) => 
+                p.amazonAsin === asin || (p.specs as any)?.ASIN === asin
+              );
+              
+              if (found) {
+                skipped++;
+                continue;
+              }
+              
+              const full = await getProductByAsin(asin);
+              if (!full || !full.title) { skipped++; continue; }
+              
+              const productData = canopyToProduct(full, search.category, search.weight);
+              productData.name = translateTitle(productData.name);
+              productData.description = translateTitle(productData.description || productData.name);
+              
+              const { id: _id, ...data } = productData;
+              await pgStorage.createProduct(data);
+              imported++;
+              details.push({ name: productData.name.slice(0, 60), category: search.category });
+              
+              await new Promise(r => setTimeout(r, 500));
+            } catch (itemErr: any) {
+              errors++;
             }
-            
-            // Fetch full product details
-            const full = await getProductByAsin(asin);
-            if (!full || !full.title) { skipped++; continue; }
-            
-            const productData = canopyToProduct(full, search.category, search.weight);
-            // Translate and clean the name
-            productData.name = translateTitle(productData.name);
-            productData.description = translateTitle(productData.description || productData.name);
-            
-            const { id: _id, ...data } = productData;
-            await pgStorage.createProduct(data);
-            imported++;
-            details.push({ name: productData.name.slice(0, 60), category: search.category });
-            
-            // Small delay to avoid API rate limits
-            await new Promise(r => setTimeout(r, 500));
-          } catch (itemErr: any) {
-            errors++;
           }
+          
+          // Update progress after each search
+          await db.update(syncLogsTable).set({
+            totalProducts: imported + skipped,
+            updated: imported,
+            errors,
+            details: { searches: todaySearches.map(s => s.query), imported: details.slice(-20), progress: `${todaySearches.indexOf(search) + 1}/${todaySearches.length}` },
+          }).where(eq(syncLogsTable.id, log.id));
+
+          await new Promise(r => setTimeout(r, 1000));
+        } catch (searchErr: any) {
+          errors++;
+          details.push({ error: searchErr.message, query: search.query });
         }
-        
-        // Delay between searches
-        await new Promise(r => setTimeout(r, 1000));
-      } catch (searchErr: any) {
-        errors++;
-        details.push({ error: searchErr.message, query: search.query });
       }
-    }
-    
-    res.json({
-      message: `Catálogo actualizado: ${imported} nuevos, ${skipped} existentes, ${errors} errores`,
-      imported,
-      skipped,
-      errors,
-      searches: todaySearches.map(s => s.query),
-      details,
-    });
+
+      await db.update(syncLogsTable).set({
+        completedAt: new Date().toISOString(),
+        totalProducts: imported + skipped,
+        updated: imported,
+        errors,
+        status: "completed",
+        details: { 
+          searches: todaySearches.map(s => s.query), 
+          imported: details, 
+          skipped,
+          runtime: `${Math.round((Date.now() - startTime) / 1000)}s` 
+        },
+      }).where(eq(syncLogsTable.id, log.id));
+
+      console.log(`[CATALOG GROWTH] Completed: ${imported} new, ${skipped} existing, ${errors} errors in ${Math.round((Date.now() - startTime) / 1000)}s`);
+    })();
   });
 
   // ===== CRON: PRICE & AVAILABILITY SYNC =====
