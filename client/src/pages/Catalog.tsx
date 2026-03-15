@@ -10,13 +10,13 @@ import { CATEGORIES, type Product } from "@shared/schema";
 
 export default function Catalog() {
   const [location] = useLocation();
-  // wouter hash-mode navigate puts query params in window.location.search
+  // Track URL changes including query params (wouter location alone misses query changes)
+  const [urlKey, setUrlKey] = useState(0);
+  
   const getParams = () => {
     const fromSearch = new URLSearchParams(window.location.search);
-    // Also check hash for legacy links that embed query in hash
     const hashParts = window.location.hash.split("?");
     const fromHash = hashParts.length > 1 ? new URLSearchParams(hashParts[1]) : new URLSearchParams();
-    // Merge: window.location.search takes priority
     const merged = new URLSearchParams();
     fromHash.forEach((v, k) => merged.set(k, v));
     fromSearch.forEach((v, k) => merged.set(k, v));
@@ -31,12 +31,39 @@ export default function Catalog() {
   const [minRating, setMinRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
+  // Listen to ALL URL changes (hash, search params, popstate)
+  useEffect(() => {
+    const onUrlChange = () => setUrlKey(k => k + 1);
+    window.addEventListener("hashchange", onUrlChange);
+    window.addEventListener("popstate", onUrlChange);
+    // Also poll for search param changes (wouter setLocation changes search without firing hashchange)
+    const interval = setInterval(() => {
+      const p = getParams();
+      const newCat = p.get("category") || "";
+      const newSearch = p.get("search") || "";
+      setCategory(prev => prev !== newCat ? newCat : prev);
+      setSearch(prev => {
+        if (prev !== newSearch) {
+          setPage(1);
+          return newSearch;
+        }
+        return prev;
+      });
+    }, 200);
+    return () => {
+      window.removeEventListener("hashchange", onUrlChange);
+      window.removeEventListener("popstate", onUrlChange);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Also respond to wouter location changes
   useEffect(() => {
     const p = getParams();
     setCategory(p.get("category") || "");
     setSearch(p.get("search") || "");
     setPage(1);
-  }, [location]);
+  }, [location, urlKey]);
 
   const queryStr = new URLSearchParams({
     ...(category && { category }),
