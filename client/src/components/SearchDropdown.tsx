@@ -55,7 +55,7 @@ type MergedResult =
   | { type: "local"; data: AutocompleteResult }
   | { type: "live"; data: LiveSearchResult };
 
-export default function SearchDropdown() {
+export default function SearchDropdown({ mobile = false }: { mobile?: boolean }) {
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
   const [localResults, setLocalResults] = useState<AutocompleteResult[]>([]);
@@ -227,22 +227,30 @@ export default function SearchDropdown() {
     }
   };
 
+  // Use a ref to hold latest submit logic so native event listener always has current state
+  const submitRef = useRef<() => void>(() => {});
+
   // Form submit → go to catalog (works on iOS Safari "Search" keyboard button)
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent | Event) => {
+    if (e) e.preventDefault();
     // Blur input to dismiss mobile keyboard
     inputRef.current?.blur();
-    if (selectedIndex >= 0 && selectedIndex < mergedResults.length) {
-      const item = mergedResults[selectedIndex];
-      if (item.type === "local") {
-        goToProduct(item.data.slug);
-      } else {
-        handleLiveClick(item.data);
-      }
-    } else {
-      goToSearch(query);
-    }
+    submitRef.current();
   };
+
+  // iOS Safari workaround: listen for native submit event on the form element
+  // iOS Safari sometimes fires the native submit but not the React onSubmit
+  useEffect(() => {
+    const form = inputRef.current?.closest('form');
+    if (!form) return;
+    const nativeHandler = (e: Event) => {
+      e.preventDefault();
+      inputRef.current?.blur();
+      submitRef.current();
+    };
+    form.addEventListener('submit', nativeHandler);
+    return () => form.removeEventListener('submit', nativeHandler);
+  }, []);
 
   // Merge local + live results into a single interleaved list
   // Local results first, then live results (deduplicated)
@@ -262,8 +270,29 @@ export default function SearchDropdown() {
     mergedResults.push({ type: "live", data: filteredLive[i] });
   }
 
-  // Keyboard navigation
+  // Keep submitRef updated with latest state for iOS Safari native event listener
+  submitRef.current = () => {
+    if (selectedIndex >= 0 && selectedIndex < mergedResults.length) {
+      const item = mergedResults[selectedIndex];
+      if (item.type === "local") {
+        goToProduct(item.data.slug);
+      } else {
+        handleLiveClick(item.data);
+      }
+    } else {
+      goToSearch(query);
+    }
+  };
+
+  // Keyboard navigation + iOS Safari Enter key fallback
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // iOS Safari fallback: explicitly handle Enter key (keyCode 13)
+    // Some iOS versions don't fire form submit from virtual keyboard
+    if (e.key === "Enter" || e.keyCode === 13) {
+      e.preventDefault();
+      handleSubmit();
+      return;
+    }
     if (!open) return;
     const maxIndex = mergedResults.length - 1;
     if (e.key === "ArrowDown") {
@@ -291,22 +320,23 @@ export default function SearchDropdown() {
   const hasAnyResults = mergedResults.length > 0;
 
   return (
-    <div ref={containerRef} className="relative flex-1 max-w-2xl">
-      <form onSubmit={handleSubmit} action="#" className="flex w-full">
+    <div ref={containerRef} className={`relative ${mobile ? 'w-full' : 'flex-1 max-w-2xl'}`}>
+      <form onSubmit={handleSubmit} action="#" method="GET" className="flex w-full">
         <div className="relative flex-1">
           <input
             ref={inputRef}
             type="search"
+            name="q"
             inputMode="search"
             enterKeyHint="search"
             value={query}
             onChange={e => { setQuery(e.target.value); setOpen(true); }}
             onFocus={() => setOpen(true)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar productos en CopikonUSA..."
-            className="w-full px-4 py-2.5 pl-10 pr-8 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:border-copikon-red focus:ring-0 text-sm bg-white [&::-webkit-search-cancel-button]:hidden"
+            placeholder={mobile ? "Buscar productos..." : "Buscar productos en CopikonUSA..."}
+            className={`w-full px-4 py-2.5 pl-10 pr-8 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:border-copikon-red focus:ring-0 text-sm bg-white [&::-webkit-search-cancel-button]:hidden ${mobile ? 'border' : 'border-2'}`}
             autoComplete="off"
-            data-testid="input-search"
+            data-testid={mobile ? "input-search-mobile" : "input-search"}
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           {query && (
@@ -319,13 +349,14 @@ export default function SearchDropdown() {
             </button>
           )}
         </div>
+        {/* Visible submit button — critical for iOS Safari to fire form submit */}
         <button
           type="submit"
-          className="bg-copikon-red text-white px-6 rounded-r-lg hover:bg-red-800 transition flex items-center font-semibold text-sm gap-1.5 shrink-0"
-          data-testid="button-search"
+          className={`bg-copikon-red text-white rounded-r-lg hover:bg-red-800 transition flex items-center font-semibold text-sm gap-1.5 shrink-0 ${mobile ? 'px-3' : 'px-6'}`}
+          data-testid={mobile ? "button-search-mobile" : "button-search"}
         >
           <Search className="w-4 h-4" />
-          Buscar
+          {!mobile && "Buscar"}
         </button>
       </form>
 

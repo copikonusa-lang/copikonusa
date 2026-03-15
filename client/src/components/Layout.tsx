@@ -16,7 +16,6 @@ function Header() {
   const { totalItems } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [catOpen, setCatOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -29,14 +28,6 @@ function Header() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setLocation(`/catalogo?search=${encodeURIComponent(searchQuery.trim())}`);
-      setMenuOpen(false);
-    }
-  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -70,7 +61,7 @@ function Header() {
             <CopikonLogo height={36} data-testid="img-logo" />
           </Link>
 
-          {/* Search - Real-time Amazon search with dropdown */}
+          {/* Search - Real-time Amazon search with dropdown (desktop) */}
           <div className="hidden md:flex flex-1 max-w-xl">
             <SearchDropdown />
           </div>
@@ -144,20 +135,10 @@ function Header() {
           </div>
         </div>
 
-        {/* Mobile search */}
-        <form onSubmit={handleSearch} className="md:hidden mt-3 flex">
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Buscar productos..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:border-copikon-red text-sm"
-            data-testid="input-search-mobile"
-          />
-          <button type="submit" className="bg-copikon-red text-white px-3 rounded-r-lg">
-            <Search className="w-4 h-4" />
-          </button>
-        </form>
+        {/* Mobile search - uses the same SearchDropdown with live results */}
+        <div className="md:hidden mt-3">
+          <SearchDropdown mobile />
+        </div>
       </div>
 
       {/* Category nav - horizontal bar */}
