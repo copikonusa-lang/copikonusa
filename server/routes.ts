@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail } from "./canopy";
-import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate } from "./email";
+import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
+import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
 
 // Simple in-memory sessions: token -> userId
@@ -1068,6 +1069,14 @@ export async function registerRoutes(
           branch: order.branch,
           paymentDeadline: deadline.toLocaleDateString("es-VE"),
         }).catch(() => {});
+
+        // Admin alert: new order received
+        sendAdminNewOrderAlert({
+          orderNumber: order.orderNumber,
+          customerName: user.name,
+          totalUsd: order.totalUsd.toFixed(2),
+          products: productNames,
+        }).catch(() => {});
       }
 
       res.json(order);
@@ -1095,6 +1104,17 @@ export async function registerRoutes(
     const { paymentProof } = req.body;
     const order = await storage.updateOrder(req.params.id, { paymentProof });
     if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+
+    // Notify admin that payment proof was uploaded
+    const user = await storage.getUser(userId);
+    if (user) {
+      sendAdminPaymentReceivedAlert({
+        orderNumber: order.orderNumber,
+        customerName: user.name,
+        totalUsd: order.totalUsd.toFixed(2),
+      }).catch(() => {});
+    }
+
     res.json(order);
   });
 
@@ -1191,6 +1211,26 @@ export async function registerRoutes(
           estimatedDelivery: new Date(order.estimatedDelivery).toLocaleDateString("es-VE"),
           branch: order.branch,
         }).catch(() => {});
+      } else if (status === "shipped_international") {
+        sendOrderShipped(user.email, {
+          customerName: user.name,
+          orderNumber: order.orderNumber,
+          estimatedDelivery: new Date(order.estimatedDelivery).toLocaleDateString("es-VE"),
+          branch: order.branch,
+        }).catch(() => {});
+      } else if (status === "ready_for_pickup") {
+        sendReadyForPickup(user.email, {
+          customerName: user.name,
+          orderNumber: order.orderNumber,
+          branch: order.branch,
+          pickupDeadlineDays: 15,
+        }).catch(() => {});
+      } else if (status === "cancelled") {
+        sendOrderCancelled(user.email, {
+          customerName: user.name,
+          orderNumber: order.orderNumber,
+          reason: "El pedido fue cancelado por el administrador. Si tienes preguntas, contáctanos.",
+        }).catch(() => {});
       } else {
         sendStatusUpdate(user.email, {
           customerName: user.name,
@@ -1200,9 +1240,101 @@ export async function registerRoutes(
           branch: order.branch,
         }).catch(() => {});
       }
+
+      // Also send WhatsApp notification if user has phone
+      if (user.phone) {
+        sendWhatsAppOrderUpdate(user.phone, {
+          orderNumber: order.orderNumber,
+          status,
+          customerName: user.name,
+        }).catch(() => {});
+      }
     }
 
     res.json(order);
+  });
+
+  // ===== ADMIN: PAYMENT REMINDERS =====
+
+  // Send payment reminder for pending orders (can be called manually or via cron)
+  app.post("/api/admin/orders/:id/send-reminder", requireAdmin, async (req, res) => {
+    const order = await storage.getOrder(req.params.id);
+    if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+    if (order.status !== "pending_payment") {
+      return res.status(400).json({ message: "Este pedido no está pendiente de pago" });
+    }
+    const user = await storage.getUser(order.userId);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    const deadline = new Date(order.createdAt);
+    deadline.setHours(deadline.getHours() + 48);
+    const now = new Date();
+    const hoursRemaining = Math.max(0, Math.round((deadline.getTime() - now.getTime()) / (1000 * 60 * 60)));
+
+    await sendPaymentReminder(user.email, {
+      customerName: user.name,
+      orderNumber: order.orderNumber,
+      totalUsd: order.totalUsd.toFixed(2),
+      totalBs: order.totalBs.toFixed(2),
+      paymentDeadline: deadline.toLocaleDateString("es-VE"),
+      hoursRemaining,
+    });
+    res.json({ sent: true, to: user.email });
+  });
+
+  // Auto-send reminders for all overdue pending orders
+  app.post("/api/admin/orders/send-reminders", requireAdmin, async (_req, res) => {
+    const allOrders = await (storage as PgStorage).getOrders();
+    const now = new Date();
+    let sent = 0;
+    for (const order of allOrders) {
+      if (order.status !== "pending_payment") continue;
+      const created = new Date(order.createdAt);
+      const hoursSince = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+      // Send reminder if between 20-48 hours old
+      if (hoursSince >= 20 && hoursSince <= 48) {
+        const user = await storage.getUser(order.userId);
+        if (!user) continue;
+        const deadline = new Date(created);
+        deadline.setHours(deadline.getHours() + 48);
+        const hoursRemaining = Math.max(0, Math.round((deadline.getTime() - now.getTime()) / (1000 * 60 * 60)));
+        sendPaymentReminder(user.email, {
+          customerName: user.name,
+          orderNumber: order.orderNumber,
+          totalUsd: order.totalUsd.toFixed(2),
+          totalBs: order.totalBs.toFixed(2),
+          paymentDeadline: deadline.toLocaleDateString("es-VE"),
+          hoursRemaining,
+        }).catch(() => {});
+        sent++;
+      }
+    }
+    res.json({ sent, message: `${sent} recordatorios enviados` });
+  });
+
+  // Auto-cancel orders that haven't paid within 48h
+  app.post("/api/admin/orders/auto-cancel", requireAdmin, async (_req, res) => {
+    const allOrders = await (storage as PgStorage).getOrders();
+    const now = new Date();
+    let cancelled = 0;
+    for (const order of allOrders) {
+      if (order.status !== "pending_payment") continue;
+      const created = new Date(order.createdAt);
+      const hoursSince = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+      if (hoursSince > 48) {
+        await storage.updateOrderStatus(order.id, "cancelled");
+        const user = await storage.getUser(order.userId);
+        if (user) {
+          sendOrderCancelled(user.email, {
+            customerName: user.name,
+            orderNumber: order.orderNumber,
+            reason: "No se recibió comprobante de pago dentro de las 48 horas establecidas.",
+          }).catch(() => {});
+        }
+        cancelled++;
+      }
+    }
+    res.json({ cancelled, message: `${cancelled} pedidos cancelados por falta de pago` });
   });
 
   // ===== ADMIN: AMAZON PURCHASE AUTOMATION =====
