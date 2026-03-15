@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
-import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail } from "./canopy";
+import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs } from "./canopy";
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
@@ -904,7 +904,7 @@ export async function registerRoutes(
   // ===== IMPORT SEARCH RESULT AS PRODUCT =====
   app.post("/api/search/import", async (req, res) => {
     try {
-      const { asin, name, image, price, amazonPrice, totalPriceUsd: inputTotalPrice, weight, rating, reviews, badge } = req.body;
+      const { asin, name, image, price, amazonPrice, totalPriceUsd: inputTotalPrice, weight: estimatedWeight, rating, reviews, badge } = req.body;
       if (!asin || !name) return res.status(400).json({ message: "Faltan datos" });
 
       // Check if product already exists by ASIN (direct DB query for accuracy)
@@ -918,11 +918,16 @@ export async function registerRoutes(
         return res.json({ slug: existingByAsin[0].slug, id: existingByAsin[0].id });
       }
 
-      // Create new product from search result
+      // Fetch REAL weight from API (critical for accurate pricing)
+      const weightData = await getProductWeight(asin);
+      const fallbackWeight = estimatedWeight || estimateWeight(name);
+      const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, fallbackWeight);
+      const isWeightVerified = !!(weightData.packageWeight || weightData.itemWeight);
+
+      // Create new product with REAL weight
       const basePrice = amazonPrice || price || 0;
-      const w = weight || 1;
       const shippingPerLb = 5.50;
-      const totalPriceUsd = inputTotalPrice || +(basePrice * 1.15 + w * shippingPerLb).toFixed(2);
+      const totalPriceUsd = +(basePrice * 1.15 + realWeight * shippingPerLb).toFixed(2);
 
       // Auto-detect category from name
       const nameLower = name.toLowerCase();
@@ -954,20 +959,26 @@ export async function registerRoutes(
         category: detectedCategory,
         description: name,
         basePrice,
-        weight: w,
+        weight: realWeight,
         totalPriceUsd,
         image: image || "",
         images: image ? [image] : [],
         rating: rating || 0,
         reviews: reviews || 0,
         badge: badge || "",
-        specs: { ASIN: asin },
+        specs: {
+          ASIN: asin,
+          weightSource: isWeightVerified ? "api" : "estimated",
+          rawItemWeight: weightData.rawItem,
+          rawPackageWeight: weightData.rawPackage,
+        },
         isActive: true,
         isManual: false,
         amazonAsin: asin,
         createdAt: new Date().toISOString(),
       } as any);
 
+      console.log(`Imported ${asin}: weight=${realWeight}lbs (${isWeightVerified ? 'VERIFIED' : 'estimated'}), price=$${totalPriceUsd}`);
       res.json({ slug: product.slug, id: product.id });
     } catch (e: any) {
       console.error("Import error:", e.message);
@@ -1002,7 +1013,10 @@ export async function registerRoutes(
       const detail = await getFullProductDetail(asin);
       if (detail && detail.price?.value > 0) {
         const amazonPrice = detail.price.value;
-        const weight = parseFloat(String(detail.weight || '0.5')) || 0.5;
+        // Use real weight from API if available
+        const itemW = parseWeightToLbs(detail.itemWeight);
+        const pkgW = parseWeightToLbs(detail.packageWeight);
+        const weight = getBestWeight(itemW, pkgW, estimateWeight(detail.title || ""));
         const copikonPrice = calculateCopikonPrice(amazonPrice, weight);
         const result = {
           price: copikonPrice,
@@ -1618,13 +1632,29 @@ export async function registerRoutes(
 
   app.post("/api/admin/products/import", requireAdmin, async (req, res) => {
     try {
-      const { asin, category, weight } = req.body;
+      const { asin, category, weight: manualWeight } = req.body;
       if (!asin || !category) {
         return res.status(400).json({ message: "ASIN y categoría requeridos" });
       }
 
       const canopyProduct = await getProductByAsin(asin);
-      const productData = canopyToProduct(canopyProduct, category, weight || 1);
+
+      // Fetch real weight unless admin provided manual weight
+      let finalWeight = manualWeight || 1;
+      let weightSource = manualWeight ? "manual" : "estimated";
+      if (!manualWeight) {
+        try {
+          const weightData = await getProductWeight(asin);
+          const best = getBestWeight(weightData.itemWeight, weightData.packageWeight, 1);
+          if (weightData.itemWeight || weightData.packageWeight) {
+            finalWeight = best;
+            weightSource = "api";
+          }
+        } catch { /* use fallback */ }
+      }
+
+      const productData = canopyToProduct(canopyProduct, category, finalWeight);
+      (productData as any).specs = { ...((productData as any).specs || {}), weightSource };
 
       // Only PgStorage has createProduct
       if (storage instanceof PgStorage) {
@@ -1796,9 +1826,23 @@ export async function registerRoutes(
               const full = await getProductByAsin(asin);
               if (!full || !full.title) { skipped++; continue; }
               
-              const productData = canopyToProduct(full, search.category, search.weight);
+              // Fetch real weight from API
+              let realWeight = search.weight;
+              let weightSource = "estimated";
+              try {
+                const weightData = await getProductWeight(asin);
+                const best = getBestWeight(weightData.itemWeight, weightData.packageWeight, search.weight);
+                if (weightData.itemWeight || weightData.packageWeight) {
+                  realWeight = best;
+                  weightSource = "api";
+                }
+              } catch { /* use fallback weight */ }
+
+              const productData = canopyToProduct(full, search.category, realWeight);
               productData.name = translateTitle(productData.name);
               productData.description = translateTitle(productData.description || productData.name);
+              // Tag weight source in specs
+              (productData as any).specs = { ...((productData as any).specs || {}), weightSource };
               
               const { id: _id, ...data } = productData;
               await pgStorage.createProduct(data);
@@ -1929,7 +1973,23 @@ export async function registerRoutes(
               }
 
               const newBasePrice = detail.price.value;
-              const weight = product.weight || 1;
+              let weight = product.weight || 1;
+
+              // If weight was estimated (no API source), try to get real weight
+              const specs = product.specs as any;
+              const isWeightEstimated = !specs?.weightSource || specs?.weightSource === "estimated";
+              let weightUpdated = false;
+              if (isWeightEstimated) {
+                try {
+                  const weightData = await getProductWeight(asin);
+                  const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, weight);
+                  if (weightData.itemWeight || weightData.packageWeight) {
+                    weight = realWeight;
+                    weightUpdated = true;
+                  }
+                } catch { /* keep estimated weight */ }
+              }
+
               const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.50).toFixed(2);
               const oldTotalPrice = product.totalPriceUsd;
               
@@ -1952,6 +2012,12 @@ export async function registerRoutes(
                 rating: detail.rating || product.rating,
                 reviews: detail.ratingsTotal || product.reviews,
               };
+
+              // Update weight if we got real data
+              if (weightUpdated) {
+                updates.weight = weight;
+                updates.specs = { ...specs, weightSource: "api" };
+              }
 
               if (detail.mainImageUrl && detail.mainImageUrl !== product.image) {
                 updates.image = detail.mainImageUrl;

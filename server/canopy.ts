@@ -15,6 +15,56 @@ export interface CanopyProduct {
   isPrime: boolean;
 }
 
+// Parse weight string like "4.73 pounds" or "1.6 ounces" into lbs
+export function parseWeightToLbs(weightStr: string | null | undefined): number | null {
+  if (!weightStr) return null;
+  const match = weightStr.match(/([\d.]+)\s*(pounds?|lbs?|ounces?|oz|kilograms?|kg|grams?|g)\b/i);
+  if (!match) return null;
+  const value = parseFloat(match[1]);
+  if (isNaN(value) || value <= 0) return null;
+  const unit = match[2].toLowerCase();
+  if (unit.startsWith('pound') || unit.startsWith('lb')) return +value.toFixed(2);
+  if (unit.startsWith('ounce') || unit === 'oz') return +(value / 16).toFixed(2);
+  if (unit.startsWith('kilogram') || unit === 'kg') return +(value * 2.20462).toFixed(2);
+  if (unit.startsWith('gram') || unit === 'g') return +(value * 0.00220462).toFixed(2);
+  return null;
+}
+
+// Fetch real weight for a product by ASIN
+export async function getProductWeight(asin: string): Promise<{ itemWeight: number | null; packageWeight: number | null; rawItem: string | null; rawPackage: string | null }> {
+  if (!CANOPY_API_KEY) return { itemWeight: null, packageWeight: null, rawItem: null, rawPackage: null };
+  try {
+    const query = `query { amazonProduct(input: { asin: "${asin}" }) { itemWeight packageWeight } }`;
+    const res = await fetch(GRAPHQL_BASE, {
+      method: "POST",
+      headers: { "API-KEY": CANOPY_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return { itemWeight: null, packageWeight: null, rawItem: null, rawPackage: null };
+    const data = await res.json();
+    const product = data?.data?.amazonProduct;
+    return {
+      itemWeight: parseWeightToLbs(product?.itemWeight),
+      packageWeight: parseWeightToLbs(product?.packageWeight),
+      rawItem: product?.itemWeight || null,
+      rawPackage: product?.packageWeight || null,
+    };
+  } catch {
+    return { itemWeight: null, packageWeight: null, rawItem: null, rawPackage: null };
+  }
+}
+
+// Get the best weight: prefer packageWeight (what ships), then itemWeight, then fallback
+export function getBestWeight(itemWeight: number | null, packageWeight: number | null, fallbackEstimate: number): number {
+  // packageWeight is what actually ships — most accurate for shipping cost
+  if (packageWeight && packageWeight > 0) return packageWeight;
+  // itemWeight is the product itself — add 10% for packaging
+  if (itemWeight && itemWeight > 0) return +(itemWeight * 1.10).toFixed(2);
+  // No real weight available — use estimate
+  return fallbackEstimate;
+}
+
 export async function searchProducts(query: string, page = 1): Promise<any> {
   if (!CANOPY_API_KEY) throw new Error("CANOPY_API_KEY no configurada");
   const res = await fetch(`${REST_BASE}/api/amazon/search?searchTerm=${encodeURIComponent(query)}&page=${page}`, {
@@ -90,6 +140,8 @@ export interface FullProductDetail {
   ratingsTotal: number;
   price: { value: number; display: string; currency: string };
   isPrime: boolean;
+  itemWeight: string | null;
+  packageWeight: string | null;
 }
 
 export async function getFullProductDetail(asin: string): Promise<FullProductDetail | null> {
@@ -106,6 +158,8 @@ export async function getFullProductDetail(asin: string): Promise<FullProductDet
         rating
         ratingsTotal
         isPrime
+        itemWeight
+        packageWeight
         price { value display currency }
         variants {
           asin
