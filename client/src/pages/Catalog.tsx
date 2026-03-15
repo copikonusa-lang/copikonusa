@@ -67,20 +67,38 @@ export default function Catalog() {
           }
           return prev;
         });
-        // Only sync category from URL if it's explicitly set in the URL
         if (newCat) {
-          setCategory(newCat);
-          setPage(1);
+          setCategory(prev => {
+            if (prev !== newCat) {
+              setPage(1);
+              return newCat;
+            }
+            return prev;
+          });
         }
+      }
+    };
+
+    // Direct search event from SearchDropdown — reliable for same-page search changes
+    // This fires when user searches again while already on the catalog page
+    const handleSearchEvent = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.search !== undefined) {
+        setSearch(detail.search);
+        setPage(1);
+        // Also update the hash ref so syncFromUrl doesn't fight with us
+        lastHashRef.current = window.location.hash;
       }
     };
 
     window.addEventListener("hashchange", syncFromUrl);
     window.addEventListener("popstate", syncFromUrl);
+    window.addEventListener("copikon-search", handleSearchEvent);
     const interval = setInterval(syncFromUrl, 300);
     return () => {
       window.removeEventListener("hashchange", syncFromUrl);
       window.removeEventListener("popstate", syncFromUrl);
+      window.removeEventListener("copikon-search", handleSearchEvent);
       clearInterval(interval);
     };
   }, []);
