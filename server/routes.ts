@@ -907,15 +907,15 @@ export async function registerRoutes(
       const { asin, name, image, price, amazonPrice, totalPriceUsd: inputTotalPrice, weight, rating, reviews, badge } = req.body;
       if (!asin || !name) return res.status(400).json({ message: "Faltan datos" });
 
-      // Check if product already exists by ASIN
-      const existing = await storage.getProducts({ search: asin, limit: 1 });
-      const found = (existing.products || []).find((p: any) => {
-        const specs = p.specs as any;
-        return p.amazonAsin === asin || specs?.ASIN === asin;
-      });
+      // Check if product already exists by ASIN (direct DB query for accuracy)
+      const pgStorage = storage as PgStorage;
+      const db = pgStorage.db;
+      const { productsTable: pt } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      const existingByAsin = await db.select().from(pt).where(eq(pt.amazonAsin, asin)).limit(1);
 
-      if (found) {
-        return res.json({ slug: found.slug, id: found.id });
+      if (existingByAsin.length > 0) {
+        return res.json({ slug: existingByAsin[0].slug, id: existingByAsin[0].id });
       }
 
       // Create new product from search result
@@ -944,9 +944,11 @@ export async function registerRoutes(
       else if (/snack|food|candy|chocolate|coffee|tea|comida|protein.*bar/i.test(nameLower)) detectedCategory = "food";
       else if (/luggage|suitcase|maleta|travel|backpack|bag|mochila/i.test(nameLower)) detectedCategory = "home";
 
-      const slug = name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim().slice(0, 100);
+      // Generate unique slug: base slug + ASIN suffix to avoid duplicates
+      const baseSlug = name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim().slice(0, 80);
+      const slug = `${baseSlug}-${asin.toLowerCase()}`;
 
-      const product = await (storage as PgStorage).createProduct({
+      const product = await pgStorage.createProduct({
         name,
         slug,
         category: detectedCategory,
@@ -963,6 +965,7 @@ export async function registerRoutes(
         isActive: true,
         isManual: false,
         amazonAsin: asin,
+        createdAt: new Date().toISOString(),
       } as any);
 
       res.json({ slug: product.slug, id: product.id });
