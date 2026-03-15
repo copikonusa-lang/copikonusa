@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { SlidersHorizontal, X, Star, Loader2, Search, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,7 +27,6 @@ interface LiveResult {
 
 export default function Catalog() {
   const [location, setLocation] = useLocation();
-  const [urlKey, setUrlKey] = useState(0);
 
   const getParams = () => {
     const fromSearch = new URLSearchParams(window.location.search);
@@ -49,37 +48,52 @@ export default function Catalog() {
   // Track which live results are being imported
   const [importingAsins, setImportingAsins] = useState<Set<string>>(new Set());
 
-  // Listen to ALL URL changes
+  // Sync search from URL changes (e.g. when SearchDropdown navigates here)
+  // Only sync search param — category is managed by sidebar buttons directly
+  const lastHashRef = useRef(window.location.hash);
+
   useEffect(() => {
-    const onUrlChange = () => setUrlKey(k => k + 1);
-    window.addEventListener("hashchange", onUrlChange);
-    window.addEventListener("popstate", onUrlChange);
-    const interval = setInterval(() => {
-      const p = getParams();
-      const newCat = p.get("category") || "";
-      const newSearch = p.get("search") || "";
-      setCategory(prev => prev !== newCat ? newCat : prev);
-      setSearch(prev => {
-        if (prev !== newSearch) {
+    const syncFromUrl = () => {
+      const currentHash = window.location.hash;
+      if (currentHash !== lastHashRef.current) {
+        lastHashRef.current = currentHash;
+        const p = getParams();
+        const newSearch = p.get("search") || "";
+        const newCat = p.get("category") || "";
+        setSearch(prev => {
+          if (prev !== newSearch) {
+            setPage(1);
+            return newSearch;
+          }
+          return prev;
+        });
+        // Only sync category from URL if it's explicitly set in the URL
+        if (newCat) {
+          setCategory(newCat);
           setPage(1);
-          return newSearch;
         }
-        return prev;
-      });
-    }, 200);
+      }
+    };
+
+    window.addEventListener("hashchange", syncFromUrl);
+    window.addEventListener("popstate", syncFromUrl);
+    const interval = setInterval(syncFromUrl, 300);
     return () => {
-      window.removeEventListener("hashchange", onUrlChange);
-      window.removeEventListener("popstate", onUrlChange);
+      window.removeEventListener("hashchange", syncFromUrl);
+      window.removeEventListener("popstate", syncFromUrl);
       clearInterval(interval);
     };
   }, []);
 
+  // Initial sync on mount
   useEffect(() => {
     const p = getParams();
-    setCategory(p.get("category") || "");
-    setSearch(p.get("search") || "");
+    const urlCat = p.get("category") || "";
+    const urlSearch = p.get("search") || "";
+    if (urlCat) setCategory(urlCat);
+    if (urlSearch) setSearch(urlSearch);
     setPage(1);
-  }, [location, urlKey]);
+  }, [location]);
 
   // ─── LOCAL catalog search ───
   const queryStr = new URLSearchParams({
@@ -132,18 +146,13 @@ export default function Catalog() {
 
   const catName = CATEGORIES.find(c => c.id === category)?.name;
 
-  // Update URL when filters change (so the interval doesn't reset them)
-  const updateFilters = useCallback((newCategory: string, newSearch?: string) => {
-    const params = new URLSearchParams();
-    if (newCategory) params.set("category", newCategory);
-    const s = newSearch !== undefined ? newSearch : search;
-    if (s) params.set("search", s);
-    const qs = params.toString();
-    const newHash = qs ? `#/catalogo?${qs}` : "#/catalogo";
-    window.location.hash = newHash;
+  // Update category filter — set state directly and reset page
+  // The interval syncs from URL for external navigation (SearchDropdown),
+  // but sidebar clicks set state directly which takes priority until next URL change
+  const updateFilters = useCallback((newCategory: string) => {
     setCategory(newCategory);
     setPage(1);
-  }, [search]);
+  }, []);
 
   // Import a live result into local catalog and navigate to it
   const handleImportAndView = async (liveProduct: LiveResult) => {
