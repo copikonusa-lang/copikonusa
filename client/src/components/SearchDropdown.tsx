@@ -321,12 +321,11 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
 
   return (
     <div ref={containerRef} className={`relative ${mobile ? 'w-full' : 'flex-1 max-w-2xl'}`}>
-      <form onSubmit={handleSubmit} action="#" method="GET" className="flex w-full">
+      <form onSubmit={handleSubmit} action="#" className="flex w-full">
         <div className="relative flex-1">
           <input
             ref={inputRef}
             type="search"
-            name="q"
             inputMode="search"
             enterKeyHint="search"
             value={query}
