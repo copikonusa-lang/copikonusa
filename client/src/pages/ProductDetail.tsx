@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link, useLocation } from "wouter";
-import { ShoppingCart, Heart, Star, Truck, Shield, ChevronRight, Minus, Plus, Check, Package, ZoomIn } from "lucide-react";
+import { ShoppingCart, Heart, Star, Truck, Shield, ChevronRight, Minus, Plus, Check, Package, ZoomIn, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,8 +13,9 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { formatUSD, formatBs, calculateEstimatedDelivery } from "@/lib/utils";
 import { proxyImageUrl } from "@/lib/imageProxy";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AmazonDetail {
   images: string[];
@@ -23,12 +24,34 @@ interface AmazonDetail {
   brand: string;
 }
 
+// Preload images to avoid the 5s delay
+function usePreloadImages(urls: string[]) {
+  useEffect(() => {
+    if (!urls.length) return;
+    const proxied = urls.map(u => proxyImageUrl(u));
+    proxied.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [urls]);
+}
+
 function ImageGallery({ mainImage, images, productName }: { mainImage: string; images: string[]; productName: string }) {
   const allImages = images.length > 0 ? [...new Set(images)] : [mainImage];
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [zoomed, setZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
   const imgRef = useRef<HTMLDivElement>(null);
+
+  // Preload all gallery images immediately
+  usePreloadImages(allImages);
+
+  // Reset selected index when images change
+  useEffect(() => {
+    setSelectedIdx(0);
+    setLoadedImages(new Set([0]));
+  }, [allImages.length, mainImage]);
 
   const currentImage = allImages[selectedIdx] || mainImage;
 
@@ -47,8 +70,9 @@ function ImageGallery({ mainImage, images, productName }: { mainImage: string; i
         <div className="flex flex-col gap-2 w-16 shrink-0">
           {allImages.slice(0, 7).map((img, i) => (
             <button
-              key={i}
+              key={`${img}-${i}`}
               onClick={() => setSelectedIdx(i)}
+              onMouseEnter={() => setSelectedIdx(i)}
               className={`w-16 h-16 rounded border-2 p-1 bg-white flex items-center justify-center transition-all ${
                 selectedIdx === i ? "border-copikon-red shadow-sm" : "border-gray-200 hover:border-gray-400"
               }`}
@@ -58,7 +82,7 @@ function ImageGallery({ mainImage, images, productName }: { mainImage: string; i
                 src={proxyImageUrl(img)}
                 alt={`${productName} - ${i + 1}`}
                 className="max-w-full max-h-full object-contain"
-                loading="lazy"
+                onLoad={() => setLoadedImages(prev => new Set(prev).add(i))}
               />
             </button>
           ))}
@@ -93,98 +117,78 @@ function ImageGallery({ mainImage, images, productName }: { mainImage: string; i
   );
 }
 
-function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
+interface VariantSelectorProps {
+  variants: AmazonDetail["variants"];
+  onVariantSelect: (asin: string, text: string) => void;
+  selectedAsin: string;
+  loadingVariant: boolean;
+}
+
+function VariantSelector({ variants, onVariantSelect, selectedAsin, loadingVariant }: VariantSelectorProps) {
   if (!variants || variants.length === 0) return null;
 
   // Group by attribute name from structured attributes
-  const attrGroups = new Map<string, Set<string>>();
+  const attrGroups = new Map<string, { value: string; asin: string }[]>();
   let hasStructuredAttrs = false;
+  
   variants.forEach(v => {
     v.attributes?.forEach(a => {
       hasStructuredAttrs = true;
       const key = a.name || "Opción";
-      if (!attrGroups.has(key)) attrGroups.set(key, new Set());
-      attrGroups.get(key)!.add(a.value);
+      if (!attrGroups.has(key)) attrGroups.set(key, []);
+      // Avoid duplicates
+      const existing = attrGroups.get(key)!;
+      if (!existing.find(e => e.value === a.value)) {
+        existing.push({ value: a.value, asin: v.asin });
+      }
     });
   });
 
-  // If no structured attributes, parse from text aggressively
+  // If no structured attributes, parse from text
   if (!hasStructuredAttrs && variants.length > 0) {
-    const sizes = new Set<string>();
-    const colors = new Set<string>();
-    
-    // Multiple patterns for size detection
-    const sizePatterns = [
-      /^([\d]+\.?[\d]*\s*(?:Wide|Narrow|Medium|X-Wide|W|M|D)?)/i, // "11.5 Wide"
-      /^((?:X?S|S|M|L|XL|XXL|XXXL|2XL|3XL|4XL|One Size))/i, // "S", "M", "L", etc.
-      /^(\d+(?:\/\d+)?(?:\s*-\s*\d+(?:\/\d+)?)?)/i, // "7/8" or "28-30"
-    ];
-
+    const options: { value: string; asin: string }[] = [];
     variants.forEach(v => {
       const text = (v.text || "").trim();
-      if (!text) return;
-      
-      let matchedSize = false;
-      for (const pattern of sizePatterns) {
-        const sizeMatch = text.match(pattern);
-        if (sizeMatch && sizeMatch[1]) {
-          sizes.add(sizeMatch[1].trim());
-          const rest = text.slice(sizeMatch[0].length).replace(/^[\s,\/]+/, "").trim();
-          if (rest && rest.length > 1) colors.add(rest);
-          matchedSize = true;
-          break;
-        }
-      }
-      
-      if (!matchedSize) {
-        // Could be just a color/style name
-        if (text.length < 50) colors.add(text);
+      if (text && text.length < 60 && !options.find(o => o.value === text)) {
+        options.push({ value: text, asin: v.asin });
       }
     });
-
-    if (sizes.size > 0) attrGroups.set("Size", sizes);
-    if (colors.size > 0 && colors.size <= 40) attrGroups.set("Color", colors);
-    
-    // If nothing was parsed, show all variants as options
-    if (sizes.size === 0 && colors.size === 0) {
-      const options = new Set<string>();
-      variants.forEach(v => {
-        const text = (v.text || "").trim();
-        if (text && text.length < 60) options.add(text);
-      });
-      if (options.size > 0 && options.size <= 30) {
-        attrGroups.set("Opción", options);
-      }
+    if (options.length > 0 && options.length <= 30) {
+      attrGroups.set("Opción", options);
     }
   }
 
-  // Show all groups (not just filtered by name)
-  const filtered = [...attrGroups.entries()].filter(([, values]) => values.size > 0);
-
+  const filtered = [...attrGroups.entries()].filter(([, values]) => values.length > 0);
   if (filtered.length === 0) return null;
 
   const nameMap: Record<string, string> = {
-    Size: "Talla / Tamaño",
-    Color: "Color",
-    Style: "Estilo",
-    Pattern: "Patrón",
-    Flavor: "Sabor",
-    Scent: "Fragancia",
-    size_name: "Talla",
-    color_name: "Color",
-    style_name: "Estilo",
+    Size: "Talla / Tamaño", Color: "Color", Style: "Estilo",
+    Pattern: "Patrón", Flavor: "Sabor", Scent: "Fragancia",
+    size_name: "Talla", color_name: "Color", style_name: "Estilo",
     "Opción": "Opciones disponibles",
   };
 
-  const [selected, setSelected] = useState<Record<string, string>>({});
+  // Track which value is selected per group
+  const [selectedPerGroup, setSelectedPerGroup] = useState<Record<string, string>>({});
+
+  // Find selected variant's asin
+  const getSelectedAsinForValue = (items: { value: string; asin: string }[], value: string) => {
+    return items.find(i => i.value === value)?.asin || "";
+  };
 
   return (
     <div className="space-y-3 bg-gray-50 rounded-lg p-4 border border-gray-100">
-      <h4 className="text-sm font-bold text-gray-900">Opciones del producto</h4>
-      {filtered.map(([name, values]) => {
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-gray-900">Opciones del producto</h4>
+        {loadingVariant && (
+          <span className="flex items-center gap-1.5 text-xs text-copikon-red">
+            <Loader2 className="w-3 h-3 animate-spin" /> Cargando variante...
+          </span>
+        )}
+      </div>
+      {filtered.map(([name, items]) => {
         const displayName = nameMap[name] || name.charAt(0).toUpperCase() + name.slice(1);
-        const valuesArr = [...values];
-        const selectedVal = selected[name] || valuesArr[0];
+        const selectedVal = selectedPerGroup[name] || items[0]?.value || "";
         
         return (
           <div key={name}>
@@ -192,41 +196,44 @@ function VariantSelector({ variants }: { variants: AmazonDetail["variants"] }) {
               {displayName}: <span className="font-normal text-gray-500">{selectedVal}</span>
             </p>
             <div className="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto">
-              {valuesArr.slice(0, 24).map((val) => (
+              {items.slice(0, 24).map(({ value, asin }) => (
                 <button
-                  key={val}
-                  onClick={() => setSelected(prev => ({ ...prev, [name]: val }))}
+                  key={value}
+                  onClick={() => {
+                    setSelectedPerGroup(prev => ({ ...prev, [name]: value }));
+                    if (asin && asin !== selectedAsin) {
+                      onVariantSelect(asin, value);
+                    }
+                  }}
                   className={`px-3 py-1.5 text-xs border rounded-lg transition-all ${
-                    val === selectedVal
+                    value === selectedVal
                       ? "border-copikon-red bg-red-50 text-copikon-red font-semibold shadow-sm"
                       : "border-gray-300 text-gray-600 hover:border-copikon-red hover:bg-red-50/50"
                   }`}
-                  data-testid={`variant-${name}-${val}`}
+                  data-testid={`variant-${name}-${value}`}
                 >
-                  {val.length > 30 ? val.slice(0, 28) + "..." : val}
+                  {value.length > 30 ? value.slice(0, 28) + "..." : value}
                 </button>
               ))}
-              {valuesArr.length > 24 && (
-                <span className="text-xs text-gray-400 self-center ml-1">+{valuesArr.length - 24} más</span>
+              {items.length > 24 && (
+                <span className="text-xs text-gray-400 self-center ml-1">+{items.length - 24} más</span>
               )}
             </div>
           </div>
         );
       })}
       <p className="text-xs text-gray-400 italic">
-        Indica tu preferencia de variante en las notas al momento de pagar.
+        Selecciona tu variante preferida — el precio se actualiza automáticamente.
       </p>
     </div>
   );
 }
 
 function DescriptionTab({ featureBullets, product }: { featureBullets: string[]; product: Product }) {
-  // Build a rich description from feature bullets
   const hasFeatures = featureBullets && featureBullets.length > 0;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-      {/* About this product */}
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
           <Package className="w-5 h-5 text-copikon-red" />
@@ -237,7 +244,6 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
         )}
       </div>
 
-      {/* Feature Bullets - Amazon style */}
       {hasFeatures && (
         <div>
           <h4 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Características principales</h4>
@@ -252,7 +258,6 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
         </div>
       )}
 
-      {/* What's included */}
       <div className="bg-gray-50 rounded-lg p-4">
         <h4 className="text-sm font-bold text-gray-900 mb-2">¿Qué incluye tu compra?</h4>
         <ul className="space-y-1.5 text-sm text-gray-600">
@@ -275,7 +280,6 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
         </ul>
       </div>
 
-      {/* Shipping details */}
       <div className="border-t border-gray-100 pt-4">
         <h4 className="text-sm font-bold text-gray-900 mb-2">Información de envío</h4>
         <div className="grid grid-cols-2 gap-3 text-xs text-gray-600">
@@ -309,6 +313,14 @@ export default function ProductDetail() {
   const { isAuthenticated, token } = useAuth();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
+  
+  // Variant state
+  const [selectedVariantAsin, setSelectedVariantAsin] = useState("");
+  const [selectedVariantText, setSelectedVariantText] = useState("");
+  const [variantPrice, setVariantPrice] = useState<number | null>(null);
+  const [variantName, setVariantName] = useState<string | null>(null);
+  const [variantImage, setVariantImage] = useState<string | null>(null);
+  const [loadingVariant, setLoadingVariant] = useState(false);
 
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: [`/api/products/slug/${slug}`],
@@ -328,6 +340,40 @@ export default function ProductDetail() {
     queryKey: [`/api/products?category=${product?.category || ""}&limit=8`],
     enabled: !!product,
   });
+
+  // Preload amazon detail images as soon as they arrive
+  usePreloadImages(amazonDetail?.images || []);
+
+  // Reset variant state when product changes
+  useEffect(() => {
+    setSelectedVariantAsin("");
+    setSelectedVariantText("");
+    setVariantPrice(null);
+    setVariantName(null);
+    setVariantImage(null);
+  }, [slug]);
+
+  // Handle variant selection — fetch the variant's price from API
+  const handleVariantSelect = useCallback(async (asin: string, text: string) => {
+    setSelectedVariantAsin(asin);
+    setSelectedVariantText(text);
+    setLoadingVariant(true);
+    
+    try {
+      // Fetch variant product details from Canopy
+      const res = await fetch(`/api/variant/${asin}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.price) setVariantPrice(data.price);
+        if (data.name) setVariantName(data.name);
+        if (data.image) setVariantImage(data.image);
+      }
+    } catch (e) {
+      console.error("Variant fetch error:", e);
+    } finally {
+      setLoadingVariant(false);
+    }
+  }, []);
 
   const addToWishlist = async () => {
     if (!isAuthenticated || !product) {
@@ -374,7 +420,29 @@ export default function ProductDetail() {
   const catName = CATEGORIES.find(c => c.id === product.category)?.name || product.category;
   const estimatedDelivery = calculateEstimatedDelivery();
   const allImages = amazonDetail?.images || (product.images?.length ? product.images : [product.image]);
-  const discount = product.oldPrice ? Math.round((1 - product.totalPriceUsd / product.oldPrice) * 100) : 0;
+  
+  // Use variant overrides when available
+  const displayPrice = variantPrice || product.totalPriceUsd;
+  const displayName = variantName || product.name;
+  const displayImages = variantImage ? [variantImage, ...allImages.filter(i => i !== variantImage)] : allImages;
+  
+  const discount = product.oldPrice ? Math.round((1 - displayPrice / product.oldPrice) * 100) : 0;
+
+  // Build cart item with variant info
+  const handleAddToCart = () => {
+    const cartProduct = {
+      ...product,
+      totalPriceUsd: displayPrice,
+      name: selectedVariantText 
+        ? `${product.name} — ${selectedVariantText}`
+        : product.name,
+    };
+    addItem(cartProduct, qty);
+    toast({ 
+      title: "Agregado al carrito",
+      description: selectedVariantText ? `Variante: ${selectedVariantText}` : undefined,
+    });
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4">
@@ -401,7 +469,7 @@ export default function ProductDetail() {
               "bg-[#C45500] text-white"
             }`}>{product.badge}</span>
           )}
-          <ImageGallery mainImage={product.image} images={allImages} productName={product.name} />
+          <ImageGallery mainImage={variantImage || product.image} images={displayImages} productName={product.name} />
         </div>
 
         {/* Product Info */}
@@ -415,7 +483,10 @@ export default function ProductDetail() {
 
           {/* Title */}
           <h1 className="font-display font-bold text-lg md:text-xl text-gray-900 leading-tight" data-testid="text-product-title">
-            {product.name}
+            {displayName}
+            {selectedVariantText && (
+              <span className="text-copikon-red font-normal text-base ml-2">— {selectedVariantText}</span>
+            )}
           </h1>
 
           {/* Rating */}
@@ -430,7 +501,7 @@ export default function ProductDetail() {
             </span>
           </div>
 
-          {/* Price block - Amazon style */}
+          {/* Price block */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
             {discount > 0 && (
               <div className="flex items-center gap-2 mb-1">
@@ -440,12 +511,15 @@ export default function ProductDetail() {
             )}
             <div className="flex items-baseline gap-2">
               <span className="text-xs text-gray-500 mt-1">Precio:</span>
-              <p className="text-2xl font-display font-bold text-copikon-red" data-testid="text-detail-price-usd">
-                {formatUSD(product.totalPriceUsd)}
+              <p className={`text-2xl font-display font-bold text-copikon-red transition-all ${loadingVariant ? "opacity-50" : ""}`} data-testid="text-detail-price-usd">
+                {loadingVariant ? "..." : formatUSD(displayPrice)}
               </p>
+              {variantPrice && variantPrice !== product.totalPriceUsd && (
+                <span className="text-sm text-gray-400 line-through">{formatUSD(product.totalPriceUsd)}</span>
+              )}
             </div>
-            <p className="text-sm text-gray-600 mt-1" data-testid="text-detail-price-bs">
-              {formatBs(product.totalPriceUsd)}
+            <p className={`text-sm text-gray-600 mt-1 transition-all ${loadingVariant ? "opacity-50" : ""}`} data-testid="text-detail-price-bs">
+              {loadingVariant ? "Calculando..." : formatBs(displayPrice)}
             </p>
             <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
               <Truck className="w-3 h-3" /> Envío aéreo incluido ({product.weight} lbs × $5.50/lb)
@@ -454,10 +528,15 @@ export default function ProductDetail() {
 
           {/* Variants */}
           {amazonDetail?.variants && amazonDetail.variants.length > 0 && (
-            <VariantSelector variants={amazonDetail.variants} />
+            <VariantSelector 
+              variants={amazonDetail.variants} 
+              onVariantSelect={handleVariantSelect}
+              selectedAsin={selectedVariantAsin}
+              loadingVariant={loadingVariant}
+            />
           )}
 
-          {/* Delivery estimate - Amazon style */}
+          {/* Delivery estimate */}
           <div className="flex items-center gap-3 bg-green-50 text-green-800 rounded-lg px-4 py-3 text-sm border border-green-100">
             <Truck className="w-5 h-5 shrink-0 text-green-600" />
             <div>
@@ -486,10 +565,8 @@ export default function ProductDetail() {
           <div className="flex gap-3">
             <Button
               className="flex-1 bg-copikon-red hover:bg-red-800 text-white h-11 text-sm font-semibold"
-              onClick={() => {
-                addItem(product, qty);
-                toast({ title: "Agregado al carrito" });
-              }}
+              onClick={handleAddToCart}
+              disabled={loadingVariant}
               data-testid="button-add-to-cart"
             >
               <ShoppingCart className="w-4 h-4 mr-2" /> Agregar al carrito
@@ -499,7 +576,7 @@ export default function ProductDetail() {
             </Button>
           </div>
 
-          {/* Trust signals - Amazon style */}
+          {/* Trust signals */}
           <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-copikon-navy" />
@@ -574,7 +651,6 @@ export default function ProductDetail() {
 
           <TabsContent value="reviews" className="mt-4">
             <div className="space-y-4">
-              {/* Rating summary */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-6">
                 <div className="text-center">
                   <p className="text-4xl font-bold text-gray-900">{product.rating.toFixed(1)}</p>
