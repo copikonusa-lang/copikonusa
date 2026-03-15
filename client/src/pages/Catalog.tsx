@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SlidersHorizontal, X, Star, Loader2, Search, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -132,6 +132,19 @@ export default function Catalog() {
 
   const catName = CATEGORIES.find(c => c.id === category)?.name;
 
+  // Update URL when filters change (so the interval doesn't reset them)
+  const updateFilters = useCallback((newCategory: string, newSearch?: string) => {
+    const params = new URLSearchParams();
+    if (newCategory) params.set("category", newCategory);
+    const s = newSearch !== undefined ? newSearch : search;
+    if (s) params.set("search", s);
+    const qs = params.toString();
+    const newHash = qs ? `#/catalogo?${qs}` : "#/catalogo";
+    window.location.hash = newHash;
+    setCategory(newCategory);
+    setPage(1);
+  }, [search]);
+
   // Import a live result into local catalog and navigate to it
   const handleImportAndView = async (liveProduct: LiveResult) => {
     setImportingAsins(prev => { const s = new Set(prev); s.add(liveProduct.asin); return s; });
@@ -172,7 +185,7 @@ export default function Catalog() {
             <h3 className="font-display font-bold text-sm mb-3">Categorías</h3>
             <div className="space-y-1">
               <button
-                onClick={() => setCategory("")}
+                onClick={() => updateFilters("")}
                 className={`block w-full text-left text-sm px-2 py-1.5 rounded ${!category ? "bg-copikon-red text-white" : "hover:bg-gray-100"}`}
                 data-testid="filter-category-all"
               >
@@ -181,7 +194,7 @@ export default function Catalog() {
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => setCategory(cat.id)}
+                  onClick={() => updateFilters(cat.id)}
                   className={`block w-full text-left text-sm px-2 py-1.5 rounded ${category === cat.id ? "bg-copikon-red text-white" : "hover:bg-gray-100"}`}
                   data-testid={`filter-category-${cat.id}`}
                 >
@@ -258,7 +271,7 @@ export default function Catalog() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => setCategory("")}
+                  onClick={() => updateFilters("")}
                   className={`text-xs px-3 py-1.5 rounded-full ${!category ? "bg-copikon-red text-white" : "bg-gray-100"}`}
                 >
                   Todas
@@ -266,7 +279,7 @@ export default function Catalog() {
                 {CATEGORIES.map(cat => (
                   <button
                     key={cat.id}
-                    onClick={() => setCategory(cat.id)}
+                    onClick={() => updateFilters(cat.id)}
                     className={`text-xs px-3 py-1.5 rounded-full ${category === cat.id ? "bg-copikon-red text-white" : "bg-gray-100"}`}
                   >
                     {cat.name}
