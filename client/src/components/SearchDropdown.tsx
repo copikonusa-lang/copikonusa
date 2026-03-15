@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Search, Star, Loader2, TrendingUp, Clock, ArrowRight, X } from "lucide-react";
+import { Search, Star, Loader2, TrendingUp, Clock, ArrowRight, X, Globe } from "lucide-react";
 import { formatUSD, formatBs } from "@/lib/utils";
 import { proxyImageUrl } from "@/lib/imageProxy";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,6 +15,16 @@ interface AutocompleteResult {
   reviews: number;
   badge: string | null;
   category: string;
+}
+
+interface LiveSearchResult {
+  asin: string;
+  name: string;
+  image: string;
+  totalPriceUsd: number;
+  rating: number;
+  reviews: number;
+  badge: string | null;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -41,14 +51,18 @@ function getBadgeStyle(badge: string) {
 export default function SearchDropdown() {
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<AutocompleteResult[]>([]);
+  const [localResults, setLocalResults] = useState<AutocompleteResult[]>([]);
+  const [liveResults, setLiveResults] = useState<LiveSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [liveLoading, setLiveLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const liveAbortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const liveDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Close on outside click
   useEffect(() => {
@@ -61,12 +75,12 @@ export default function SearchDropdown() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Fast autocomplete search
-  const doSearch = useCallback(async (q: string) => {
+  // Fast local autocomplete search
+  const doLocalSearch = useCallback(async (q: string) => {
     if (abortRef.current) abortRef.current.abort();
-    
+
     if (!q.trim() || q.trim().length < 2) {
-      setResults([]);
+      setLocalResults([]);
       setLoading(false);
       return;
     }
@@ -82,13 +96,12 @@ export default function SearchDropdown() {
       if (!res.ok) throw new Error("Search failed");
       const data = await res.json();
       if (!controller.signal.aborted) {
-        setResults(data);
+        setLocalResults(data);
         setSelectedIndex(-1);
       }
     } catch (e: any) {
       if (e.name !== "AbortError") {
-        console.error("Search error:", e);
-        setResults([]);
+        setLocalResults([]);
       }
     } finally {
       if (!controller.signal.aborted) {
@@ -97,23 +110,68 @@ export default function SearchDropdown() {
     }
   }, []);
 
-  // Debounced search
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    
-    if (!query.trim() || query.trim().length < 2) {
-      setResults([]);
-      setLoading(false);
+  // Live API search (slightly delayed, fires after local)
+  const doLiveSearch = useCallback(async (q: string) => {
+    if (liveAbortRef.current) liveAbortRef.current.abort();
+
+    if (!q.trim() || q.trim().length < 3) {
+      setLiveResults([]);
+      setLiveLoading(false);
       return;
     }
 
+    const controller = new AbortController();
+    liveAbortRef.current = controller;
+    setLiveLoading(true);
+
+    try {
+      const res = await fetch(`/api/search/amazon?q=${encodeURIComponent(q.trim())}&page=1`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error("Live search failed");
+      const data = await res.json();
+      if (!controller.signal.aborted) {
+        setLiveResults(data.products || []);
+      }
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        setLiveResults([]);
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setLiveLoading(false);
+      }
+    }
+  }, []);
+
+  // Debounced searches
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (liveDebounceRef.current) clearTimeout(liveDebounceRef.current);
+
+    if (!query.trim() || query.trim().length < 2) {
+      setLocalResults([]);
+      setLiveResults([]);
+      setLoading(false);
+      setLiveLoading(false);
+      return;
+    }
+
+    // Local search: fast (200ms)
     setLoading(true);
-    debounceRef.current = setTimeout(() => doSearch(query), 200);
+    debounceRef.current = setTimeout(() => doLocalSearch(query), 200);
+
+    // Live search: slightly slower (600ms) — only if 3+ chars
+    if (query.trim().length >= 3) {
+      setLiveLoading(true);
+      liveDebounceRef.current = setTimeout(() => doLiveSearch(query), 600);
+    }
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (liveDebounceRef.current) clearTimeout(liveDebounceRef.current);
     };
-  }, [query, doSearch]);
+  }, [query, doLocalSearch, doLiveSearch]);
 
   // Navigate to search results page
   const goToSearch = (searchQuery: string) => {
@@ -130,11 +188,18 @@ export default function SearchDropdown() {
     setLocation(`/producto/${slug}`);
   };
 
+  // Import live result and navigate
+  const handleLiveClick = async (liveProduct: LiveSearchResult) => {
+    setOpen(false);
+    // Navigate to catalog with search query — the catalog page handles import on click
+    goToSearch(query);
+  };
+
   // Form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedIndex >= 0 && selectedIndex < results.length) {
-      goToProduct(results[selectedIndex].slug);
+    if (selectedIndex >= 0 && selectedIndex < localResults.length) {
+      goToProduct(localResults[selectedIndex].slug);
     } else {
       goToSearch(query);
     }
@@ -143,9 +208,7 @@ export default function SearchDropdown() {
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!open) return;
-
-    const maxIndex = results.length - 1;
-    
+    const maxIndex = localResults.length - 1;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex(prev => Math.min(prev + 1, maxIndex));
@@ -158,16 +221,24 @@ export default function SearchDropdown() {
     }
   };
 
-  // Clear search
   const clearSearch = () => {
     setQuery("");
-    setResults([]);
+    setLocalResults([]);
+    setLiveResults([]);
     setOpen(false);
     inputRef.current?.focus();
   };
 
   const showTrending = open && query.trim().length < 2;
   const showResults = open && query.trim().length >= 2;
+
+  // Filter live results that aren't already in local results (by name similarity)
+  const localNames = new Set(localResults.map(r => r.name.toLowerCase().slice(0, 40)));
+  const filteredLive = liveResults
+    .filter(lr => !localNames.has(lr.name.toLowerCase().slice(0, 40)))
+    .slice(0, localResults.length < 4 ? 6 : 3); // Show more live results if local has few
+
+  const hasAnyResults = localResults.length > 0 || filteredLive.length > 0;
 
   return (
     <div ref={containerRef} className="relative flex-1 max-w-2xl">
@@ -206,7 +277,7 @@ export default function SearchDropdown() {
         </button>
       </form>
 
-      {/* Trending searches - shown when input focused but no query */}
+      {/* Trending searches */}
       {showTrending && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-[100] overflow-hidden">
           <div className="px-4 py-2.5 border-b bg-gray-50/80">
@@ -232,20 +303,20 @@ export default function SearchDropdown() {
 
       {/* Search results dropdown */}
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-[100] max-h-[70vh] overflow-hidden">
-          
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-[100] max-h-[75vh] overflow-hidden">
+
           {/* Loading state */}
-          {loading && results.length === 0 && (
+          {loading && localResults.length === 0 && filteredLive.length === 0 && (
             <div className="px-4 py-6 text-center">
               <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-copikon-red" />
-              <span className="text-sm text-gray-500">Buscando...</span>
+              <span className="text-sm text-gray-500">Buscando en USA...</span>
             </div>
           )}
 
-          {/* Results */}
-          {results.length > 0 && (
-            <div className="overflow-y-auto max-h-[60vh]">
-              {results.map((p, index) => (
+          {/* Local catalog results */}
+          {localResults.length > 0 && (
+            <div className="overflow-y-auto max-h-[35vh]">
+              {localResults.map((p, index) => (
                 <div
                   key={p.id}
                   onClick={() => goToProduct(p.slug)}
@@ -255,7 +326,6 @@ export default function SearchDropdown() {
                   }`}
                   data-testid={`search-result-${p.id}`}
                 >
-                  {/* Product image */}
                   <div className="w-12 h-12 rounded-lg bg-white border border-gray-100 p-1 flex items-center justify-center shrink-0">
                     <img
                       src={proxyImageUrl(p.image)}
@@ -265,8 +335,6 @@ export default function SearchDropdown() {
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
                   </div>
-
-                  {/* Product info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-900 line-clamp-1 leading-snug">{p.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -282,8 +350,6 @@ export default function SearchDropdown() {
                       <span className="text-[10px] text-gray-300">{CATEGORY_LABELS[p.category] || p.category}</span>
                     </div>
                   </div>
-
-                  {/* Badge */}
                   {p.badge && (
                     <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap shrink-0 ${getBadgeStyle(p.badge)}`}>
                       {p.badge}
@@ -294,8 +360,71 @@ export default function SearchDropdown() {
             </div>
           )}
 
-          {/* No results */}
-          {!loading && results.length === 0 && (
+          {/* Live API results section */}
+          {(liveLoading || filteredLive.length > 0) && (
+            <>
+              {/* Divider */}
+              {localResults.length > 0 && (filteredLive.length > 0 || liveLoading) && (
+                <div className="px-4 py-1.5 border-t bg-gray-50/80">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Más productos disponibles
+                  </span>
+                </div>
+              )}
+
+              {/* Live loading */}
+              {liveLoading && filteredLive.length === 0 && localResults.length > 0 && (
+                <div className="px-4 py-3 flex items-center gap-2 text-gray-400">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span className="text-xs">Buscando más productos...</span>
+                </div>
+              )}
+
+              {/* Live results */}
+              {filteredLive.map((lp) => (
+                <div
+                  key={lp.asin}
+                  onClick={() => goToSearch(query)}
+                  className="flex items-center gap-3 px-4 py-2.5 cursor-pointer border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors"
+                  data-testid={`live-search-${lp.asin}`}
+                >
+                  <div className="w-12 h-12 rounded-lg bg-white border border-gray-100 p-1 flex items-center justify-center shrink-0">
+                    <img
+                      src={proxyImageUrl(lp.image)}
+                      alt=""
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-900 line-clamp-1 leading-snug">{lp.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-sm font-bold text-copikon-red">{formatUSD(lp.totalPriceUsd)}</span>
+                      <span className="text-[11px] text-gray-400">{formatBs(lp.totalPriceUsd)}</span>
+                      {lp.rating > 0 && (
+                        <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          {lp.rating.toFixed(1)}
+                          {lp.reviews > 0 && (
+                            <span className="text-gray-300">({lp.reviews >= 1000 ? `${(lp.reviews/1000).toFixed(0)}K` : lp.reviews})</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {lp.badge && (
+                    <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap shrink-0 ${getBadgeStyle(lp.badge)}`}>
+                      {lp.badge}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* No results at all */}
+          {!loading && !liveLoading && !hasAnyResults && (
             <div className="px-4 py-8 text-center">
               <Search className="w-8 h-8 mx-auto mb-2 text-gray-200" />
               <p className="text-sm text-gray-500">No encontramos productos para "{query}"</p>
@@ -304,7 +433,7 @@ export default function SearchDropdown() {
           )}
 
           {/* See all results footer */}
-          {results.length > 0 && (
+          {hasAnyResults && (
             <button
               onClick={() => goToSearch(query)}
               className="w-full px-4 py-3 text-center text-sm text-copikon-red hover:bg-red-50 transition font-semibold border-t flex items-center justify-center gap-2 bg-gray-50/50"
@@ -313,8 +442,8 @@ export default function SearchDropdown() {
             </button>
           )}
 
-          {/* Loading indicator when results exist and still loading more */}
-          {loading && results.length > 0 && (
+          {/* Loading indicator overlay */}
+          {(loading || liveLoading) && hasAnyResults && (
             <div className="absolute top-2 right-2">
               <Loader2 className="w-4 h-4 animate-spin text-copikon-red" />
             </div>

@@ -147,7 +147,13 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   "gorra": ["cap", "hat"],
   "sombrero": ["hat"],
   "mochila": ["backpack"],
+  "maleta": ["luggage", "suitcase", "carry on", "travel bag"],
+  "maletas": ["luggage", "suitcase", "carry on", "travel bag"],
+  "equipaje": ["luggage", "suitcase", "travel bag"],
+  "valija": ["suitcase", "luggage"],
   "bolso": ["bag", "handbag", "tote"],
+  "bolso de viaje": ["travel bag", "duffel bag", "weekender"],
+  "neceser": ["toiletry bag", "makeup bag", "travel kit"],
   "cartera": ["wallet", "purse"],
   "billetera": ["wallet"],
   "lentes": ["glasses", "sunglasses"],
@@ -898,7 +904,7 @@ export async function registerRoutes(
   // ===== IMPORT SEARCH RESULT AS PRODUCT =====
   app.post("/api/search/import", async (req, res) => {
     try {
-      const { asin, name, image, price, weight, rating, reviews } = req.body;
+      const { asin, name, image, price, amazonPrice, totalPriceUsd: inputTotalPrice, weight, rating, reviews, badge } = req.body;
       if (!asin || !name) return res.status(400).json({ message: "Faltan datos" });
 
       // Check if product already exists by ASIN
@@ -913,17 +919,37 @@ export async function registerRoutes(
       }
 
       // Create new product from search result
-      const basePrice = price || 0;
+      const basePrice = amazonPrice || price || 0;
       const w = weight || 1;
       const shippingPerLb = 5.50;
-      const totalPriceUsd = +(basePrice * 1.15 + w * shippingPerLb).toFixed(2);
+      const totalPriceUsd = inputTotalPrice || +(basePrice * 1.15 + w * shippingPerLb).toFixed(2);
+
+      // Auto-detect category from name
+      const nameLower = name.toLowerCase();
+      let detectedCategory = "tech";
+      if (/shampoo|conditioner|hair|skin|makeup|beauty|cream|serum|perfum|cologne|lotion|kerastase|olaplex/i.test(nameLower)) detectedCategory = "beauty";
+      else if (/shoe|sneaker|boot|sandal|zapato|calzado|nike|adidas|jordan|new balance/i.test(nameLower)) detectedCategory = "shoes";
+      else if (/shirt|pants|dress|jacket|hoodie|ropa|clothing|jeans|polo|sweater/i.test(nameLower)) detectedCategory = "clothing";
+      else if (/phone|case|iphone|samsung|galaxy|cable|charger|cargador|airpod/i.test(nameLower)) detectedCategory = "phones";
+      else if (/laptop|computer|keyboard|mouse|monitor|headphone|speaker|tablet|ipad|macbook|pc|ssd|ram/i.test(nameLower)) detectedCategory = "tech";
+      else if (/kitchen|cook|pan|pot|blender|coffee|cocina|hogar|home|furniture|pillow|mattress|towel|lamp/i.test(nameLower)) detectedCategory = "home";
+      else if (/vitamin|supplement|protein|creatine|gym|fitness|health|medicine|first aid/i.test(nameLower)) detectedCategory = "health";
+      else if (/sport|exercise|yoga|running|basketball|football|soccer|ball|weight|dumbbell/i.test(nameLower)) detectedCategory = "sports";
+      else if (/toy|lego|puzzle|doll|game.*board|plush|nerf|barbie|hot wheels/i.test(nameLower)) detectedCategory = "toys";
+      else if (/playstation|xbox|nintendo|controller|gaming|ps5|ps4|switch/i.test(nameLower)) detectedCategory = "gaming";
+      else if (/baby|toddler|diaper|stroller|pacifier|beb[eé]/i.test(nameLower)) detectedCategory = "baby";
+      else if (/dog|cat|pet|mascota|collar|leash|aquarium|fish/i.test(nameLower)) detectedCategory = "pets";
+      else if (/car|auto|tool|wrench|drill|garage|motor|tire/i.test(nameLower)) detectedCategory = "auto";
+      else if (/office|desk|pen|printer|paper|binder|stapler/i.test(nameLower)) detectedCategory = "office";
+      else if (/snack|food|candy|chocolate|coffee|tea|comida|protein.*bar/i.test(nameLower)) detectedCategory = "food";
+      else if (/luggage|suitcase|maleta|travel|backpack|bag|mochila/i.test(nameLower)) detectedCategory = "home";
 
       const slug = name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim().slice(0, 100);
 
-      const product = await storage.createProduct({
+      const product = await (storage as PgStorage).createProduct({
         name,
         slug,
-        category: "tech", // default category, admin can change
+        category: detectedCategory,
         description: name,
         basePrice,
         weight: w,
@@ -932,7 +958,7 @@ export async function registerRoutes(
         images: image ? [image] : [],
         rating: rating || 0,
         reviews: reviews || 0,
-        badge: "",
+        badge: badge || "",
         specs: { ASIN: asin },
         isActive: true,
         isManual: false,
