@@ -1314,7 +1314,153 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: Create single product manually
+  // ===== CRON: PRODUCT CATALOG GROWTH =====
+  // Automatically imports new products from popular search categories
+  const GROWTH_CATEGORIES: { query: string; category: string; weight: number }[] = [
+    // Electronics & Tech
+    { query: "best seller electronics", category: "tech", weight: 1 },
+    { query: "bluetooth headphones", category: "tech", weight: 0.5 },
+    { query: "phone accessories", category: "phones", weight: 0.3 },
+    { query: "smart home devices", category: "tech", weight: 1 },
+    { query: "laptop accessories", category: "tech", weight: 0.5 },
+    { query: "wireless charger", category: "phones", weight: 0.3 },
+    { query: "gaming headset", category: "gaming", weight: 0.8 },
+    { query: "PS5 games", category: "gaming", weight: 0.3 },
+    { query: "Nintendo Switch games", category: "gaming", weight: 0.3 },
+    { query: "portable speaker", category: "tech", weight: 1 },
+    // Beauty & Personal Care
+    { query: "skincare best sellers", category: "beauty", weight: 0.5 },
+    { query: "perfume for women", category: "beauty", weight: 0.5 },
+    { query: "cologne for men", category: "beauty", weight: 0.5 },
+    { query: "hair care products", category: "beauty", weight: 0.5 },
+    { query: "makeup best sellers", category: "beauty", weight: 0.3 },
+    { query: "deodorant", category: "beauty", weight: 0.3 },
+    { query: "electric toothbrush", category: "beauty", weight: 0.5 },
+    // Clothing & Shoes
+    { query: "Nike shoes men", category: "shoes", weight: 2 },
+    { query: "Nike shoes women", category: "shoes", weight: 2 },
+    { query: "Adidas sneakers", category: "shoes", weight: 2 },
+    { query: "men casual shirts", category: "clothing", weight: 0.5 },
+    { query: "women dresses", category: "clothing", weight: 0.5 },
+    { query: "sunglasses", category: "clothing", weight: 0.3 },
+    { query: "backpack", category: "clothing", weight: 1 },
+    { query: "wallet men", category: "clothing", weight: 0.3 },
+    // Home & Kitchen
+    { query: "kitchen gadgets best sellers", category: "home", weight: 1 },
+    { query: "bedding sheets", category: "home", weight: 2 },
+    { query: "air fryer", category: "home", weight: 5 },
+    { query: "vacuum cleaner", category: "home", weight: 5 },
+    { query: "comforter set", category: "home", weight: 3 },
+    { query: "curtains", category: "home", weight: 2 },
+    { query: "knife set kitchen", category: "home", weight: 2 },
+    { query: "coffee maker", category: "home", weight: 5 },
+    // Health & Supplements
+    { query: "protein powder", category: "health", weight: 2 },
+    { query: "vitamins supplements", category: "health", weight: 0.5 },
+    { query: "creatine", category: "health", weight: 1 },
+    { query: "pre workout", category: "health", weight: 1 },
+    // Baby
+    { query: "baby essentials", category: "baby", weight: 1 },
+    { query: "diapers", category: "baby", weight: 2 },
+    { query: "baby formula", category: "baby", weight: 2 },
+    { query: "stroller", category: "baby", weight: 10 },
+    // Pets
+    { query: "dog food best seller", category: "pets", weight: 5 },
+    { query: "cat food", category: "pets", weight: 3 },
+    { query: "dog toys", category: "pets", weight: 0.5 },
+    // Sports
+    { query: "yoga mat", category: "sports", weight: 2 },
+    { query: "dumbbells", category: "sports", weight: 5 },
+    { query: "resistance bands", category: "sports", weight: 0.3 },
+    // Food & Snacks
+    { query: "snacks variety pack", category: "food", weight: 2 },
+    { query: "coffee pods", category: "food", weight: 1 },
+    { query: "protein bars", category: "food", weight: 1 },
+    // Office
+    { query: "desk organizer", category: "office", weight: 1 },
+    { query: "office chair", category: "office", weight: 15 },
+    // Toys
+    { query: "LEGO sets", category: "toys", weight: 1 },
+    { query: "action figures", category: "toys", weight: 0.5 },
+    { query: "board games", category: "toys", weight: 2 },
+    // Automotive
+    { query: "car accessories", category: "auto", weight: 1 },
+    { query: "dash cam", category: "auto", weight: 0.5 },
+  ];
+
+  app.post("/api/admin/sync/grow-catalog", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const pgStorage = storage as PgStorage;
+    
+    // Pick 5 random categories to search today
+    const shuffled = [...GROWTH_CATEGORIES].sort(() => Math.random() - 0.5);
+    const todaySearches = shuffled.slice(0, 5);
+    
+    let imported = 0;
+    let skipped = 0;
+    let errors = 0;
+    const details: any[] = [];
+    
+    for (const search of todaySearches) {
+      try {
+        const searchResult = await canopySearch(search.query);
+        const results = searchResult.results || [];
+        
+        for (const item of results.slice(0, 10)) { // top 10 per search
+          try {
+            const asin = item.asin;
+            if (!asin) continue;
+            
+            // Check if already in DB
+            const existing = await pgStorage.getProducts({ search: asin, limit: 1 });
+            const found = (existing.products || []).find((p: any) => 
+              p.amazonAsin === asin || (p.specs as any)?.ASIN === asin
+            );
+            
+            if (found) {
+              skipped++;
+              continue;
+            }
+            
+            // Fetch full product details
+            const full = await getProductByAsin(asin);
+            if (!full || !full.title) { skipped++; continue; }
+            
+            const productData = canopyToProduct(full, search.category, search.weight);
+            // Translate and clean the name
+            productData.name = translateTitle(productData.name);
+            productData.description = translateTitle(productData.description || productData.name);
+            
+            const { id: _id, ...data } = productData;
+            await pgStorage.createProduct(data);
+            imported++;
+            details.push({ name: productData.name.slice(0, 60), category: search.category });
+            
+            // Small delay to avoid API rate limits
+            await new Promise(r => setTimeout(r, 500));
+          } catch (itemErr: any) {
+            errors++;
+          }
+        }
+        
+        // Delay between searches
+        await new Promise(r => setTimeout(r, 1000));
+      } catch (searchErr: any) {
+        errors++;
+        details.push({ error: searchErr.message, query: search.query });
+      }
+    }
+    
+    res.json({
+      message: `Catálogo actualizado: ${imported} nuevos, ${skipped} existentes, ${errors} errores`,
+      imported,
+      skipped,
+      errors,
+      searches: todaySearches.map(s => s.query),
+      details,
+    });
+  });
+
   // ===== CRON: PRICE & AVAILABILITY SYNC =====
   app.post("/api/admin/sync/prices", requireAdmin, async (req, res) => {
     if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
