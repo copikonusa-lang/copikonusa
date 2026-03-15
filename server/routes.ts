@@ -1589,6 +1589,18 @@ export async function registerRoutes(
     res.json(result);
   });
 
+  // Update user role (admin only)
+  app.patch("/api/admin/users/:id/role", requireAdmin, async (req, res) => {
+    const { role } = req.body;
+    if (!role || !["admin", "employee", "customer"].includes(role)) {
+      return res.status(400).json({ message: "Rol inválido" });
+    }
+    const updated = await storage.updateUser(req.params.id, { role });
+    if (!updated) return res.status(404).json({ message: "Usuario no encontrado" });
+    const { password, ...safe } = updated;
+    res.json(safe);
+  });
+
   app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
     const product = await storage.updateProduct(+req.params.id, req.body);
     if (!product) return res.status(404).json({ message: "Producto no encontrado" });
