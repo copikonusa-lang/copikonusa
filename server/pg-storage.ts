@@ -184,14 +184,18 @@ export class PgStorage implements IStorage {
       conditions.push(eq(productsTable.category, filters.category));
     }
     if (searchTerm) {
-      const q = `%${searchTerm}%`;
-      conditions.push(
-        or(
+      // Build OR conditions for all search term variants (original + synonyms)
+      const searchVariants = filters?.searchVariants || [searchTerm];
+      const orConditions = searchVariants.flatMap((term: string) => {
+        const q = `%${term}%`;
+        return [
           sql`${productsTable.name} ILIKE ${q}`,
           sql`${productsTable.description} ILIKE ${q}`,
-          ilike(productsTable.category, q),
-        )
-      );
+        ];
+      });
+      // Also match category with original term
+      orConditions.push(ilike(productsTable.category, `%${searchTerm}%`));
+      conditions.push(or(...orConditions));
     }
     if (filters?.minPrice !== undefined) {
       conditions.push(gte(productsTable.totalPriceUsd, filters.minPrice));

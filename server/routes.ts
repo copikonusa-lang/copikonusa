@@ -10,6 +10,130 @@ import { PgStorage } from "./pg-storage";
 // Simple in-memory sessions: token -> userId
 const sessions = new Map<string, string>();
 
+// ===== SEARCH SYNONYM EXPANSION =====
+// Maps common Spanish search terms to their English equivalents found in product names.
+// This allows users to search in Spanish and find products with English names.
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  // Electronics
+  "disco duro": ["hard drive"],
+  "audifonos": ["headphones", "earbuds", "earphones"],
+  "audífonos": ["headphones", "earbuds", "earphones"],
+  "pantalla": ["monitor", "screen", "display"],
+  "teclado": ["keyboard"],
+  "raton": ["mouse"],
+  "ratón": ["mouse"],
+  "cargador": ["charger", "charging"],
+  "bateria": ["battery"],
+  "batería": ["battery"],
+  "bocina": ["speaker"],
+  "parlante": ["speaker"],
+  "altavoz": ["speaker"],
+  "impresora": ["printer"],
+  "camara": ["camera"],
+  "cámara": ["camera"],
+  "reloj": ["watch", "clock"],
+  "reloj inteligente": ["smartwatch", "smart watch"],
+  "computadora": ["computer", "laptop"],
+  "computador": ["computer", "laptop"],
+  "portatil": ["laptop", "notebook"],
+  "portátil": ["laptop", "notebook"],
+  "tablet": ["tablet"],
+  "tableta": ["tablet"],
+  "memoria": ["memory", "ram", "usb flash"],
+  "pendrive": ["usb flash drive", "flash drive"],
+  "cable": ["cable", "cord"],
+  "funda": ["case", "cover"],
+  "protector": ["protector", "screen protector"],
+  // Clothing & shoes
+  "zapatos": ["shoes", "sneaker"],
+  "zapatillas": ["shoes", "sneaker", "running shoes"],
+  "tenis": ["sneaker", "running shoes", "shoes"],
+  "sandalias": ["sandals"],
+  "botas": ["boots"],
+  "camisa": ["shirt"],
+  "camiseta": ["t-shirt", "tee"],
+  "pantalon": ["pants", "jeans"],
+  "pantalón": ["pants", "jeans"],
+  "vestido": ["dress"],
+  "chaqueta": ["jacket"],
+  "sudadera": ["hoodie", "sweatshirt"],
+  "gorra": ["cap", "hat"],
+  "mochila": ["backpack"],
+  "bolso": ["bag", "handbag"],
+  "cartera": ["wallet", "purse"],
+  "lentes": ["glasses", "sunglasses"],
+  "gafas": ["glasses", "sunglasses"],
+  // Home
+  "almohada": ["pillow"],
+  "sabanas": ["sheets", "bedding"],
+  "sábanas": ["sheets", "bedding"],
+  "colchon": ["mattress"],
+  "colchón": ["mattress"],
+  "lampara": ["lamp", "light"],
+  "lámpara": ["lamp", "light"],
+  "silla": ["chair"],
+  "mesa": ["table", "desk"],
+  "escritorio": ["desk"],
+  "aspiradora": ["vacuum"],
+  "licuadora": ["blender"],
+  "cafetera": ["coffee maker"],
+  "olla": ["pot", "cooker"],
+  "sarten": ["pan", "skillet"],
+  "sartén": ["pan", "skillet"],
+  // Beauty & personal care
+  "maquillaje": ["makeup"],
+  "crema": ["cream", "lotion", "moisturizer"],
+  "perfume": ["perfume", "cologne", "fragrance"],
+  "champu": ["shampoo"],
+  "champú": ["shampoo"],
+  "cepillo": ["brush"],
+  "secador": ["dryer", "hair dryer"],
+  // Toys & kids
+  "juguete": ["toy"],
+  "juguetes": ["toys"],
+  "muñeca": ["doll"],
+  "pañales": ["diapers"],
+  "biberón": ["bottle", "baby bottle"],
+  "coche bebe": ["stroller"],
+  // Pets
+  "comida perro": ["dog food"],
+  "comida gato": ["cat food"],
+  "correa": ["leash"],
+  // Sports
+  "pelota": ["ball"],
+  "pesas": ["weights", "dumbbells"],
+  "bicicleta": ["bicycle", "bike"],
+  "yoga": ["yoga mat"],
+  // Gaming
+  "control": ["controller"],
+  "consola": ["console"],
+};
+
+/**
+ * Expands a search query with English synonyms.
+ * Returns an array of search patterns for SQL OR conditions.
+ */
+function expandSearchQuery(query: string): string[] {
+  const qLower = query.toLowerCase().trim();
+  const patterns = [qLower];
+  
+  // Check for exact synonym matches (longest match first)
+  const sortedKeys = Object.keys(SEARCH_SYNONYMS).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    if (qLower.includes(key)) {
+      for (const synonym of SEARCH_SYNONYMS[key]) {
+        // Replace the Spanish term with the English synonym
+        const expanded = qLower.replace(key, synonym);
+        if (!patterns.includes(expanded)) patterns.push(expanded);
+        // Also add just the synonym in case the query is exactly the key
+        if (!patterns.includes(synonym)) patterns.push(synonym);
+      }
+    }
+  }
+  
+  return patterns;
+}
+
 function generateToken(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
@@ -185,21 +309,35 @@ export async function registerRoutes(
       const { productsTable } = await import("@shared/schema");
       const { sql: sqlTag } = await import("drizzle-orm");
       
-      // Relevance-ranked search:
-      // 1. Name starts with query (score 100)
-      // 2. Name contains query as exact phrase — shorter names rank higher (score 50 + length bonus)
-      // 3. pg_trgm similarity for fuzzy matches (score based on similarity)
-      // 4. Reviews as tiebreaker
+      // Expand query with Spanish-English synonyms
+      const searchTerms = expandSearchQuery(q);
+      
+      // Build ILIKE patterns for all search term variants
+      const likePatterns = searchTerms.map(t => '%' + t + '%');
+      
+      // Relevance-ranked search with synonym expansion
+      const qLower = q.toLowerCase();
       const rows = await db.execute(sqlTag`
         SELECT id, name, slug, image, total_price_usd as "totalPriceUsd", 
                rating, reviews, badge, category
         FROM products
-        WHERE is_active = true AND name ILIKE ${'%' + q + '%'}
+        WHERE is_active = true AND (
+          name ILIKE ${likePatterns[0]}
+          ${likePatterns.length > 1 ? sqlTag`OR name ILIKE ${likePatterns[1]}` : sqlTag``}
+          ${likePatterns.length > 2 ? sqlTag`OR name ILIKE ${likePatterns[2]}` : sqlTag``}
+          ${likePatterns.length > 3 ? sqlTag`OR name ILIKE ${likePatterns[3]}` : sqlTag``}
+          ${likePatterns.length > 4 ? sqlTag`OR name ILIKE ${likePatterns[4]}` : sqlTag``}
+          ${likePatterns.length > 5 ? sqlTag`OR name ILIKE ${likePatterns[5]}` : sqlTag``}
+          ${likePatterns.length > 6 ? sqlTag`OR name ILIKE ${likePatterns[6]}` : sqlTag``}
+          ${likePatterns.length > 7 ? sqlTag`OR name ILIKE ${likePatterns[7]}` : sqlTag``}
+        )
         ORDER BY
-          CASE WHEN LOWER(name) LIKE ${q.toLowerCase() + '%'} THEN 100 ELSE 0 END
-          + CASE WHEN LOWER(name) LIKE ${'% ' + q.toLowerCase() + ' %'} THEN 40 ELSE 0 END
+          CASE WHEN LOWER(name) LIKE ${qLower + '%'} THEN 100 ELSE 0 END
+          + CASE WHEN LOWER(name) LIKE ${'% ' + qLower + ' %'} THEN 40 ELSE 0 END
+          ${searchTerms.length > 1 ? sqlTag`+ CASE WHEN LOWER(name) LIKE ${searchTerms[1] + '%'} THEN 90 ELSE 0 END` : sqlTag``}
+          ${searchTerms.length > 1 ? sqlTag`+ CASE WHEN LOWER(name) ILIKE ${'%' + searchTerms[1] + '%'} THEN 15 ELSE 0 END` : sqlTag``}
           + (50.0 / GREATEST(LENGTH(name), 1))
-          + similarity(LOWER(name), ${q.toLowerCase()}) * 30
+          + similarity(LOWER(name), ${qLower}) * 30
           + LEAST(COALESCE(reviews, 0)::float / 50000.0, 20)
           DESC
         LIMIT 8
@@ -221,9 +359,13 @@ export async function registerRoutes(
   // ===== PRODUCTS =====
   app.get("/api/products", async (req, res) => {
     const { category, search, minPrice, maxPrice, minRating, sort, page, limit } = req.query;
+    const searchStr = (search as string || "").trim();
+    // Expand search with Spanish-English synonyms
+    const searchVariants = searchStr ? expandSearchQuery(searchStr) : undefined;
     const result = await storage.getProducts({
       category: category as string,
-      search: search as string,
+      search: searchStr || undefined,
+      searchVariants,
       minPrice: minPrice ? +minPrice : undefined,
       maxPrice: maxPrice ? +maxPrice : undefined,
       minRating: minRating ? +minRating : undefined,
