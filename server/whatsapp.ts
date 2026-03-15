@@ -195,7 +195,7 @@ async function handleMessage(from: string, message: string, senderName: string) 
       if (orderNum) {
         // Look up the order
         const pgStorage = storage as PgStorage;
-        const orders: Order[] = await pgStorage.getOrders();
+        const orders: Order[] = await pgStorage.getAllOrders();
         const order = orders.find((o: Order) => o.orderNumber === orderNum);
         if (order) {
           const statusLabel = STATUS_LABELS_ES[order.status] || order.status;

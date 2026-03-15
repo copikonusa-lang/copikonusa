@@ -1284,11 +1284,10 @@ export async function registerRoutes(
 
   // Auto-send reminders for all overdue pending orders
   app.post("/api/admin/orders/send-reminders", requireAdmin, async (_req, res) => {
-    const allOrders = await (storage as PgStorage).getOrders();
+    const allOrders = await (storage as PgStorage).getAllOrders({ status: "pending_payment" });
     const now = new Date();
     let sent = 0;
     for (const order of allOrders) {
-      if (order.status !== "pending_payment") continue;
       const created = new Date(order.createdAt);
       const hoursSince = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
       // Send reminder if between 20-48 hours old
@@ -1314,11 +1313,10 @@ export async function registerRoutes(
 
   // Auto-cancel orders that haven't paid within 48h
   app.post("/api/admin/orders/auto-cancel", requireAdmin, async (_req, res) => {
-    const allOrders = await (storage as PgStorage).getOrders();
+    const allOrders = await (storage as PgStorage).getAllOrders({ status: "pending_payment" });
     const now = new Date();
     let cancelled = 0;
     for (const order of allOrders) {
-      if (order.status !== "pending_payment") continue;
       const created = new Date(order.createdAt);
       const hoursSince = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
       if (hoursSince > 48) {
