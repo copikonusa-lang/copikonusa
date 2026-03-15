@@ -227,9 +227,11 @@ export default function SearchDropdown() {
     }
   };
 
-  // Form submit → go to catalog
+  // Form submit → go to catalog (works on iOS Safari "Search" keyboard button)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Blur input to dismiss mobile keyboard
+    inputRef.current?.blur();
     if (selectedIndex >= 0 && selectedIndex < mergedResults.length) {
       const item = mergedResults[selectedIndex];
       if (item.type === "local") {
@@ -290,17 +292,19 @@ export default function SearchDropdown() {
 
   return (
     <div ref={containerRef} className="relative flex-1 max-w-2xl">
-      <form onSubmit={handleSubmit} className="flex w-full">
+      <form onSubmit={handleSubmit} action="#" className="flex w-full">
         <div className="relative flex-1">
           <input
             ref={inputRef}
-            type="text"
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
             value={query}
             onChange={e => { setQuery(e.target.value); setOpen(true); }}
             onFocus={() => setOpen(true)}
             onKeyDown={handleKeyDown}
             placeholder="Buscar productos en CopikonUSA..."
-            className="w-full px-4 py-2.5 pl-10 pr-8 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:border-copikon-red focus:ring-0 text-sm bg-white"
+            className="w-full px-4 py-2.5 pl-10 pr-8 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:border-copikon-red focus:ring-0 text-sm bg-white [&::-webkit-search-cancel-button]:hidden"
             autoComplete="off"
             data-testid="input-search"
           />
