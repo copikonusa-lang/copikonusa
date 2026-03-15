@@ -184,25 +184,18 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
   // Navigate to search results page
   const goToSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
+    const trimmed = searchQuery.trim();
     setOpen(false);
-    setQuery(searchQuery.trim());
-    const encoded = encodeURIComponent(searchQuery.trim());
-    const newHash = `/catalogo?search=${encoded}`;
-    // Clean any stale page-level query params
-    if (window.location.search) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
-    }
-    // Force hash change even if already on /catalogo — wouter doesn't re-navigate
-    // for same-path with different query params, so we set hash directly.
-    // Adding a timestamp fragment ensures the hashchange event always fires.
-    const currentHash = window.location.hash.replace(/^#/, '');
-    if (currentHash.startsWith('/catalogo')) {
-      // Already on catalogo — force a hash change by briefly going elsewhere, then back
-      // Use replaceState to avoid polluting history, then set the new hash
-      window.location.hash = newHash;
-      // Dispatch a custom event so Catalog page can detect the search change
-      window.dispatchEvent(new CustomEvent('copikon-search', { detail: { search: searchQuery.trim() } }));
+    setQuery(trimmed);
+    const encoded = encodeURIComponent(trimmed);
+    const currentHash = window.location.hash.replace(/^#/, '').split('?')[0];
+    if (currentHash === '/catalogo') {
+      // Already on catalogo — dispatch event so Catalog updates without full navigation
+      // Update URL for bookmarkability (keep search in page-level query params)
+      window.history.replaceState(null, '', window.location.pathname + '?search=' + encoded + '#/catalogo');
+      window.dispatchEvent(new CustomEvent('copikon-search', { detail: { search: trimmed } }));
     } else {
+      // Navigate to catalogo — wouter will change the hash, search goes into page query params
       setLocation(`/catalogo?search=${encoded}`);
     }
   };
