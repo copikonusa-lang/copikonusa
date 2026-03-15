@@ -459,6 +459,55 @@ export async function registerRoutes(
     }
   });
 
+  // ===== VARIANT PRICE LOOKUP =====
+  const variantCache = new Map<string, { data: any; timestamp: number }>();
+  
+  app.get("/api/variant/:asin", async (req, res) => {
+    const asin = req.params.asin;
+    if (!asin) return res.json({});
+    
+    // Check cache
+    const cached = variantCache.get(asin);
+    if (cached && Date.now() - cached.timestamp < 12 * 60 * 60 * 1000) {
+      return res.json(cached.data);
+    }
+    
+    try {
+      // First check if variant is already in our DB
+      const existing = await storage.getProducts({ search: asin, limit: 1 });
+      if (existing.products.length > 0) {
+        const p = existing.products[0];
+        const result = { price: p.totalPriceUsd, name: p.name, image: p.image, slug: p.slug };
+        variantCache.set(asin, { data: result, timestamp: Date.now() });
+        return res.json(result);
+      }
+      
+      // Fetch from Canopy API
+      const detail = await getFullProductDetail(asin);
+      if (detail && detail.price?.value > 0) {
+        const amazonPrice = detail.price.value;
+        const weight = parseFloat(String(detail.weight || '0.5')) || 0.5;
+        const copikonPrice = calculateCopikonPrice(amazonPrice, weight);
+        const result = {
+          price: copikonPrice,
+          name: detail.title || "",
+          image: detail.mainImageUrl || "",
+        };
+        variantCache.set(asin, { data: result, timestamp: Date.now() });
+        if (variantCache.size > 500) {
+          const oldest = [...variantCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+          if (oldest) variantCache.delete(oldest[0]);
+        }
+        return res.json(result);
+      }
+      
+      res.json({});
+    } catch (e: any) {
+      console.error('Variant lookup error:', e.message);
+      res.json({});
+    }
+  });
+
   // ===== PRODUCT DETAIL (Amazon enrichment) =====
   const detailCache = new Map<string, { data: any; timestamp: number }>();
   const DETAIL_CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours
