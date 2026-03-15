@@ -49,14 +49,14 @@ export default function Catalog() {
   const [importingAsins, setImportingAsins] = useState<Set<string>>(new Set());
 
   // Sync search from URL changes (e.g. when SearchDropdown navigates here)
-  // Only sync search param — category is managed by sidebar buttons directly
-  const lastHashRef = useRef(window.location.hash);
+  // Track both hash AND search params since wouter puts search in window.location.search
+  const lastUrlRef = useRef(window.location.hash + window.location.search);
 
   useEffect(() => {
     const syncFromUrl = () => {
-      const currentHash = window.location.hash;
-      if (currentHash !== lastHashRef.current) {
-        lastHashRef.current = currentHash;
+      const currentUrl = window.location.hash + window.location.search;
+      if (currentUrl !== lastUrlRef.current) {
+        lastUrlRef.current = currentUrl;
         const p = getParams();
         const newSearch = p.get("search") || "";
         const newCat = p.get("category") || "";
@@ -80,14 +80,12 @@ export default function Catalog() {
     };
 
     // Direct search event from SearchDropdown — reliable for same-page search changes
-    // This fires when user searches again while already on the catalog page
     const handleSearchEvent = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail?.search !== undefined) {
         setSearch(detail.search);
         setPage(1);
-        // Also update the hash ref so syncFromUrl doesn't fight with us
-        lastHashRef.current = window.location.hash;
+        lastUrlRef.current = window.location.hash + window.location.search;
       }
     };
 

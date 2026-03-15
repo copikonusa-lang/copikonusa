@@ -188,16 +188,14 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     setOpen(false);
     setQuery(trimmed);
     const encoded = encodeURIComponent(trimmed);
-    const currentHash = window.location.hash.replace(/^#/, '').split('?')[0];
-    if (currentHash === '/catalogo') {
-      // Already on catalogo — dispatch event so Catalog updates without full navigation
-      // Update URL for bookmarkability (keep search in page-level query params)
-      window.history.replaceState(null, '', window.location.pathname + '?search=' + encoded + '#/catalogo');
-      window.dispatchEvent(new CustomEvent('copikon-search', { detail: { search: trimmed } }));
-    } else {
-      // Navigate to catalogo — wouter will change the hash, search goes into page query params
-      setLocation(`/catalogo?search=${encoded}`);
+    // Clean any stale page-level query params first
+    if (window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
     }
+    // Navigate to catalogo. setLocation changes the hash; the search param
+    // ends up in window.location.search due to wouter hash routing quirk.
+    // The Catalog page polls for window.location.search changes every 300ms.
+    setLocation(`/catalogo?search=${encoded}`);
   };
 
   // Navigate to product (local — already in DB)
