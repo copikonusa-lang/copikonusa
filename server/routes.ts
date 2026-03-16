@@ -3009,7 +3009,7 @@ export async function registerRoutes(
       const orderCheck = await db.execute(sqlTag`
         SELECT 
           COUNT(*) FILTER (WHERE status = 'pending') as pending,
-          COUNT(*) FILTER (WHERE status = 'pending' AND created_at < NOW() - INTERVAL '48 hours') as stale_pending,
+          COUNT(*) FILTER (WHERE status = 'pending' AND created_at::timestamptz < NOW() - INTERVAL '48 hours') as stale_pending,
           COUNT(*) FILTER (WHERE status = 'paid') as paid_awaiting,
           COUNT(*) FILTER (WHERE status = 'purchased') as purchased
         FROM orders
