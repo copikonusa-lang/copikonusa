@@ -429,7 +429,7 @@ function PurchasesTab({ token }: { token: string }) {
                   {(order.amazonCartUrl || (order as any).amazonPurchaseStatus === "cart_ready") && (
                     <a href={order.amazonCartUrl} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" className="text-xs bg-orange-500 hover:bg-orange-600">
-                        <ExternalLink className="w-3 h-3 mr-1" /> Abrir en Amazon
+                        <ExternalLink className="w-3 h-3 mr-1" /> Abrir Compra
                       </Button>
                     </a>
                   )}
@@ -497,7 +497,7 @@ function PurchasesTab({ token }: { token: string }) {
                       </h4>
                       <div className="grid grid-cols-3 gap-3 text-xs mb-3">
                         <div>
-                          <p className="text-gray-500">Costo Amazon</p>
+                          <p className="text-gray-500">Costo Proveedor</p>
                           <p className="font-bold">{formatUSD(cartResult.estimatedAmazonCost)}</p>
                         </div>
                         <div>
@@ -514,14 +514,14 @@ function PurchasesTab({ token }: { token: string }) {
                           <div key={idx} className="flex items-center justify-between text-xs bg-white p-2 rounded">
                             <span className="truncate flex-1 mr-2">{link.name}</span>
                             <a href={link.amazonUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline shrink-0 flex items-center gap-1">
-                              <ExternalLink className="w-3 h-3" /> Ver en Amazon
+                              <ExternalLink className="w-3 h-3" /> Ver Producto
                             </a>
                           </div>
                         ))}
                       </div>
                       <a href={cartResult.amazonCartUrl} target="_blank" rel="noopener noreferrer">
                         <Button size="sm" className="w-full bg-orange-500 hover:bg-orange-600 text-xs">
-                          <ExternalLink className="w-3 h-3 mr-1" /> Abrir Carrito Completo en Amazon
+                          <ExternalLink className="w-3 h-3 mr-1" /> Abrir Carrito de Compra
                         </Button>
                       </a>
                     </div>
@@ -549,7 +549,7 @@ function PurchasesTab({ token }: { token: string }) {
                     <p className="text-xs text-gray-500">
                       {formatShortDate(order.createdAt)} · {order.items.length} items
                       {(order as any).amazonOrderIds?.length > 0 && (
-                        <> · Amazon: {(order as any).amazonOrderIds.join(", ")}</>
+                        <> · Orden: {(order as any).amazonOrderIds.join(", ")}</>
                       )}
                     </p>
                   </div>
@@ -592,7 +592,7 @@ function PurchasesTab({ token }: { token: string }) {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-sm">Amazon Order ID(s)</Label>
+              <Label className="text-sm">ID(s) de Orden</Label>
               <Input
                 placeholder="Ej: 111-1234567-1234567"
                 value={amazonOrderId}
@@ -602,7 +602,7 @@ function PurchasesTab({ token }: { token: string }) {
               <p className="text-xs text-gray-400 mt-1">Separa múltiples IDs con coma</p>
             </div>
             <div>
-              <Label className="text-sm">Costo Real en Amazon (USD)</Label>
+              <Label className="text-sm">Costo Real (USD)</Label>
               <Input
                 type="number"
                 placeholder={String((selectedOrder as any)?.amazonCostUsd || "0")}

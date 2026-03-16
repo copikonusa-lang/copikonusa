@@ -298,8 +298,8 @@ export const CLIENT_STATUS_LABELS: Record<ClientOrderStatus, string> = {
 export const ADMIN_STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: "Pendiente de pago",
   payment_verified: "Pago verificado",
-  buying_amazon: "Comprando en Amazon",
-  en_route_miami: "En camino a Miami",
+  buying_amazon: "Comprando en USA",
+  en_route_miami: "En camino a bodega",
   in_warehouse: "En warehouse (2BC)",
   in_air: "En aéreo",
   in_venezuela: "En Venezuela",

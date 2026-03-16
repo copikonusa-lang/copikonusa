@@ -9,11 +9,11 @@ import ProductImage from "./ProductImage";
 function getBadgeStyle(badge: string) {
   switch (badge) {
     case "Más vendido":
-      return "bg-[#C45500] text-white";      // naranja Amazon Best Seller
+      return "bg-[#C45500] text-white";      // naranja Best Seller
     case "Nuevo":
-      return "bg-[#E47911] text-white";      // naranja dorado Amazon New Release
+      return "bg-[#E47911] text-white";      // naranja dorado New Release
     case "Popular":
-      return "bg-[#007185] text-white";      // teal Amazon's Choice
+      return "bg-[#007185] text-white";      // teal Top Choice
     case "Oferta":
       return "bg-[#CC0C39] text-white";      // rojo ofertas
     default:

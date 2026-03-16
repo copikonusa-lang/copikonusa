@@ -62,7 +62,7 @@ export default function PaymentMethods() {
             <p><strong>Banco:</strong> Banesco</p>
             <p><strong>Cuenta:</strong> 01340000000000000000</p>
             <p><strong>RIF:</strong> J-12345678-9</p>
-            <p><strong>Pago Móvil:</strong> 04120000000</p>
+            <p><strong>Pago Móvil:</strong> Consultar por WhatsApp</p>
           </div>
           <p className="text-sm text-gray-600 mt-3">
             El precio en bolívares se calcula a 1.50× la tasa BCV del día. Acepta transferencias y pago móvil.

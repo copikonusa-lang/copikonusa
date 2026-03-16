@@ -54,7 +54,7 @@ export default function Returns() {
             <h2 className="font-display font-bold text-base">¿Cómo solicitar una devolución?</h2>
           </div>
           <ol className="text-sm text-gray-600 leading-relaxed space-y-2 list-decimal list-inside">
-            <li>Contacta a nuestro equipo por WhatsApp al +58 412-000-0000</li>
+            <li>Contacta a nuestro equipo por WhatsApp al +1 786-969-5464</li>
             <li>Indica tu número de pedido y el motivo de la devolución</li>
             <li>Te indicaremos cómo y dónde entregar el producto</li>
             <li>Una vez recibido y verificado, procesamos tu reembolso en 48h</li>
@@ -63,7 +63,7 @@ export default function Returns() {
       </div>
 
       <div className="mt-8 text-center">
-        <a href="https://wa.me/584120000000" target="_blank" rel="noopener noreferrer" className="inline-block bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-green-600 transition">
+        <a href="https://wa.me/17869695464" target="_blank" rel="noopener noreferrer" className="inline-block bg-green-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-green-600 transition">
           Contactar soporte por WhatsApp
         </a>
       </div>

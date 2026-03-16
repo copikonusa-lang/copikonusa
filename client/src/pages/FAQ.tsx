@@ -37,7 +37,7 @@ export default function FAQ() {
       <div className="mt-10 text-center bg-copikon-navy text-white rounded-lg p-8">
         <h2 className="font-display font-bold text-lg mb-2">¿Tienes otra pregunta?</h2>
         <p className="text-gray-300 text-sm mb-4">Contáctanos por WhatsApp y te respondemos al instante</p>
-        <a href="https://wa.me/584120000000" target="_blank" rel="noopener noreferrer" className="inline-block bg-green-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition">
+        <a href="https://wa.me/17869695464" target="_blank" rel="noopener noreferrer" className="inline-block bg-green-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition">
           Escribir por WhatsApp
         </a>
       </div>

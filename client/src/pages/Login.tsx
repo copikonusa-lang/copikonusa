@@ -53,10 +53,7 @@ export default function Login() {
           <Link href="/registro" className="text-copikon-red hover:underline font-medium">Regístrate gratis</Link>
         </p>
 
-        <div className="text-center text-xs text-gray-400 mt-4 bg-gray-50 rounded p-3">
-          <p className="font-medium mb-1">Demo Admin:</p>
-          <p>admin@copikonusa.com / admin123</p>
-        </div>
+
       </div>
     </div>
   );

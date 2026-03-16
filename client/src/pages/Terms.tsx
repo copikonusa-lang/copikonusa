@@ -34,7 +34,7 @@ export default function Terms() {
         <p>Al registrarte, aceptas recibir notificaciones sobre el estado de tus pedidos por WhatsApp y/o email.</p>
 
         <h2 className="font-display font-bold text-base mt-6">9. Contacto</h2>
-        <p>Para cualquier consulta: WhatsApp +58 412-000-0000 o email info@copikonusa.com</p>
+        <p>Para cualquier consulta: WhatsApp +1 786-969-5464 o email info@copikonusa.com</p>
       </div>
     </div>
   );

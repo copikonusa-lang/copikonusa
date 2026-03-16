@@ -119,7 +119,7 @@ function ValueProps() {
   );
 }
 
-// ===== CATEGORY CARDS (Amazon-style with product count) =====
+// ===== CATEGORY CARDS (with product count) =====
 function CategoryCards() {
   const { data } = useQuery<{ products: Product[]; total: number }>({
     queryKey: ["/api/products?limit=1"],

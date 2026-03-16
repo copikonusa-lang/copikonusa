@@ -620,10 +620,10 @@ export default function ProductDetail() {
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">
                 <tbody>
-                  {amazonDetail?.brand && (
+                  {amazonDetail?.brand && !/^amazon$/i.test(amazonDetail.brand.trim()) && (
                     <tr className="bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-700 w-1/3 border-b border-gray-100">Marca</td>
-                      <td className="px-4 py-3 text-gray-600 border-b border-gray-100">{amazonDetail.brand}</td>
+                      <td className="px-4 py-3 text-gray-600 border-b border-gray-100">{amazonDetail.brand.replace(/Amazon\s+Basics/gi, "Copikon Basics").replace(/^Amazon$/i, "")}</td>
                     </tr>
                   )}
                   {Object.entries(product.specs || {}).map(([key, value], i) => (

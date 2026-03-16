@@ -36,7 +36,7 @@ function Header() {
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <span>Envío aéreo semanal USA → Venezuela</span>
           <div className="hidden sm:flex items-center gap-4">
-            <a href="https://wa.me/584120000000" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 flex items-center gap-1">
+            <a href="https://wa.me/17869695464" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 flex items-center gap-1">
               <Phone className="w-3 h-3" /> WhatsApp
             </a>
             <Link href="/faq" className="hover:text-gray-300">Ayuda</Link>
@@ -61,7 +61,7 @@ function Header() {
             <CopikonLogo height={36} data-testid="img-logo" />
           </Link>
 
-          {/* Search - Real-time Amazon search with dropdown (desktop) */}
+          {/* Search - Real-time product search with dropdown (desktop) */}
           <div className="hidden md:flex flex-1 max-w-xl">
             <SearchDropdown />
           </div>
@@ -232,8 +232,8 @@ function Footer() {
             <h4 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Contacto</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>
-                <a href="https://wa.me/584120000000" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                  WhatsApp: +58 412-000-0000
+                <a href="https://wa.me/17869695464" target="_blank" rel="noopener noreferrer" className="hover:text-white">
+                  WhatsApp: +1 786-969-5464
                 </a>
               </li>
               <li>
@@ -293,7 +293,7 @@ function WhatsAppButton() {
 
       {/* Button */}
       <a
-        href="https://wa.me/584120000000?text=Hola%2C%20me%20interesa%20un%20producto%20de%20CopikonUSA"
+        href="https://wa.me/17869695464?text=Hola%2C%20me%20interesa%20un%20producto%20de%20CopikonUSA"
         target="_blank"
         rel="noopener noreferrer"
         className="relative bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-[#20BD5A] transition-all hover:scale-110 active:scale-95"

@@ -950,7 +950,8 @@ export async function registerRoutes(
       else if (/luggage|suitcase|maleta|travel|backpack|bag|mochila/i.test(nameLower)) detectedCategory = "home";
 
       // Generate unique slug: base slug + ASIN suffix to avoid duplicates
-      const baseSlug = name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim().slice(0, 80);
+      // Remove 'amazon' from slugs to avoid exposing source
+      const baseSlug = name.toLowerCase().replace(/amazon\s*/gi, "").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim().slice(0, 80);
       const slug = `${baseSlug}-${asin.toLowerCase()}`;
 
       const product = await pgStorage.createProduct({
@@ -1067,7 +1068,7 @@ export async function registerRoutes(
           text: v.text,
           attributes: v.attributes || [],
         })),
-        brand: detail.brand || "",
+        brand: (detail.brand || "").replace(/^Amazon$/i, "").replace(/Amazon\s+Basics/gi, "Copikon Basics"),
       };
 
       // Cache
