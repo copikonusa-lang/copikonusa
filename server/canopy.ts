@@ -68,13 +68,13 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\bhalf\s*rack\b/i, reason: "Half rack" },
   { pattern: /\bpower\s*tower\b/i, reason: "Power tower" },
   { pattern: /\b(weight|cable)\s*stack\s*(machine|system)\b/i, reason: "Weight stack machine" },
-  { pattern: /\bhome\s*gym\b.*\b(weight\s*stack|150\s*lb|pulley|lat\s*pull|cable|multifunction|complete\s*workout|strength\s*training)/i, reason: "Home gym system" },
-  { pattern: /\b(multifunctional|multifunction)\b.*\b(home\s*gym|strength\s*training)\b.*\b(workout|equipment|machine|training)/i, reason: "Home gym system" },
+  { pattern: /\bhome\s*gym\b.*\b(weight\s*stack|150\s*lb|pulley|lat\s*pull|cable|multifunction|complete\s*workout|strength\s*training)(?!.{0,30}\b(band|tube|bar\s*kit|resistance|pilates|yoga|rope|pedal)\b)/i, reason: "Home gym system" },
+  { pattern: /\b(multifunctional|multifunction)\b.*\b(home\s*gym|strength\s*training)\b.*\b(workout|equipment|machine|training)(?!.{0,30}\b(band|tube|bar\s*kit|resistance|pilates|yoga|rope|pedal)\b)/i, reason: "Home gym system" },
   { pattern: /\b(bowflex|harison|mikolo|sincmill|total\s*gym)\b.*\b(home\s*gym|gym\s*(system|machine|station)|workout\s*system)/i, reason: "Home gym system" },
   { pattern: /\bgym\s*(monster|station)\b/i, reason: "Gym station" },
   // Heavy benches
   { pattern: /\bweight\s*bench\b/i, reason: "Weight bench" },
-  { pattern: /\bbench\s*press\b(?!.{0,20}\b(pad|grip|shirt|sleeve)\b)/i, reason: "Bench press" },
+  { pattern: /\bbench\s*press\b(?!.{0,20}\b(pad|grip|shirt|sleeve|barbell\s*pad|hip\s*thrust|squat\s*pad)\b)/i, reason: "Bench press" },
   // Cardio machines (with exclusions for accessories/mats)
   { pattern: /\btreadmill\b(?!.{0,40}\b(mat|cover|lubricant|belt|oil|key|desk|clip|pad|protection|floor)\b)/i, reason: "Treadmill" },
   { pattern: /\belliptical\s*(machine|trainer)?\b(?!.{0,20}\b(mat|pad|desk|under|mini|portable)\b)/i, reason: "Elliptical" },
@@ -96,7 +96,7 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // Gaming cockpit
   { pattern: /\bgaming\s*(cockpit|workstation|pod)\b/i, reason: "Gaming cockpit" },
   // Drones — restricted for air shipping (exclude toys, LEGO, orb balls)
-  { pattern: /\bdrone\b(?!.{0,30}\b(toy|lego|orb|ball|costume|cosplay)\b)(?<!\b(boomerang|magic|flying\s*orb|lego|toy)\s*)/i, reason: "Drone" },
+  { pattern: /\bdrone\b(?!.{0,30}\b(toy|lego|orb|ball|costume|cosplay|spaceship|space|interstellar)\b)(?<!\b(boomerang|magic|flying\s*orb|lego|toy|space)\s*)/i, reason: "Drone" },
   { pattern: /\bdji\s+(mini|mavic|air|avata|phantom|fpv|inspire)\b/i, reason: "DJI drone" },
   { pattern: /\bquadcopter\b(?!.{0,20}\b(toy|mini|kids)\b)/i, reason: "Quadcopter/drone" },
   { pattern: /\b(fpv|uav)\s+(drone|fly|camera|kit|combo)\b/i, reason: "FPV/UAV drone" },

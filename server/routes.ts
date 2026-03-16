@@ -2504,10 +2504,11 @@ export async function registerRoutes(
         const alerts: string[] = [];
 
         // 1. Find and remove duplicates (keep highest reviews)
+        // IMPORTANT: exclude NULL and empty ASINs — they are NOT duplicates
         const dupeRows = await db.execute(sqlTag`
           SELECT amazon_asin, array_agg(id ORDER BY COALESCE(reviews, 0) DESC) as ids
           FROM products
-          WHERE is_active = true AND amazon_asin IS NOT NULL
+          WHERE is_active = true AND amazon_asin IS NOT NULL AND amazon_asin != ''
           GROUP BY amazon_asin
           HAVING COUNT(*) > 1
         `);
