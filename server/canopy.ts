@@ -117,8 +117,8 @@ export function isUnsendable(name: string): string | null {
 // These prevent pricing errors that can lose money on every sale.
 // Max allowed weight per category — anything above triggers a sanity check
 const MAX_CATEGORY_WEIGHT: Record<string, number> = {
-  phones: 3, beauty: 5, health: 5, clothing: 5, shoes: 5,
-  toys: 10, gaming: 10, tech: 15, office: 10, food: 25,
+  phones: 3, beauty: 5, health: 15, clothing: 5, shoes: 5,
+  toys: 10, gaming: 10, tech: 15, office: 10, food: 30,
   pets: 40, home: 20, baby: 20, sports: 50, auto: 15, default: 10
 };
 
@@ -144,6 +144,22 @@ export function estimateWeightByName(name: string, category: string): number {
   if (/\bmouse\b|\bmice\b|raton|ratón/.test(t) && !/mouse\s*pad|mouse\s*mat|desk\s*mat/.test(t)) return 0.5;
   if (/smart\s?watch|reloj.*inteligente|fitbit|fitness.*tracker/.test(t)) return 0.5;
   if (/cream|serum|lotion|shampoo|soap|perfume|makeup|sponge/.test(t)) return 0.5;
+
+  // ═══ PROTEIN / SUPPLEMENTS — can be heavy in bulk ═══
+  if (/protein.*shake|shake.*protein/.test(t)) {
+    const packMatch = t.match(/pack\s+of\s+(\d+)|(\d+)\s*[-]?\s*(?:pack|count|ct)\b/i);
+    const packSize = packMatch ? parseInt(packMatch[1] || packMatch[2]) : 0;
+    if (packSize >= 10) return 10.0; // 12-pack of protein shakes ~10lbs
+    if (packSize >= 4) return 5.0;  // 4-pack ~5lbs
+    return 3.0;
+  }
+  if (/protein.*powder|whey.*protein|creatine.*powder/.test(t)) {
+    const ozMatch = t.match(/(\d+\.?\d*)\s*(?:oz|ounce)/i);
+    if (ozMatch && parseFloat(ozMatch[1]) > 30) return 3.5;
+    return 2.0;
+  }
+  if (/\bpre-?workout\b|\bbcaa\b|\bamino\b|\bcollagen\b.*powder/.test(t)) return 1.5;
+  if (/vitamin|supplement|capsule|tablet|softgel|gummies/i.test(t)) return 0.5;
   if (/\bbattery\b|\bbatteries\b|pila/.test(t)) return 0.5;
   if (/\bwhisk\b|\bpeeler\b|\bcan\s*opener|\bspatula|\btongs\b|\bladle\b/.test(t)) return 0.5;
   if (/herb\s*stripper|garlic\s*press|bottle\s*opener/.test(t)) return 0.3;
@@ -246,7 +262,10 @@ export function validateWeight(weight: number, name: string, category: string): 
   }
   
   // RULE 2: If API weight is more than 5x the name-based estimate AND above category max, it's likely wrong
-  if (weight > estimate * 5 && weight > maxForCategory) {
+  // BUT: allow higher weights for multipacks (12-pack, 24-count, etc.) — they legitimately weigh more
+  const isMultipack = /\b(\d{2,})\s*[-]?\s*(pack|count|ct|cans?|bottles?|pods?|bags?|bars?)\b/i.test(name) || /pack\s+of\s+\d+/i.test(name);
+  const multiplier = isMultipack ? 15 : 5; // More lenient for multipacks
+  if (weight > estimate * multiplier && weight > maxForCategory) {
     return { weight: estimate, warning: `Weight ${weight} lbs is ${(weight/estimate).toFixed(0)}x the estimate for "${name.slice(0,40)}", clamped to ${estimate} lbs` };
   }
   
