@@ -70,16 +70,19 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\b(weight|cable)\s*stack\s*(machine|system)\b/i, reason: "Weight stack machine" },
   { pattern: /\bhome\s*gym\b.*\b(weight\s*stack|150\s*lb|pulley|lat\s*pull|cable|multifunction|complete\s*workout|strength\s*training)/i, reason: "Home gym system" },
   { pattern: /\b(multifunctional|multifunction)\b.*\b(home\s*gym|strength\s*training)\b.*\b(workout|equipment|machine|training)/i, reason: "Home gym system" },
-  { pattern: /\b(bowflex|marcy|harison|mikolo|sincmill|sportsroyals|total\s*gym)\b.*\b(home\s*gym|gym|machine|station|workout\s*system)/i, reason: "Home gym system" },
+  { pattern: /\b(bowflex|harison|mikolo|sincmill|total\s*gym)\b.*\b(home\s*gym|gym\s*(system|machine|station)|workout\s*system)/i, reason: "Home gym system" },
   { pattern: /\bgym\s*(monster|station)\b/i, reason: "Gym station" },
-  // Cardio machines
-  { pattern: /\btreadmill\b(?!.{0,20}\b(mat|cover|lubricant|belt|oil|key|desk|clip)\b)/i, reason: "Treadmill" },
+  // Heavy benches
+  { pattern: /\bweight\s*bench\b/i, reason: "Weight bench" },
+  { pattern: /\bbench\s*press\b(?!.{0,20}\b(pad|grip|shirt|sleeve)\b)/i, reason: "Bench press" },
+  // Cardio machines (with exclusions for accessories/mats)
+  { pattern: /\btreadmill\b(?!.{0,40}\b(mat|cover|lubricant|belt|oil|key|desk|clip|pad|protection|floor)\b)/i, reason: "Treadmill" },
   { pattern: /\belliptical\s*(machine|trainer)?\b(?!.{0,20}\b(mat|pad|desk|under|mini|portable)\b)/i, reason: "Elliptical" },
   { pattern: /\b(stationary|exercise|spin|recumbent|indoor\s*cycling?)\s*bike\b(?!.{0,20}\b(seat|cover|pedal|cushion)\b)/i, reason: "Stationary bike" },
-  { pattern: /\browing\s*machine\b(?!.{0,20}\b(seat|pad|handle|cushion)\b)/i, reason: "Rowing machine" },
-  // Large appliances
-  { pattern: /\b(upright\s*)?refrigerator\b(?!.{0,20}\b(mat|magnet|organizer|bin|shelf|light|thermometer|filter|seal|mini|fridge)\b)/i, reason: "Refrigerator" },
-  { pattern: /\bwashing\s*machine\b(?!.{0,20}\b(cleaner|tab|detergent|cover|hose|filter|mini|portable)\b)/i, reason: "Washing machine" },
+  { pattern: /\browing\s*machine\b(?!.{0,40}\b(seat|pad|handle|cushion|foldable|plegable|squat|compact|portable)\b)/i, reason: "Rowing machine" },
+  // Large appliances (careful negative lookaheads to avoid accessories)
+  { pattern: /\b(upright\s*)?refrigerator\b(?!.{0,40}\b(mat|magnet|organizer|bin|shelf|light|thermometer|filter|seal|mini|fridge|deodorizer|odor|freshener|cleaner)\b)/i, reason: "Refrigerator" },
+  { pattern: /\bwashing\s*machine\b(?!.{0,40}\b(cleaner|clean|tab|detergent|cover|hose|filter|mini|portable|limpiador|affresh|descaler)\b)/i, reason: "Washing machine" },
   // Large furniture
   { pattern: /\b(corner\s*)?sofa\b.*\b(italian|electric|leather|sectional|reclining|large)\b/i, reason: "Large sofa" },
   { pattern: /\bbed\s*frame\b(?!.{0,20}\b(bracket|stopper|wheel|pad|riser)\b)/i, reason: "Bed frame" },
@@ -92,11 +95,11 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
   // Gaming cockpit
   { pattern: /\bgaming\s*(cockpit|workstation|pod)\b/i, reason: "Gaming cockpit" },
-  // Drones — restricted for air shipping
-  { pattern: /\bdrone\b/i, reason: "Drone" },
-  { pattern: /\bdji\b/i, reason: "DJI drone" },
-  { pattern: /\bquadcopter\b/i, reason: "Quadcopter/drone" },
-  { pattern: /\b(fpv|uav)\b.*\b(fly|camera|kit|combo)\b/i, reason: "FPV/UAV drone" },
+  // Drones — restricted for air shipping (exclude toys, LEGO, orb balls)
+  { pattern: /\bdrone\b(?!.{0,30}\b(toy|lego|orb|ball|costume|cosplay)\b)(?<!\b(boomerang|magic|flying\s*orb|lego|toy)\s*)/i, reason: "Drone" },
+  { pattern: /\bdji\s+(mini|mavic|air|avata|phantom|fpv|inspire)\b/i, reason: "DJI drone" },
+  { pattern: /\bquadcopter\b(?!.{0,20}\b(toy|mini|kids)\b)/i, reason: "Quadcopter/drone" },
+  { pattern: /\b(fpv|uav)\s+(drone|fly|camera|kit|combo)\b/i, reason: "FPV/UAV drone" },
 ];
 
 /**
