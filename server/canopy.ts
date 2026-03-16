@@ -60,15 +60,16 @@ export async function getProductWeight(asin: string): Promise<{ itemWeight: numb
 // This blocks them from appearing in search results AND from being imported.
 const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // Gym equipment - large steel structures
-  { pattern: /\bpower\s*(cage|rack)\b/i, reason: "Power cage/rack" },
-  { pattern: /\bsquat\s*rack\b/i, reason: "Squat rack" },
+  { pattern: /\bpower\s*(cage|racks?)\b/i, reason: "Power cage/rack" },
+  { pattern: /\bsquat\s*racks?\b/i, reason: "Squat rack" },
   { pattern: /\bsmith\s*machine\b/i, reason: "Smith machine" },
   { pattern: /\bcable\s*crossover\b/i, reason: "Cable crossover" },
   { pattern: /\bfunctional\s*trainer\b/i, reason: "Functional trainer" },
   { pattern: /\bhalf\s*rack\b/i, reason: "Half rack" },
   { pattern: /\bpower\s*tower\b/i, reason: "Power tower" },
   { pattern: /\b(weight|cable)\s*stack\s*(machine|system)\b/i, reason: "Weight stack machine" },
-  { pattern: /\bhome\s*gym\b.*\b(weight\s*stack|150\s*lb|pulley|lat\s*pull|cable|multifunction)/i, reason: "Home gym system" },
+  { pattern: /\bhome\s*gym\b.*\b(weight\s*stack|150\s*lb|pulley|lat\s*pull|cable|multifunction|complete\s*workout|strength\s*training)/i, reason: "Home gym system" },
+  { pattern: /\b(multifunctional|multifunction)\b.*\b(home\s*gym|strength\s*training)\b.*\b(workout|equipment|machine|training)/i, reason: "Home gym system" },
   { pattern: /\b(bowflex|marcy|harison|mikolo|sincmill|sportsroyals|total\s*gym)\b.*\b(home\s*gym|gym|machine|station|workout\s*system)/i, reason: "Home gym system" },
   { pattern: /\bgym\s*(monster|station)\b/i, reason: "Gym station" },
   // Cardio machines
