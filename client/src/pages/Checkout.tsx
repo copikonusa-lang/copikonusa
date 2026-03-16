@@ -61,7 +61,7 @@ export default function Checkout() {
             <p className="text-yellow-700">Envía <strong>{formatUSD(orderComplete.totalUsd)}</strong> por Zelle a: <strong>pagos@copikonusa.com</strong></p>
           )}
           {orderComplete.paymentMethod === "binance" && (
-            <p className="text-yellow-700">Envía <strong>{formatUSD(orderComplete.totalUsd)}</strong> USDT a: <strong>0x1234567890abcdef</strong></p>
+            <p className="text-yellow-700">Envía <strong>{formatUSD(orderComplete.totalUsd)}</strong> USDT por Binance Pay al email: <strong>copikonchina@hotmail.com</strong></p>
           )}
           {orderComplete.paymentMethod === "bank_vzla" && (
             <p className="text-yellow-700">Transfiere <strong>{formatBs(orderComplete.totalUsd)}</strong> a: Banesco - 01340000000000000000 - J-12345678-9</p>

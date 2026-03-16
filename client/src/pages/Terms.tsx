@@ -9,7 +9,7 @@ export default function Terms() {
         <p>CopikonUSA es un servicio de compras de productos originales de Estados Unidos. Gestionamos la adquisición de productos en tu nombre y los enviamos a Venezuela por vía aérea.</p>
 
         <h2 className="font-display font-bold text-base mt-6">2. Precios y Pagos</h2>
-        <p>Los precios mostrados incluyen el costo del producto, nuestra comisión de gestión (15%) y el costo de envío aéreo ($5.50/lb). Los precios en bolívares se calculan a 1.50× la tasa BCV del momento del pago.</p>
+        <p>Los precios mostrados incluyen todo: costo del producto, gestión de compra y envío aéreo desde USA. Sin cargos ocultos ni sorpresas.</p>
         <p>El cliente tiene 6 horas para realizar el pago después de crear su pedido. Si el pago no se realiza en ese plazo, el pedido se cancela automáticamente.</p>
 
         <h2 className="font-display font-bold text-base mt-6">3. Envíos</h2>
@@ -18,8 +18,8 @@ export default function Terms() {
 
         <h2 className="font-display font-bold text-base mt-6">4. Productos</h2>
         <p>Solo vendemos productos disponibles en nuestro catálogo. No aceptamos pedidos personalizados ni de productos fuera del catálogo.</p>
-        <p>Máximo 5 unidades por producto por pedido.</p>
-        <p>Productos restringidos: armas, químicos peligrosos, medicamentos con receta, baterías de litio grandes.</p>
+        <p>Máximo 3 unidades por producto por pedido.</p>
+        <p>Productos restringidos: armas, drones, químicos peligrosos, medicamentos con receta, baterías de litio grandes.</p>
 
         <h2 className="font-display font-bold text-base mt-6">5. Cuenta de Usuario</h2>
         <p>Es obligatorio crear una cuenta para realizar compras. El usuario es responsable de mantener la confidencialidad de sus credenciales.</p>

@@ -285,7 +285,7 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
         <div className="grid grid-cols-2 gap-3 text-xs text-gray-600">
           <div className="flex items-center gap-2">
             <Truck className="w-4 h-4 text-copikon-navy" />
-            <span>Peso estimado: {product.weight} lbs</span>
+            <span>Envío aéreo incluido</span>
           </div>
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-copikon-navy" />
@@ -522,7 +522,7 @@ export default function ProductDetail() {
               {loadingVariant ? "Calculando..." : formatBs(displayPrice)}
             </p>
             <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-              <Truck className="w-3 h-3" /> Envío aéreo incluido ({product.weight} lbs × $5.50/lb)
+              <Truck className="w-3 h-3" /> Envío aéreo desde USA incluido
             </p>
           </div>
 
@@ -555,11 +555,11 @@ export default function ProductDetail() {
                 <Minus className="w-4 h-4" />
               </button>
               <span className="px-4 py-2.5 text-sm font-semibold min-w-[44px] text-center border-x border-gray-200" data-testid="text-qty">{qty}</span>
-              <button onClick={() => setQty(q => Math.min(5, q + 1))} className="px-3 py-2.5 hover:bg-gray-100 rounded-r-lg" data-testid="button-qty-plus">
+              <button onClick={() => setQty(q => Math.min(3, q + 1))} className="px-3 py-2.5 hover:bg-gray-100 rounded-r-lg" data-testid="button-qty-plus">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <span className="text-xs text-gray-500">Máx. 5 unidades</span>
+            <span className="text-xs text-gray-500">Máx. 3 unidades</span>
           </div>
 
           <div className="flex gap-3">

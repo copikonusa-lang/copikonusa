@@ -37,7 +37,7 @@ export default function About() {
             { icon: Shield, title: "Productos Originales", desc: "Todo 100% original y nuevo, directo de Estados Unidos." },
             { icon: Truck, title: "Envío Aéreo Semanal", desc: "Cada viernes sale un envío desde USA directo a Venezuela." },
             { icon: Users, title: "Atención Personalizada", desc: "Soporte por WhatsApp 24/7 para resolver cualquier duda." },
-            { icon: Globe, title: "Catálogo Amplio", desc: "Más de 145 productos en 15 categorías diferentes." },
+            { icon: Globe, title: "Catálogo Amplio", desc: "Más de 50,000 productos en 15 categorías diferentes." },
             { icon: MapPin, title: "4 Sucursales", desc: "Recoge tu pedido en Caracas, Barquisimeto, Valencia o Maracay." },
             { icon: Star, title: "Precios Transparentes", desc: "Sin costos ocultos. El precio que ves incluye todo." },
           ].map((v, i) => (

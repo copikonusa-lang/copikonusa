@@ -92,6 +92,11 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
   // Gaming cockpit
   { pattern: /\bgaming\s*(cockpit|workstation|pod)\b/i, reason: "Gaming cockpit" },
+  // Drones — restricted for air shipping
+  { pattern: /\bdrone\b/i, reason: "Drone" },
+  { pattern: /\bdji\b/i, reason: "DJI drone" },
+  { pattern: /\bquadcopter\b/i, reason: "Quadcopter/drone" },
+  { pattern: /\b(fpv|uav)\b.*\b(fly|camera|kit|combo)\b/i, reason: "FPV/UAV drone" },
 ];
 
 /**

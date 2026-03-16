@@ -39,11 +39,11 @@ export default function PaymentMethods() {
             </div>
           </div>
           <div className="bg-yellow-50 rounded-lg p-4 text-sm space-y-1">
-            <p><strong>Wallet:</strong> 0x1234567890abcdef</p>
-            <p><strong>Red:</strong> Tron (TRC20)</p>
+            <p><strong>Email Binance Pay:</strong> copikonchina@hotmail.com</p>
+            <p><strong>Moneda:</strong> USDT</p>
           </div>
           <p className="text-sm text-gray-600 mt-3">
-            Envía USDT (Tether) por la red TRC20. Comisión mínima. Pago confirmado en minutos.
+            Envía USDT por Binance Pay al correo indicado. Sin comisión. Pago confirmado al instante.
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default function PaymentMethods() {
             <p><strong>Pago Móvil:</strong> Consultar por WhatsApp</p>
           </div>
           <p className="text-sm text-gray-600 mt-3">
-            El precio en bolívares se calcula a 1.50× la tasa BCV del día. Acepta transferencias y pago móvil.
+            Acepta transferencias y pago móvil en bolívares.
           </p>
         </div>
       </div>

@@ -30,11 +30,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existing) {
         return prev.map(i =>
           i.product.id === product.id
-            ? { ...i, quantity: Math.min(i.quantity + qty, 5) }
+            ? { ...i, quantity: Math.min(i.quantity + qty, 3) }
             : i
         );
       }
-      return [...prev, { product, quantity: Math.min(qty, 5) }];
+      return [...prev, { product, quantity: Math.min(qty, 3) }];
     });
   }, []);
 
@@ -49,7 +49,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
     setItems(prev =>
       prev.map(i =>
-        i.product.id === productId ? { ...i, quantity: Math.min(quantity, 5) } : i
+        i.product.id === productId ? { ...i, quantity: Math.min(quantity, 3) } : i
       )
     );
   }, []);
