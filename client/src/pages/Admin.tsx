@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, TrendingUp, DollarSign, Clock, ChevronRight, ArrowLeft, ExternalLink, Eye, Check, X, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, BarChart3, RefreshCw, FileText, XCircle, Truck } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, TrendingUp, DollarSign, Clock, ChevronRight, ArrowLeft, ExternalLink, Eye, Check, X, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, BarChart3, RefreshCw, FileText, XCircle, Truck, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -99,6 +99,14 @@ function DashboardTab({ token }: { token: string }) {
     },
   });
 
+  const { data: weightHealth } = useQuery({
+    queryKey: ["/api/admin/weight-health"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/weight-health", { headers: { Authorization: `Bearer ${token}` } });
+      return res.json();
+    },
+  });
+
   if (isLoading) return <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}</div>;
 
   return (
@@ -170,6 +178,98 @@ function DashboardTab({ token }: { token: string }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Weight & Shipping Health */}
+      {weightHealth && (
+        <div className="mt-6 space-y-4">
+          <h3 className="font-display font-bold text-sm flex items-center gap-2">
+            <Scale className="w-4 h-4" /> Salud del Catálogo — Peso y Envío
+          </h3>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-white rounded-lg border border-gray-200 p-3">
+              <p className="text-xs text-gray-500">Productos Activos</p>
+              <p className="font-display font-bold text-lg">{Number(weightHealth.totalActive).toLocaleString()}</p>
+            </div>
+            {weightHealth.weightSources?.map((ws: any) => {
+              const labels: Record<string, string> = { api: "Peso Real (API)", smart_estimate: "Estimación Mejorada", name_estimate: "Estimación por Nombre", estimated: "Estimado Básico", sin_datos: "Sin Fuente", manual: "Manual" };
+              const colors: Record<string, string> = { api: "text-green-700 bg-green-50", smart_estimate: "text-blue-700 bg-blue-50", sin_datos: "text-gray-700 bg-gray-50" };
+              return (
+                <div key={ws.source} className={`rounded-lg p-3 ${colors[ws.source] || "bg-gray-50 text-gray-700"}`}>
+                  <p className="text-xs opacity-70">{labels[ws.source] || ws.source}</p>
+                  <p className="font-display font-bold text-lg">{Number(ws.count).toLocaleString()}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Shipping ratio distribution */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 className="text-xs font-medium text-gray-500 mb-3">Distribución Envío vs Precio Producto</h4>
+            <div className="space-y-2">
+              {weightHealth.shippingRatios?.map((r: any) => {
+                const labels: Record<string, string> = { bajo: "✅ Bajo (<50%)", 'normal_0.5x': "✅ Normal (50-100%)", 'moderado_1x': "⚠️ Moderado (100-150%)", 'alto_1.5x': "🟡 Alto (150-200%)", 'critico_2x': "🔴 Crítico (>200%)", sin_datos: "❓ Sin datos" };
+                const barColors: Record<string, string> = { bajo: "bg-green-500", 'normal_0.5x': "bg-green-400", 'moderado_1x': "bg-yellow-400", 'alto_1.5x': "bg-orange-400", 'critico_2x': "bg-red-500", sin_datos: "bg-gray-300" };
+                const total = weightHealth.shippingRatios.reduce((s: number, x: any) => s + Number(x.count), 0);
+                const pct = total > 0 ? (Number(r.count) / total * 100) : 0;
+                return (
+                  <div key={r.bracket} className="flex items-center gap-3 text-sm">
+                    <span className="w-36 text-xs">{labels[r.bracket] || r.bracket}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                      <div className={`h-full rounded-full ${barColors[r.bracket] || 'bg-gray-400'}`} style={{ width: `${Math.max(pct, 1)}%` }} />
+                    </div>
+                    <span className="text-xs font-medium w-16 text-right">{Number(r.count).toLocaleString()} ({pct.toFixed(0)}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Worst shipping ratios */}
+          {weightHealth.worstRatios?.length > 0 && (
+            <div className="bg-white rounded-lg border border-red-200 p-4">
+              <h4 className="text-xs font-medium text-red-600 mb-2">Top 10 Peor Ratio Envío/Producto (activos)</h4>
+              <div className="text-xs space-y-1">
+                {weightHealth.worstRatios.map((p: any) => (
+                  <div key={p.id} className="flex items-center gap-2 py-1 border-b border-gray-50">
+                    <span className="font-mono text-red-600 font-bold w-12">{p.ratio}x</span>
+                    <span className="text-gray-400 w-16">{p.weight}lbs</span>
+                    <span className="text-gray-400 w-16">${Number(p.base_price).toFixed(2)}</span>
+                    <span className="flex-1 truncate">{(p.name || "").slice(0, 60)}</span>
+                    <span className="text-gray-400">{p.category}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recent sync logs */}
+          {weightHealth.recentLogs?.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h4 className="text-xs font-medium text-gray-500 mb-2">Últimas Sincronizaciones</h4>
+              <div className="text-xs space-y-1">
+                {weightHealth.recentLogs.map((l: any) => {
+                  const typeLabels: Record<string, string> = { price_sync: "🔄 Sync Precios", catalog_growth: "🌱 Crecimiento", catalog_cleanup: "🧹 Limpieza", weight_fix: "⚖️ Fix Pesos", weight_optimization: "🚀 Optimización" };
+                  const statusColors: Record<string, string> = { completed: "text-green-600", running: "text-blue-600 animate-pulse", error: "text-red-600", failed: "text-red-600" };
+                  const details = l.details || {};
+                  return (
+                    <div key={l.id} className="flex items-center gap-2 py-1 border-b border-gray-50">
+                      <span className="w-32">{typeLabels[l.type] || l.type}</span>
+                      <span className={`font-medium ${statusColors[l.status] || ''}`}>{l.status}</span>
+                      {details.runtime && <span className="text-gray-400">{details.runtime}</span>}
+                      {details.shippingFiltered > 0 && <span className="text-orange-600">{details.shippingFiltered} filtrados</span>}
+                      {details.weightFixed > 0 && <span className="text-blue-600">{details.weightFixed} pesos fijados</span>}
+                      {details.deactivated > 0 && <span className="text-red-600">{details.deactivated} desactivados</span>}
+                      {details.updated > 0 && <span className="text-green-600">{details.updated} actualizados</span>}
+                      <span className="text-gray-300 ml-auto">{l.completedAt ? new Date(l.completedAt).toLocaleString('es-VE') : ''}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

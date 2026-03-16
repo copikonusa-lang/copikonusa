@@ -1289,6 +1289,69 @@ export async function registerRoutes(
     res.json(stats);
   });
 
+  // Weight & Shipping Health endpoint for admin dashboard
+  app.get("/api/admin/weight-health", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { sql: sqlTag } = await import("drizzle-orm");
+    try {
+      // Weight source distribution
+      const weightSourceResult = await db.execute(sqlTag`
+        SELECT 
+          COALESCE(specs->>'weightSource', 'sin_datos') as source,
+          COUNT(*) as count
+        FROM products WHERE is_active = true
+        GROUP BY specs->>'weightSource'
+        ORDER BY count DESC
+      `);
+
+      // Shipping ratio distribution
+      const ratioResult = await db.execute(sqlTag`
+        SELECT
+          CASE
+            WHEN base_price <= 0 OR weight <= 0 THEN 'sin_datos'
+            WHEN (weight * 5.50) / base_price > 2.0 THEN 'critico_2x'
+            WHEN (weight * 5.50) / base_price > 1.5 THEN 'alto_1.5x'
+            WHEN (weight * 5.50) / base_price > 1.0 THEN 'moderado_1x'
+            WHEN (weight * 5.50) / base_price > 0.5 THEN 'normal_0.5x'
+            ELSE 'bajo'
+          END as bracket,
+          COUNT(*) as count
+        FROM products WHERE is_active = true
+        GROUP BY bracket ORDER BY count DESC
+      `);
+
+      // Top 10 worst shipping ratios (active products)
+      const worstRatios = await db.execute(sqlTag`
+        SELECT id, name, base_price, weight, category,
+          ROUND((weight * 5.50 / NULLIF(base_price, 0))::numeric, 2) as ratio
+        FROM products
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+        ORDER BY (weight * 5.50 / NULLIF(base_price, 0)) DESC
+        LIMIT 10
+      `);
+
+      // Recent sync logs
+      const { syncLogsTable } = await import("@shared/schema");
+      const { desc } = await import("drizzle-orm");
+      const recentLogs = await db.select().from(syncLogsTable).orderBy(desc(syncLogsTable.id)).limit(5);
+
+      // Total active count
+      const totalResult = await db.execute(sqlTag`SELECT COUNT(*) as total FROM products WHERE is_active = true`);
+      const totalActive = (totalResult.rows || totalResult)[0]?.total || 0;
+
+      res.json({
+        totalActive,
+        weightSources: (weightSourceResult.rows || weightSourceResult),
+        shippingRatios: (ratioResult.rows || ratioResult),
+        worstRatios: (worstRatios.rows || worstRatios),
+        recentLogs: recentLogs.map(l => ({ id: l.id, type: l.type, status: l.status, startedAt: l.startedAt, completedAt: l.completedAt, details: l.details })),
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
   app.get("/api/admin/orders", requireAdmin, async (req, res) => {
     const { status } = req.query;
     const orders = await storage.getAllOrders({ status: status as string });
