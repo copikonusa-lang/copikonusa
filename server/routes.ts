@@ -1992,6 +1992,24 @@ export async function registerRoutes(
               const asin = (product.specs as any)?.ASIN || product.amazonAsin;
               if (!asin) return;
 
+              // ── GUARDRAIL 1: Block unsendable products that slipped through ──
+              const unsendableReason = isUnsendable(product.name);
+              if (unsendableReason) {
+                if (product.isActive) {
+                  await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+                  deactivated++;
+                  alerts.push({
+                    type: "unsendable",
+                    productId: product.id,
+                    name: product.name,
+                    reason: `Producto no enviable: ${unsendableReason}`,
+                  });
+                  console.log(`[SYNC] Deactivated unsendable: #${product.id} "${product.name.slice(0, 50)}" — ${unsendableReason}`);
+                }
+                processed++;
+                return;
+              }
+
               const detail = await getProductByAsin(asin);
               consecutiveErrors = 0; // Reset on success
               processed++;
@@ -2004,26 +2022,90 @@ export async function registerRoutes(
                 return;
               }
 
+              // ── GUARDRAIL 2: Check updated title for unsendable keywords ──
+              if (detail.title && isUnsendable(detail.title)) {
+                if (product.isActive) {
+                  await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+                  deactivated++;
+                  alerts.push({
+                    type: "unsendable",
+                    productId: product.id,
+                    name: detail.title,
+                    reason: `Título actualizado es no enviable: ${isUnsendable(detail.title)}`,
+                  });
+                }
+                return;
+              }
+
               if (!product.isActive) {
                 reactivated++;
               }
 
               const newBasePrice = detail.price.value;
               let weight = product.weight || 1;
-
-              // If weight was estimated (no API source), try to get real weight
               const specs = product.specs as any;
-              const isWeightEstimated = !specs?.weightSource || specs?.weightSource === "estimated";
+
+              // ── GUARDRAIL 3: ALWAYS try to get real weight from API ──
+              // Even if we have a weight, re-verify it periodically
               let weightUpdated = false;
-              if (isWeightEstimated) {
-                try {
-                  const weightData = await getProductWeight(asin);
+              let weightSource = specs?.weightSource || "estimated";
+              try {
+                const weightData = await getProductWeight(asin);
+                if (weightData.itemWeight || weightData.packageWeight) {
                   const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, weight, product.name, product.category);
-                  if (weightData.itemWeight || weightData.packageWeight) {
-                    weight = realWeight;
-                    weightUpdated = true;
+                  
+                  // ── GUARDRAIL 4: If real weight > 150 lbs, deactivate (can't ship by air) ──
+                  const rawApiWeight = weightData.packageWeight || weightData.itemWeight || 0;
+                  if (rawApiWeight > 150) {
+                    if (product.isActive) {
+                      await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+                      deactivated++;
+                      alerts.push({
+                        type: "overweight",
+                        productId: product.id,
+                        name: product.name,
+                        reason: `Peso real ${rawApiWeight} lbs excede límite aéreo de 150 lbs`,
+                        rawWeight: rawApiWeight,
+                      });
+                      console.log(`[SYNC] Deactivated overweight: #${product.id} "${product.name.slice(0, 50)}" — ${rawApiWeight} lbs`);
+                    }
+                    return;
                   }
-                } catch { /* keep estimated weight */ }
+
+                  // ── GUARDRAIL 5: Alert on major weight corrections ──
+                  const oldWeight = product.weight || 1;
+                  const weightDiff = Math.abs(realWeight - oldWeight);
+                  if (weightDiff > 5 || (oldWeight > 0 && realWeight / oldWeight > 3)) {
+                    alerts.push({
+                      type: "weight_correction",
+                      productId: product.id,
+                      name: product.name,
+                      oldWeight,
+                      newWeight: realWeight,
+                      change: `${oldWeight} → ${realWeight} lbs`,
+                      priceDiff: `$${(Math.abs(realWeight - oldWeight) * 5.50).toFixed(2)} shipping difference`,
+                    });
+                  }
+
+                  weight = realWeight;
+                  weightUpdated = true;
+                  weightSource = "api";
+                }
+              } catch { /* keep current weight */ }
+
+              // ── GUARDRAIL 6: Sanity check — weight vs price ratio ──
+              // If shipping cost ($5.50/lb) would be more than 3x the product price, something is wrong
+              const shippingCost = weight * 5.50;
+              if (shippingCost > newBasePrice * 3 && weight > 10) {
+                alerts.push({
+                  type: "suspicious_weight",
+                  productId: product.id,
+                  name: product.name,
+                  weight,
+                  basePrice: newBasePrice,
+                  shippingCost,
+                  reason: `Envío ($${shippingCost.toFixed(2)}) es ${(shippingCost / newBasePrice).toFixed(1)}x el precio base ($${newBasePrice.toFixed(2)})`,
+                });
               }
 
               const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.50).toFixed(2);
@@ -2033,11 +2115,13 @@ export async function registerRoutes(
               if (priceChange > 0.20) {
                 priceAlerts++;
                 alerts.push({
+                  type: "price_change",
                   productId: product.id,
                   name: product.name,
                   oldPrice: oldTotalPrice,
                   newPrice: newTotalPriceUsd,
                   change: `${(priceChange * 100).toFixed(0)}%`,
+                  weightChange: weightUpdated ? `${product.weight} → ${weight} lbs` : null,
                 });
               }
 
@@ -2049,10 +2133,16 @@ export async function registerRoutes(
                 reviews: detail.ratingsTotal || product.reviews,
               };
 
-              // Update weight if we got real data
+              // Update weight and source
               if (weightUpdated) {
                 updates.weight = weight;
-                updates.specs = { ...specs, weightSource: "api" };
+                updates.specs = { 
+                  ...specs, 
+                  weightSource,
+                  rawItemWeight: specs?.rawItemWeight,
+                  rawPackageWeight: specs?.rawPackageWeight,
+                  lastWeightCheck: new Date().toISOString(),
+                };
               }
 
               if (detail.mainImageUrl && detail.mainImageUrl !== product.image) {
