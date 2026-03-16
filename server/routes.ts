@@ -920,6 +920,8 @@ export async function registerRoutes(
           const weight = estimateWeight(r.title || "");
           const copikonPrice = calculateCopikonPrice(amazonPrice, weight);
           let title = (r.title || "").trim();
+          // Translate title: replace Amazon branding, translate common words to Spanish
+          title = translateTitle(title);
           if (title.length > 120) title = title.slice(0, 117) + "...";
 
           return {
@@ -936,8 +938,9 @@ export async function registerRoutes(
           };
         })
         .filter((p: any) => p.weight <= 150) // Filter <= 150 lbs
-        .filter((p: any) => !isUnsendable(p.name)) // Block unsendable products (too large/heavy for air shipping)
-        .filter((p: any) => checkShippingViability(p.amazonPrice, p.weight, '').viable); // Block products where shipping > 1.5x product cost
+        .filter((p: any) => !isUnsendable(p.name)) // Block unsendable products
+        .filter((p: any) => checkShippingViability(p.amazonPrice, p.weight, '').viable) // Block shipping-prohibitive
+        .filter((p: any, i: number, arr: any[]) => arr.findIndex((x: any) => x.asin === p.asin) === i); // Deduplicate by ASIN
 
       // Cache results
       searchCache.set(cacheKey, { results: products, pageInfo, timestamp: Date.now() });
