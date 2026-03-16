@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
-import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs, isUnsendable, estimateWeightByName } from "./canopy";
+import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs, isUnsendable, estimateWeightByName, checkShippingViability } from "./canopy";
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
@@ -1925,6 +1925,15 @@ export async function registerRoutes(
                 }
               } catch { /* use fallback weight */ }
 
+              // Check shipping viability BEFORE importing
+              const baseP = full.price?.value || 0;
+              const importViability = checkShippingViability(baseP, realWeight, search.category);
+              if (!importViability.viable) {
+                console.log(`[CATALOG GROWTH] Blocked shipping-prohibitive: "${full.title?.slice(0, 60)}" — ratio ${importViability.ratio}x`);
+                skipped++;
+                continue;
+              }
+
               const productData = canopyToProduct(full, search.category, realWeight);
               productData.name = translateTitle(productData.name);
               productData.description = translateTitle(productData.description || productData.name);
@@ -2157,6 +2166,25 @@ export async function registerRoutes(
                   shippingCost,
                   reason: `Envío ($${shippingCost.toFixed(2)}) es ${(shippingCost / newBasePrice).toFixed(1)}x el precio base ($${newBasePrice.toFixed(2)})`,
                 });
+              }
+
+              // ── GUARDRAIL 7: Shipping viability — deactivate uncompetitive products ──
+              const viability = checkShippingViability(newBasePrice, weight, product.category);
+              if (!viability.viable) {
+                await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+                deactivated++;
+                alerts.push({
+                  type: "shipping_prohibitive",
+                  productId: product.id,
+                  name: product.name,
+                  weight,
+                  basePrice: newBasePrice,
+                  shippingCost: viability.shippingCost,
+                  ratio: viability.ratio,
+                  reason: viability.reason,
+                });
+                console.log(`[SYNC] Deactivated shipping-prohibitive: #${product.id} "${product.name.slice(0, 50)}" — ratio ${viability.ratio}x`);
+                return;
               }
 
               const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.50).toFixed(2);
@@ -2480,6 +2508,175 @@ export async function registerRoutes(
     })();
   });
 
+  // ===== OPTIMIZE WEIGHTS: Mass weight correction + shipping filter =====
+  app.post("/api/admin/sync/optimize-weights", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable, syncLogsTable } = await import("@shared/schema");
+    const { eq, sql: sqlTag, count } = await import("drizzle-orm");
+
+    const batchSize = +(req.query.batch || 200);
+    const mode = (req.query.mode as string) || "full"; // "full" | "filter-only" | "weights-only"
+
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "weight_optimization",
+      status: "running",
+      startedAt: new Date().toISOString(),
+      details: { batchSize, mode },
+    }).returning();
+
+    res.json({ message: "Weight optimization started", logId: log.id, batchSize, mode });
+
+    (async () => {
+      try {
+        let weightFixed = 0, shippingFiltered = 0, errors = 0, skipped = 0;
+        const alerts: string[] = [];
+        const startTime = Date.now();
+
+        // PHASE 1: Apply shipping viability filter to ALL active products
+        if (mode !== "weights-only") {
+          console.log(`[OPTIMIZE] Phase 1: Shipping viability filter...`);
+          const allActive = await db.execute(sqlTag`
+            SELECT id, name, base_price, weight, category FROM products
+            WHERE is_active = true AND base_price > 0 AND weight > 0
+          `);
+          for (const row of (allActive.rows || allActive) as any[]) {
+            const viability = checkShippingViability(Number(row.base_price), Number(row.weight), row.category || '');
+            if (!viability.viable) {
+              await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
+              shippingFiltered++;
+              if (shippingFiltered <= 50) {
+                alerts.push(`[SHIPPING] #${row.id}: $${Number(row.base_price).toFixed(2)} base, ${row.weight}lbs, ratio ${viability.ratio}x - ${(row.name || "").slice(0, 50)}`);
+              }
+            }
+          }
+          console.log(`[OPTIMIZE] Phase 1 done: ${shippingFiltered} products deactivated for prohibitive shipping`);
+        }
+
+        // PHASE 2: Fix estimated weights with API data
+        if (mode !== "filter-only") {
+          console.log(`[OPTIMIZE] Phase 2: Fetching real weights from API...`);
+          const DEFAULT_WEIGHTS = [0.1, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 50.0];
+
+          // Get products with estimated weights (round numbers) that don't have API weight
+          const candidates = await db.execute(sqlTag`
+            SELECT id, name, weight, base_price, category, amazon_asin, specs
+            FROM products
+            WHERE is_active = true
+              AND amazon_asin IS NOT NULL AND amazon_asin != ''
+              AND (specs->>'weightSource' IS NULL OR specs->>'weightSource' != 'api')
+            ORDER BY RANDOM()
+            LIMIT ${batchSize}
+          `);
+
+          const rows = (candidates.rows || candidates) as any[];
+          console.log(`[OPTIMIZE] Phase 2: Processing ${rows.length} products...`);
+
+          for (const product of rows) {
+            if (Date.now() - startTime > 20 * 60 * 1000) {
+              console.log(`[OPTIMIZE] Time limit reached`);
+              break;
+            }
+            try {
+              const weightData = await getProductWeight(product.amazon_asin);
+              
+              if (!weightData.itemWeight && !weightData.packageWeight) {
+                // No API data — use smart estimate
+                const estimate = estimateWeightByName(product.name, product.category);
+                const currentWeight = Number(product.weight);
+                if (Math.abs(estimate - currentWeight) > 0.5) {
+                  const newPrice = +(Number(product.base_price) * 1.15 + estimate * 5.50).toFixed(2);
+                  // Re-check viability with new weight
+                  const v = checkShippingViability(Number(product.base_price), estimate, product.category || '');
+                  await db.update(productsTable).set({
+                    weight: estimate,
+                    totalPriceUsd: newPrice,
+                    isActive: v.viable,
+                    specs: { ...(product.specs || {}), weightSource: "smart_estimate", previousWeight: currentWeight },
+                  }).where(eq(productsTable.id, product.id));
+                  weightFixed++;
+                  if (!v.viable) shippingFiltered++;
+                } else {
+                  skipped++;
+                }
+                await new Promise(r => setTimeout(r, 200));
+                continue;
+              }
+
+              // Got API weight — use it
+              const realWeight = getBestWeight(
+                weightData.itemWeight, weightData.packageWeight,
+                estimateWeightByName(product.name, product.category),
+                product.name, product.category
+              );
+
+              const oldWeight = Number(product.weight);
+              const newPrice = +(Number(product.base_price) * 1.15 + realWeight * 5.50).toFixed(2);
+              
+              // Check viability with real weight
+              const v = checkShippingViability(Number(product.base_price), realWeight, product.category || '');
+
+              await db.update(productsTable).set({
+                weight: realWeight,
+                totalPriceUsd: newPrice,
+                isActive: v.viable,
+                specs: {
+                  ...(product.specs || {}),
+                  weightSource: "api",
+                  rawItemWeight: weightData.rawItem,
+                  rawPackageWeight: weightData.rawPackage,
+                  previousWeight: oldWeight,
+                },
+              }).where(eq(productsTable.id, product.id));
+
+              weightFixed++;
+              if (!v.viable) {
+                shippingFiltered++;
+                alerts.push(`[WEIGHT+SHIP] #${product.id}: ${oldWeight}→${realWeight}lbs, ratio ${v.ratio}x → deactivated - ${(product.name || "").slice(0, 50)}`);
+              } else if (Math.abs(realWeight - oldWeight) > 2) {
+                alerts.push(`[WEIGHT] #${product.id}: ${oldWeight}→${realWeight}lbs, price $${Number(product.base_price).toFixed(0)}→$${newPrice} - ${(product.name || "").slice(0, 50)}`);
+              }
+
+              await new Promise(r => setTimeout(r, 350));
+            } catch (e: any) {
+              errors++;
+            }
+          }
+          console.log(`[OPTIMIZE] Phase 2 done: ${weightFixed} weights fixed`);
+        }
+
+        // Final count
+        const countResult = await db.select({ count: count() }).from(productsTable).where(eq(productsTable.isActive, true));
+        const totalActive = countResult[0]?.count || 0;
+
+        await db.update(syncLogsTable).set({
+          status: "completed",
+          completedAt: new Date().toISOString(),
+          details: {
+            mode,
+            weightFixed,
+            shippingFiltered,
+            skipped,
+            errors,
+            totalActive,
+            runtime: `${Math.round((Date.now() - startTime) / 1000)}s`,
+            alerts: alerts.slice(0, 100),
+          },
+        }).where(eq(syncLogsTable.id, log.id));
+
+        console.log(`[OPTIMIZE] Completed: ${weightFixed} weights fixed, ${shippingFiltered} shipping-filtered, ${totalActive} active, ${errors} errors in ${Math.round((Date.now() - startTime) / 1000)}s`);
+      } catch (e: any) {
+        console.error("[OPTIMIZE] Fatal error:", e.message);
+        const { syncLogsTable } = await import("@shared/schema");
+        await db.update(syncLogsTable).set({
+          status: "error",
+          completedAt: new Date().toISOString(),
+          details: { error: e.message },
+        }).where(eq(syncLogsTable.id, log.id));
+      }
+    })();
+  });
+
   // ===== CATALOG HEALTH CHECK & CLEANUP =====
   app.post("/api/admin/sync/cleanup", requireAdmin, async (req, res) => {
     if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
@@ -2569,6 +2766,20 @@ export async function registerRoutes(
             await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
             deactivated++;
             alerts.push(`Unsendable [${reason}]: #${row.id} - ${(row.name || "").slice(0, 50)}`);
+          }
+        }
+
+        // 6. Shipping viability check — deactivate products where shipping is prohibitive
+        const shippingCheckRows = await db.execute(sqlTag`
+          SELECT id, name, base_price, weight, category FROM products
+          WHERE is_active = true AND base_price > 0 AND weight > 0
+        `);
+        for (const row of (shippingCheckRows.rows || shippingCheckRows) as any[]) {
+          const viability = checkShippingViability(Number(row.base_price), Number(row.weight), row.category || '');
+          if (!viability.viable) {
+            await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
+            deactivated++;
+            alerts.push(`Shipping prohibitive [${viability.ratio}x]: #${row.id} - $${Number(row.base_price).toFixed(2)} base, ${row.weight}lbs = $${viability.shippingCost} shipping - ${(row.name || "").slice(0, 50)}`);
           }
         }
 

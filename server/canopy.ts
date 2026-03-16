@@ -122,24 +122,46 @@ const MAX_CATEGORY_WEIGHT: Record<string, number> = {
   pets: 40, home: 20, baby: 20, sports: 50, auto: 15, default: 10
 };
 
-// Smart weight estimation by product name — used as sanity check
+// Smart weight estimation by product name — used as sanity check AND pricing fallback
+// This is CRITICAL for pricing accuracy. Each rule should be based on real product data.
 export function estimateWeightByName(name: string, category: string): number {
   const t = name.toLowerCase();
-  // Very light (<1 lb)
+
+  // ═══ VERY LIGHT (<0.5 lb) ═══
   if (/fire tv stick|streaming stick|roku stick|chromecast|dongle/.test(t)) return 0.5;
   if (/earbuds?|airpods?|in-ear|auricular|audifonos?/.test(t)) return 0.3;
   if (/phone case|funda|screen protector|protector.*pantalla|pop socket/.test(t)) return 0.3;
-  if (/charger|cable|hdmi|\busb\b|adapter|adaptador|\bhub\b|cargador/.test(t)) return 0.5;
-  if (/\bmouse\b|\bmice\b|raton|ratón/.test(t)) return 0.5;
+  if (/memory card|sd card|flash drive|pendrive|thumb drive/.test(t)) return 0.1;
   if (/remote|control remoto/.test(t)) return 0.3;
-  if (/memory card|sd card|flash drive|pendrive/.test(t)) return 0.1;
-  if (/smart\s?watch|reloj|fitbit|tracker/.test(t)) return 0.5;
-  if (/cream|serum|lotion|shampoo|soap|perfume|makeup|sponge/.test(t)) return 0.5;
   if (/\bplug\b|smart plug|enchufe/.test(t)) return 0.3;
+  if (/\bsticker\b|\bdecal\b|\bpatch\b|\bbookmark\b|\bpin\b|\bkeychain\b/.test(t)) return 0.2;
+  if (/\blip\s?balm|lip\s?gloss|nail\s?polish|mascara/.test(t)) return 0.3;
+  if (/\bbandage|band-?aid|adhesive.*strip/.test(t)) return 0.3;
+  if (/\bring\b(?!.*light|.*doorbell)/.test(t) && /\b(silver|gold|wedding|engagement|band|jewelry)\b/.test(t)) return 0.1;
+
+  // ═══ LIGHT (0.5-1 lb) ═══
+  if (/charger|cable|hdmi|\busb\b|adapter|adaptador|\bhub\b|cargador/.test(t)) return 0.5;
+  if (/\bmouse\b|\bmice\b|raton|ratón/.test(t) && !/mouse\s*pad|mouse\s*mat|desk\s*mat/.test(t)) return 0.5;
+  if (/smart\s?watch|reloj.*inteligente|fitbit|fitness.*tracker/.test(t)) return 0.5;
+  if (/cream|serum|lotion|shampoo|soap|perfume|makeup|sponge/.test(t)) return 0.5;
   if (/\bbattery\b|\bbatteries\b|pila/.test(t)) return 0.5;
-  // Light (1-3 lbs)
+  if (/\bwhisk\b|\bpeeler\b|\bcan\s*opener|\bspatula|\btongs\b|\bladle\b/.test(t)) return 0.5;
+  if (/herb\s*stripper|garlic\s*press|bottle\s*opener/.test(t)) return 0.3;
+  if (/\bseat\s*cover\b(?!.*car\s*seat)/.test(t) && /chair|office|computer/.test(t)) return 1.0;
+  if (/\bled\b.*\b(strip|tape)\b|\blight\s*strip\b/.test(t)) return 0.5;
+
+  // ═══ MOUSE PADS & DESK MATS — commonly mis-estimated as 40 lbs ═══
+  if (/mouse\s*pad|mouse\s*mat|desk\s*mat|desk\s*pad|gaming.*pad|gaming.*mat/.test(t)) return 1.5;
+  if (/\bxxl\b.*\b(pad|mat)\b|\bpad\b.*\bxxl\b|extended.*gaming.*pad/.test(t)) return 2.0;
+
+  // ═══ LED LIGHT BARS — commonly mis-estimated as 40 lbs ═══
+  if (/\bled\b.*\b(luz|light)\b.*\bbar\b|\blight\s*bar\b|\bluz\s*bar\b|\bbacklight\b|\bmonitor.*light/.test(t)) return 1.5;
+  if (/\brgb\b.*\b(bar|luz|light)\b/.test(t)) return 1.5;
+  if (/tv\s*backlight|bias\s*light|ambient.*light|immersive.*led/.test(t)) return 1.0;
+
+  // ═══ LIGHT (1-2 lbs) ═══
   if (/keyboard|teclado/.test(t)) return 1.5;
-  if (/headphone|headset|speaker.*portable|bocina/.test(t)) return 1.5;
+  if (/headphone|headset|speaker.*portable|bocina|altavoz/.test(t)) return 1.5;
   if (/controller|gamepad|joystick/.test(t)) return 1.0;
   if (/shirt|camiseta|camisa|blouse|blusa|t-?shirt/.test(t)) return 0.8;
   if (/pants|pantalon|jeans|shorts/.test(t)) return 1.0;
@@ -152,23 +174,62 @@ export function estimateWeightByName(name: string, category: string): number {
   if (/router|modem|wifi|extender/.test(t)) return 1.5;
   if (/microphone|microfono/.test(t)) return 1.5;
   if (/bottle|botella|tumbler|cup|taza|mug/.test(t)) return 1.0;
-  // Medium (3-10 lbs)
-  if (/laptop|chromebook|macbook/.test(t)) return 5.0;
-  if (/monitor|pantalla/.test(t)) return 8.0;
+  if (/\bpillow\b|\balmohada\b|\bcushion\b/.test(t)) return 2.0;
+  if (/\bbook\b|\blibro\b(?!.*shelf|.*case|.*rack)/.test(t)) return 1.5;
+  if (/\bwipe|toallita|pañal|diaper/.test(t)) return 2.0;
+  if (/flash\s*light|\blinterna\b|\btorch\b/.test(t)) return 0.5;
+  if (/\bgaming\b.*\b(microphone|mic)\b|\bcondenser.*mic/.test(t)) return 2.0;
+
+  // ═══ MEDIUM (3-8 lbs) ═══
+  if (/laptop|chromebook|macbook|notebook/.test(t)) return 5.0;
+  if (/monitor|pantalla/.test(t) && !/\bstand\b|\bmount\b|\bprotector\b/.test(t)) return 8.0;
   if (/\btv\b|television|televisor/.test(t)) return 8.0;
   if (/printer|impresora/.test(t)) return 10.0;
   if (/vacuum|aspiradora/.test(t)) return 8.0;
   if (/blender|licuadora|mixer|batidora/.test(t)) return 6.0;
   if (/coffee.*maker|cafetera|espresso/.test(t)) return 6.0;
   if (/air\s?fryer|freidora/.test(t)) return 8.0;
-  if (/comforter|duvet|blanket|cobija/.test(t)) return 6.0;
-  // Heavy (legitimately 10+ lbs)
-  if (/dumbbell|pesa|barbell|weight.*set|kettlebell/.test(t)) return 20.0;
-  if (/dog food|cat food|pet food|cat litter|comida.*perro/.test(t)) return 20.0;
-  if (/gaming chair|silla.*gaming|office chair|silla.*oficina/.test(t)) return 35.0;
+  if (/\bcomforter\b|\bduvet\b|bed\s*in\s*a\s*bag|bedding\s*set/.test(t)) return 7.0;
+  if (/\bblanket\b|\bcobija\b|\bthrow\b/.test(t)) return 3.0;
+  if (/shoe\s*rack|shoe\s*organizer|shoe\s*shelf/.test(t)) return 5.0;
+  if (/portable.*hard\s*drive|external.*hard\s*drive|\bhdd\b|\bssd\b/.test(t)) return 0.5;
+  if (/\bdesk\b(?!.*mat|.*pad|.*lamp|.*organizer)/.test(t)) return 15.0;
+
+  // ═══ PET FOOD / LITTER — legitimately heavy ═══
+  if (/cat\s*litter|arena.*gato/.test(t)) {
+    // Try to extract weight from name like "22.5lbs" or "40 lb"
+    const lbMatch = t.match(/(\d+\.?\d*)\s*(?:lbs?|pounds?)/);
+    if (lbMatch) return Math.min(parseFloat(lbMatch[1]), 50);
+    return 20.0;
+  }
+  if (/dog\s*food|cat\s*food|pet\s*food|comida.*(?:perro|gato)/.test(t)) {
+    const lbMatch = t.match(/(\d+\.?\d*)\s*(?:lbs?|pounds?)/);
+    if (lbMatch) return Math.min(parseFloat(lbMatch[1]), 50);
+    return 15.0;
+  }
+
+  // ═══ HEAVY (10+ lbs) ═══
+  if (/dumbbell|pesa|barbell|weight.*set|kettlebell/.test(t)) {
+    // Try to extract weight from name
+    const lbMatch = t.match(/(\d+)\s*(?:lbs?|pounds?)/);
+    if (lbMatch) return Math.min(parseFloat(lbMatch[1]), 100);
+    return 20.0;
+  }
+  if (/gaming\s*chair|silla.*gaming|office\s*chair|silla.*oficina/.test(t)) return 35.0;
   if (/treadmill|caminadora|elliptical|bench.*press/.test(t)) return 40.0;
-  if (/stroller|carriola|car seat|silla.*auto|crib|cuna/.test(t)) return 15.0;
+  if (/stroller|carriola|car\s*seat|silla.*auto|crib|cuna/.test(t)) return 15.0;
   if (/motor\s?oil|aceite.*motor/.test(t)) return 10.0;
+  if (/jumper\s*cable|booster\s*cable/.test(t)) return 6.0;
+  if (/\bvacuum\b.*\b(upright|shark|dyson|navigator)\b/.test(t)) return 15.0;
+
+  // ═══ POST-IT NOTES — tiny, often mis-estimated ═══
+  if (/post-?it|sticky\s*note|nota.*adhesiva/.test(t)) return 0.3;
+  if (/\bnotes?\b.*\bpad\b|notepad|cuaderno/.test(t)) return 0.5;
+
+  // ═══ DRILL / POWER TOOL KITS — moderately heavy ═══
+  if (/\bdrill\b|\bimpact.*driver\b|\bsaw\b.*\bcordless\b|\bpower.*tool.*kit\b/.test(t)) return 8.0;
+  if (/\bscrewdriver.*set\b|\btool.*set\b/.test(t)) return 3.0;
+
   // Category fallback
   const catW: Record<string, number> = {phones:0.5,beauty:0.5,health:1.0,clothing:1.0,shoes:2.0,toys:2.0,gaming:1.5,tech:2.0,office:1.5,food:2.0,pets:2.0,home:3.0,baby:3.0,sports:3.0,auto:3.0};
   return catW[category] || 2.0;
@@ -339,6 +400,57 @@ export async function getFullProductDetail(asin: string): Promise<FullProductDet
   } catch {
     return null;
   }
+}
+
+// ===== SHIPPING COST VIABILITY FILTER =====
+// Products where air shipping ($5.50/lb) makes them uncompetitive should be filtered out.
+// This prevents showing products that cost 2-3x what they should due to weight.
+
+export interface ShippingViability {
+  viable: boolean;
+  ratio: number;      // shipping / basePrice  (0.5 = shipping is 50% of product cost)
+  shippingCost: number;
+  reason: string | null;
+}
+
+/**
+ * Check if a product's shipping cost makes it unviable for sale.
+ * @param basePrice - Amazon base price in USD
+ * @param weight - Product weight in lbs
+ * @param category - Product category (some categories tolerate higher shipping)
+ * @returns ShippingViability with ratio and decision
+ */
+export function checkShippingViability(basePrice: number, weight: number, category: string = ''): ShippingViability {
+  if (!basePrice || basePrice <= 0 || !weight || weight <= 0) {
+    return { viable: true, ratio: 0, shippingCost: 0, reason: null };
+  }
+
+  const shippingCost = weight * 5.50;
+  const ratio = shippingCost / basePrice;
+
+  // Heavy categories that customers EXPECT to pay more shipping for:
+  // gym equipment, pet food, furniture — users know these are heavy
+  const heavyCategories = ['sports', 'pets', 'home'];
+  const isHeavyCategory = heavyCategories.includes(category);
+
+  // Dynamic threshold: heavy categories get 2.0x, others get 1.5x
+  const maxRatio = isHeavyCategory ? 2.0 : 1.5;
+
+  if (ratio > maxRatio) {
+    return {
+      viable: false,
+      ratio: +ratio.toFixed(2),
+      shippingCost: +shippingCost.toFixed(2),
+      reason: `Envío ($${shippingCost.toFixed(2)}) es ${ratio.toFixed(1)}x el precio del producto ($${basePrice.toFixed(2)}) — máximo permitido: ${maxRatio}x`,
+    };
+  }
+
+  return {
+    viable: true,
+    ratio: +ratio.toFixed(2),
+    shippingCost: +shippingCost.toFixed(2),
+    reason: null,
+  };
 }
 
 export function canopyToProduct(cp: CanopyProduct, category: string, weight: number = 1): Omit<Product, "id"> & { id: number } {
