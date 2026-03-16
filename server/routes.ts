@@ -921,7 +921,7 @@ export async function registerRoutes(
       // Fetch REAL weight from API (critical for accurate pricing)
       const weightData = await getProductWeight(asin);
       const fallbackWeight = estimatedWeight || estimateWeight(name);
-      const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, fallbackWeight);
+      const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, fallbackWeight, name, category);
       const isWeightVerified = !!(weightData.packageWeight || weightData.itemWeight);
 
       // Create new product with REAL weight
@@ -1017,7 +1017,7 @@ export async function registerRoutes(
         // Use real weight from API if available
         const itemW = parseWeightToLbs(detail.itemWeight);
         const pkgW = parseWeightToLbs(detail.packageWeight);
-        const weight = getBestWeight(itemW, pkgW, estimateWeight(detail.title || ""));
+        const weight = getBestWeight(itemW, pkgW, estimateWeight(detail.title || ""), detail.title || "", product.category);
         const copikonPrice = calculateCopikonPrice(amazonPrice, weight);
         const result = {
           price: copikonPrice,
@@ -1658,7 +1658,7 @@ export async function registerRoutes(
       if (!manualWeight) {
         try {
           const weightData = await getProductWeight(asin);
-          const best = getBestWeight(weightData.itemWeight, weightData.packageWeight, 1);
+          const best = getBestWeight(weightData.itemWeight, weightData.packageWeight, 1, canopyProduct.title || "", category);
           if (weightData.itemWeight || weightData.packageWeight) {
             finalWeight = best;
             weightSource = "api";
@@ -1844,7 +1844,7 @@ export async function registerRoutes(
               let weightSource = "estimated";
               try {
                 const weightData = await getProductWeight(asin);
-                const best = getBestWeight(weightData.itemWeight, weightData.packageWeight, search.weight);
+                const best = getBestWeight(weightData.itemWeight, weightData.packageWeight, search.weight, full.title || "", search.category);
                 if (weightData.itemWeight || weightData.packageWeight) {
                   realWeight = best;
                   weightSource = "api";
@@ -1995,7 +1995,7 @@ export async function registerRoutes(
               if (isWeightEstimated) {
                 try {
                   const weightData = await getProductWeight(asin);
-                  const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, weight);
+                  const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, weight, product.name, product.category);
                   if (weightData.itemWeight || weightData.packageWeight) {
                     weight = realWeight;
                     weightUpdated = true;

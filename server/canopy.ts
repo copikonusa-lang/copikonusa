@@ -55,14 +55,111 @@ export async function getProductWeight(asin: string): Promise<{ itemWeight: numb
   }
 }
 
+// ===== WEIGHT VALIDATION GUARDRAILS =====
+// These prevent pricing errors that can lose money on every sale.
+// Max allowed weight per category — anything above triggers a sanity check
+const MAX_CATEGORY_WEIGHT: Record<string, number> = {
+  phones: 3, beauty: 5, health: 5, clothing: 5, shoes: 5,
+  toys: 10, gaming: 10, tech: 15, office: 10, food: 25,
+  pets: 40, home: 20, baby: 20, sports: 50, auto: 15, default: 10
+};
+
+// Smart weight estimation by product name — used as sanity check
+export function estimateWeightByName(name: string, category: string): number {
+  const t = name.toLowerCase();
+  // Very light (<1 lb)
+  if (/fire tv stick|streaming stick|roku stick|chromecast|dongle/.test(t)) return 0.5;
+  if (/earbuds?|airpods?|in-ear|auricular|audifonos?/.test(t)) return 0.3;
+  if (/phone case|funda|screen protector|protector.*pantalla|pop socket/.test(t)) return 0.3;
+  if (/charger|cable|hdmi|\busb\b|adapter|adaptador|\bhub\b|cargador/.test(t)) return 0.5;
+  if (/\bmouse\b|\bmice\b|raton|ratón/.test(t)) return 0.5;
+  if (/remote|control remoto/.test(t)) return 0.3;
+  if (/memory card|sd card|flash drive|pendrive/.test(t)) return 0.1;
+  if (/smart\s?watch|reloj|fitbit|tracker/.test(t)) return 0.5;
+  if (/cream|serum|lotion|shampoo|soap|perfume|makeup|sponge/.test(t)) return 0.5;
+  if (/\bplug\b|smart plug|enchufe/.test(t)) return 0.3;
+  if (/\bbattery\b|\bbatteries\b|pila/.test(t)) return 0.5;
+  // Light (1-3 lbs)
+  if (/keyboard|teclado/.test(t)) return 1.5;
+  if (/headphone|headset|speaker.*portable|bocina/.test(t)) return 1.5;
+  if (/controller|gamepad|joystick/.test(t)) return 1.0;
+  if (/shirt|camiseta|camisa|blouse|blusa|t-?shirt/.test(t)) return 0.8;
+  if (/pants|pantalon|jeans|shorts/.test(t)) return 1.0;
+  if (/jacket|chaqueta|hoodie|sweater|coat/.test(t)) return 1.5;
+  if (/shoes|sneaker|boot|zapatos|zapatillas|tenis|sandal/.test(t)) return 2.0;
+  if (/backpack|mochila|bag|bolso|purse|cartera/.test(t)) return 2.0;
+  if (/toy|juguete|plush|peluche|lego|puzzle/.test(t)) return 2.0;
+  if (/tablet|ipad|kindle|fire hd/.test(t)) return 1.5;
+  if (/camera|camara|gopro|webcam/.test(t)) return 1.5;
+  if (/router|modem|wifi|extender/.test(t)) return 1.5;
+  if (/microphone|microfono/.test(t)) return 1.5;
+  if (/bottle|botella|tumbler|cup|taza|mug/.test(t)) return 1.0;
+  // Medium (3-10 lbs)
+  if (/laptop|chromebook|macbook/.test(t)) return 5.0;
+  if (/monitor|pantalla/.test(t)) return 8.0;
+  if (/\btv\b|television|televisor/.test(t)) return 8.0;
+  if (/printer|impresora/.test(t)) return 10.0;
+  if (/vacuum|aspiradora/.test(t)) return 8.0;
+  if (/blender|licuadora|mixer|batidora/.test(t)) return 6.0;
+  if (/coffee.*maker|cafetera|espresso/.test(t)) return 6.0;
+  if (/air\s?fryer|freidora/.test(t)) return 8.0;
+  if (/comforter|duvet|blanket|cobija/.test(t)) return 6.0;
+  // Heavy (legitimately 10+ lbs)
+  if (/dumbbell|pesa|barbell|weight.*set|kettlebell/.test(t)) return 20.0;
+  if (/dog food|cat food|pet food|cat litter|comida.*perro/.test(t)) return 20.0;
+  if (/gaming chair|silla.*gaming|office chair|silla.*oficina/.test(t)) return 35.0;
+  if (/treadmill|caminadora|elliptical|bench.*press/.test(t)) return 40.0;
+  if (/stroller|carriola|car seat|silla.*auto|crib|cuna/.test(t)) return 15.0;
+  if (/motor\s?oil|aceite.*motor/.test(t)) return 10.0;
+  // Category fallback
+  const catW: Record<string, number> = {phones:0.5,beauty:0.5,health:1.0,clothing:1.0,shoes:2.0,toys:2.0,gaming:1.5,tech:2.0,office:1.5,food:2.0,pets:2.0,home:3.0,baby:3.0,sports:3.0,auto:3.0};
+  return catW[category] || 2.0;
+}
+
+// Validate and clamp weight — prevents obviously wrong weights from entering the system
+export function validateWeight(weight: number, name: string, category: string): { weight: number; warning: string | null } {
+  const maxForCategory = MAX_CATEGORY_WEIGHT[category] || MAX_CATEGORY_WEIGHT.default;
+  const estimate = estimateWeightByName(name, category);
+  
+  // RULE 1: Absolute max of 150 lbs (our shipping limit)
+  if (weight > 150) {
+    return { weight: estimate, warning: `Weight ${weight} lbs exceeds 150 lb limit, using estimate ${estimate} lbs` };
+  }
+  
+  // RULE 2: If API weight is more than 5x the name-based estimate AND above category max, it's likely wrong
+  if (weight > estimate * 5 && weight > maxForCategory) {
+    return { weight: estimate, warning: `Weight ${weight} lbs is ${(weight/estimate).toFixed(0)}x the estimate for "${name.slice(0,40)}", clamped to ${estimate} lbs` };
+  }
+  
+  // RULE 3: If a small electronic/accessory has weight > 10 lbs, override
+  if (weight > 10 && /cable|usb|charger|mouse|earbuds?|plug|hub|adapter|remote|sponge|brush|protector|\bcase\b/i.test(name)) {
+    return { weight: estimate, warning: `Small item "${name.slice(0,30)}" had ${weight} lbs, corrected to ${estimate} lbs` };
+  }
+  
+  // Weight looks reasonable
+  return { weight, warning: null };
+}
+
 // Get the best weight: prefer packageWeight (what ships), then itemWeight, then fallback
-export function getBestWeight(itemWeight: number | null, packageWeight: number | null, fallbackEstimate: number): number {
+// Now includes validation to prevent inflated weights
+export function getBestWeight(itemWeight: number | null, packageWeight: number | null, fallbackEstimate: number, productName?: string, category?: string): number {
+  let raw: number;
   // packageWeight is what actually ships — most accurate for shipping cost
-  if (packageWeight && packageWeight > 0) return packageWeight;
+  if (packageWeight && packageWeight > 0) raw = packageWeight;
   // itemWeight is the product itself — add 10% for packaging
-  if (itemWeight && itemWeight > 0) return +(itemWeight * 1.10).toFixed(2);
+  else if (itemWeight && itemWeight > 0) raw = +(itemWeight * 1.10).toFixed(2);
   // No real weight available — use estimate
-  return fallbackEstimate;
+  else raw = fallbackEstimate;
+  
+  // Apply validation guardrails if we have product info
+  if (productName && category) {
+    const validated = validateWeight(raw, productName, category);
+    if (validated.warning) {
+      console.log(`[WEIGHT GUARD] ${validated.warning}`);
+    }
+    return validated.weight;
+  }
+  return raw;
 }
 
 export async function searchProducts(query: string, page = 1): Promise<any> {
