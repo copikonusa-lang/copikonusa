@@ -2901,5 +2901,164 @@ export async function registerRoutes(
     }
   });
 
+  // ===== PLATFORM HEALTH CHECK (for automated monitoring) =====
+  app.get("/api/admin/health-check", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { sql: sqlTag } = await import("drizzle-orm");
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    const fixes: string[] = [];
+
+    try {
+      // 1. Database connectivity
+      const dbCheck = await db.execute(sqlTag`SELECT 1 as ok`);
+      if (!dbCheck) issues.push("Base de datos no responde");
+
+      // 2. Product catalog health
+      const catalogStats = await db.execute(sqlTag`
+        SELECT 
+          COUNT(*) FILTER (WHERE is_active = true) as active,
+          COUNT(*) FILTER (WHERE is_active = false) as inactive,
+          COUNT(*) FILTER (WHERE is_active = true AND (base_price IS NULL OR base_price <= 0)) as no_price,
+          COUNT(*) FILTER (WHERE is_active = true AND (weight IS NULL OR weight <= 0)) as no_weight,
+          COUNT(*) FILTER (WHERE is_active = true AND (total_price_usd IS NULL OR total_price_usd <= 0)) as no_total,
+          COUNT(*) FILTER (WHERE is_active = true AND weight > 150) as over_weight,
+          COUNT(*) FILTER (WHERE is_active = true AND (image IS NULL OR image = '')) as no_image,
+          COUNT(*) FILTER (WHERE is_active = true AND base_price > 0 AND weight > 0 AND (weight * 5.50 / base_price) > 2.0) as bad_ratio
+        FROM products
+      `);
+      const stats = (catalogStats.rows || catalogStats)[0];
+      
+      if (Number(stats.no_price) > 0) issues.push(`${stats.no_price} productos activos sin precio base`);
+      if (Number(stats.no_weight) > 0) issues.push(`${stats.no_weight} productos activos sin peso`);
+      if (Number(stats.no_total) > 0) issues.push(`${stats.no_total} productos activos sin precio total`);
+      if (Number(stats.over_weight) > 0) issues.push(`${stats.over_weight} productos activos pesan más de 150 lbs`);
+      if (Number(stats.no_image) > 5) warnings.push(`${stats.no_image} productos sin imagen`);
+      if (Number(stats.bad_ratio) > 0) warnings.push(`${stats.bad_ratio} productos con ratio envío/precio > 2x (potencialmente no viables)`);
+
+      // 3. Auto-fix: deactivate products over 150 lbs
+      if (Number(stats.over_weight) > 0) {
+        const fixed = await db.execute(sqlTag`
+          UPDATE products SET is_active = false 
+          WHERE is_active = true AND weight > 150
+          RETURNING id, name, weight
+        `);
+        const fixedRows = fixed.rows || fixed;
+        fixes.push(`Desactivados ${fixedRows.length} productos > 150 lbs: ${fixedRows.map((r: any) => `#${r.id} (${r.weight}lbs)`).join(', ')}`);
+      }
+
+      // 4. Auto-fix: deactivate products with bad shipping ratios
+      if (Number(stats.bad_ratio) > 0) {
+        const badProducts = await db.execute(sqlTag`
+          UPDATE products SET is_active = false
+          WHERE is_active = true AND base_price > 0 AND weight > 0
+            AND (weight * 5.50 / base_price) > 2.0
+            AND category NOT IN ('tech', 'phones', 'gaming')
+          RETURNING id, name, ROUND((weight * 5.50 / base_price)::numeric, 2) as ratio
+        `);
+        const badRows = badProducts.rows || badProducts;
+        if (badRows.length > 0) {
+          fixes.push(`Desactivados ${badRows.length} productos con ratio envío excesivo: ${badRows.slice(0, 5).map((r: any) => `#${r.id} (${r.ratio}x)`).join(', ')}${badRows.length > 5 ? '...' : ''}`);
+        }
+      }
+
+      // 5. Auto-fix: recalculate prices for products where totalPriceUsd doesn't match formula
+      const priceCheck = await db.execute(sqlTag`
+        SELECT id, name, base_price, weight, total_price_usd,
+          ROUND((base_price * 1.15 + weight * 5.50)::numeric, 2) as expected_price
+        FROM products
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+          AND ABS(total_price_usd - (base_price * 1.15 + weight * 5.50)) > 1.00
+        LIMIT 100
+      `);
+      const mismatchedPrices = priceCheck.rows || priceCheck;
+      if (mismatchedPrices.length > 0) {
+        const updated = await db.execute(sqlTag`
+          UPDATE products 
+          SET total_price_usd = ROUND((base_price * 1.15 + weight * 5.50)::numeric, 2)
+          WHERE is_active = true AND base_price > 0 AND weight > 0
+            AND ABS(total_price_usd - (base_price * 1.15 + weight * 5.50)) > 1.00
+        `);
+        fixes.push(`Corregidos ${mismatchedPrices.length} precios desincronizados (diferencia > $1 de la fórmula)`);
+      }
+
+      // 6. Auto-fix: detect and deactivate duplicate ASINs (keep newest)
+      const dupeCheck = await db.execute(sqlTag`
+        WITH dupes AS (
+          SELECT amazon_asin, array_agg(id ORDER BY id DESC) as ids, COUNT(*) as cnt
+          FROM products WHERE is_active = true AND amazon_asin IS NOT NULL AND amazon_asin != ''
+          GROUP BY amazon_asin HAVING COUNT(*) > 1
+        )
+        SELECT * FROM dupes LIMIT 50
+      `);
+      const dupeRows = dupeCheck.rows || dupeCheck;
+      if (dupeRows.length > 0) {
+        let totalDeduped = 0;
+        for (const dupe of dupeRows) {
+          const idsToDeactivate = (dupe.ids as number[]).slice(1); // keep first (newest), deactivate rest
+          if (idsToDeactivate.length > 0) {
+            await db.execute(sqlTag`UPDATE products SET is_active = false WHERE id = ANY(${idsToDeactivate})`);
+            totalDeduped += idsToDeactivate.length;
+          }
+        }
+        if (totalDeduped > 0) fixes.push(`Desactivados ${totalDeduped} productos duplicados (mismo ASIN, se mantuvo el más reciente)`);
+      }
+
+      // 7. Check pending orders health
+      const orderCheck = await db.execute(sqlTag`
+        SELECT 
+          COUNT(*) FILTER (WHERE status = 'pending') as pending,
+          COUNT(*) FILTER (WHERE status = 'pending' AND created_at < NOW() - INTERVAL '48 hours') as stale_pending,
+          COUNT(*) FILTER (WHERE status = 'paid') as paid_awaiting,
+          COUNT(*) FILTER (WHERE status = 'purchased') as purchased
+        FROM orders
+      `);
+      const orders = (orderCheck.rows || orderCheck)[0];
+      if (Number(orders.stale_pending) > 0) warnings.push(`${orders.stale_pending} pedidos pendientes de hace más de 48h`);
+
+      // 8. Check search/API availability (quick Canopy test)
+      let searchOk = false;
+      try {
+        const testResult = await canopySearch("test", 1);
+        searchOk = testResult && testResult.length > 0;
+      } catch { searchOk = false; }
+      if (!searchOk) issues.push("API de búsqueda (Canopy) no responde");
+
+      // 9. Check recent sync logs for failures
+      const { syncLogsTable } = await import("@shared/schema");
+      const { desc } = await import("drizzle-orm");
+      const recentLogs = await db.select().from(syncLogsTable).orderBy(desc(syncLogsTable.id)).limit(10);
+      const failedLogs = recentLogs.filter(l => l.status === 'error');
+      if (failedLogs.length > 0) {
+        warnings.push(`${failedLogs.length} sync logs recientes con errores: ${failedLogs.map(l => `${l.type} (${l.startedAt})`).join(', ')}`);
+      }
+
+      const healthStatus = issues.length > 0 ? 'critical' : warnings.length > 0 ? 'warning' : 'healthy';
+
+      res.json({
+        status: healthStatus,
+        timestamp: new Date().toISOString(),
+        catalog: {
+          active: Number(stats.active),
+          inactive: Number(stats.inactive),
+        },
+        orders: {
+          pending: Number(orders.pending),
+          stalePending: Number(orders.stale_pending),
+          paidAwaiting: Number(orders.paid_awaiting),
+          purchased: Number(orders.purchased),
+        },
+        searchApiOnline: searchOk,
+        issues,
+        warnings,
+        autoFixes: fixes,
+        recentSyncLogs: recentLogs.slice(0, 5).map(l => ({ type: l.type, status: l.status, startedAt: l.startedAt })),
+      });
+    } catch (e: any) {
+      res.status(500).json({ status: 'error', message: e.message });
+    }
+  });
+
   return httpServer;
 }
