@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
-import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs } from "./canopy";
+import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs, isUnsendable } from "./canopy";
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
@@ -884,7 +884,8 @@ export async function registerRoutes(
             badge: (r.ratingsTotal || 0) >= 50000 ? "Más vendido" : (r.ratingsTotal || 0) >= 10000 ? "Popular" : null,
           };
         })
-        .filter((p: any) => p.weight <= 150); // Filter <= 150 lbs
+        .filter((p: any) => p.weight <= 150) // Filter <= 150 lbs
+        .filter((p: any) => !isUnsendable(p.name)); // Block unsendable products (too large/heavy for air shipping)
 
       // Cache results
       searchCache.set(cacheKey, { results: products, pageInfo, timestamp: Date.now() });
@@ -906,6 +907,13 @@ export async function registerRoutes(
     try {
       const { asin, name, image, price, amazonPrice, totalPriceUsd: inputTotalPrice, weight: estimatedWeight, rating, reviews, badge } = req.body;
       if (!asin || !name) return res.status(400).json({ message: "Faltan datos" });
+
+      // Block unsendable products from being imported
+      const unsendableReason = isUnsendable(name);
+      if (unsendableReason) {
+        console.log(`[BLOCKED] Import rejected: "${name.slice(0, 60)}" — ${unsendableReason}`);
+        return res.status(400).json({ message: "Este producto no se puede enviar por avión. Es demasiado grande o pesado para nuestro servicio de envío." });
+      }
 
       // Check if product already exists by ASIN (direct DB query for accuracy)
       const pgStorage = storage as PgStorage;
@@ -1652,6 +1660,13 @@ export async function registerRoutes(
 
       const canopyProduct = await getProductByAsin(asin);
 
+      // Block unsendable products
+      const unsendableReason = isUnsendable(canopyProduct.title || "");
+      if (unsendableReason) {
+        console.log(`[ADMIN IMPORT] Blocked: "${(canopyProduct.title || "").slice(0, 60)}" — ${unsendableReason}`);
+        return res.status(400).json({ message: `Producto no enviable por avión: ${unsendableReason}. Demasiado grande/pesado.` });
+      }
+
       // Fetch real weight unless admin provided manual weight
       let finalWeight = manualWeight || 1;
       let weightSource = manualWeight ? "manual" : "estimated";
@@ -1838,6 +1853,14 @@ export async function registerRoutes(
               
               const full = await getProductByAsin(asin);
               if (!full || !full.title) { skipped++; continue; }
+              
+              // Block unsendable products (too large/heavy for air shipping)
+              const unsendableReason = isUnsendable(full.title);
+              if (unsendableReason) {
+                console.log(`[CATALOG GROWTH] Blocked unsendable: "${full.title.slice(0, 60)}" — ${unsendableReason}`);
+                skipped++;
+                continue;
+              }
               
               // Fetch real weight from API
               let realWeight = search.weight;

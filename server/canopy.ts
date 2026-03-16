@@ -55,6 +55,55 @@ export async function getProductWeight(asin: string): Promise<{ itemWeight: numb
   }
 }
 
+// ===== UNSENDABLE PRODUCT FILTER =====
+// Products that are physically impossible to ship by air (>150 lbs, too large, etc.)
+// This blocks them from appearing in search results AND from being imported.
+const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
+  // Gym equipment - large steel structures
+  { pattern: /\bpower\s*(cage|rack)\b/i, reason: "Power cage/rack" },
+  { pattern: /\bsquat\s*rack\b/i, reason: "Squat rack" },
+  { pattern: /\bsmith\s*machine\b/i, reason: "Smith machine" },
+  { pattern: /\bcable\s*crossover\b/i, reason: "Cable crossover" },
+  { pattern: /\bfunctional\s*trainer\b/i, reason: "Functional trainer" },
+  { pattern: /\bhalf\s*rack\b/i, reason: "Half rack" },
+  { pattern: /\bpower\s*tower\b/i, reason: "Power tower" },
+  { pattern: /\b(weight|cable)\s*stack\s*(machine|system)\b/i, reason: "Weight stack machine" },
+  { pattern: /\bhome\s*gym\b.*\b(weight\s*stack|150\s*lb|pulley|lat\s*pull|cable|multifunction)/i, reason: "Home gym system" },
+  { pattern: /\b(bowflex|marcy|harison|mikolo|sincmill|sportsroyals|total\s*gym)\b.*\b(home\s*gym|gym|machine|station|workout\s*system)/i, reason: "Home gym system" },
+  { pattern: /\bgym\s*(monster|station)\b/i, reason: "Gym station" },
+  // Cardio machines
+  { pattern: /\btreadmill\b(?!.{0,20}\b(mat|cover|lubricant|belt|oil|key|desk|clip)\b)/i, reason: "Treadmill" },
+  { pattern: /\belliptical\s*(machine|trainer)?\b(?!.{0,20}\b(mat|pad|desk|under|mini|portable)\b)/i, reason: "Elliptical" },
+  { pattern: /\b(stationary|exercise|spin|recumbent|indoor\s*cycling?)\s*bike\b(?!.{0,20}\b(seat|cover|pedal|cushion)\b)/i, reason: "Stationary bike" },
+  { pattern: /\browing\s*machine\b(?!.{0,20}\b(seat|pad|handle|cushion)\b)/i, reason: "Rowing machine" },
+  // Large appliances
+  { pattern: /\b(upright\s*)?refrigerator\b(?!.{0,20}\b(mat|magnet|organizer|bin|shelf|light|thermometer|filter|seal|mini|fridge)\b)/i, reason: "Refrigerator" },
+  { pattern: /\bwashing\s*machine\b(?!.{0,20}\b(cleaner|tab|detergent|cover|hose|filter|mini|portable)\b)/i, reason: "Washing machine" },
+  // Large furniture
+  { pattern: /\b(corner\s*)?sofa\b.*\b(italian|electric|leather|sectional|reclining|large)\b/i, reason: "Large sofa" },
+  { pattern: /\bbed\s*frame\b(?!.{0,20}\b(bracket|stopper|wheel|pad|riser)\b)/i, reason: "Bed frame" },
+  { pattern: /\b(king|queen|full)\s*(size\s*)?mattress\b(?!.{0,20}\b(protector|cover|pad|topper|bag)\b)/i, reason: "Mattress" },
+  // Outdoor/recreation
+  { pattern: /\bpool\s*table\b(?!.{0,20}\b(cover|cloth|chalk|cue|ball)\b)/i, reason: "Pool table" },
+  { pattern: /\btrampoline\b(?!.{0,20}\b(pad|spring|net|mat|cover|mini|fitness|rebounder)\b)/i, reason: "Trampoline" },
+  // Industrial
+  { pattern: /\btable\s*saw\b(?!.{0,20}\b(blade|fence|guard|jig|insert)\b)/i, reason: "Table saw" },
+  { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
+  // Gaming cockpit
+  { pattern: /\bgaming\s*(cockpit|workstation|pod)\b/i, reason: "Gaming cockpit" },
+];
+
+/**
+ * Check if a product name indicates an item that cannot be shipped by air.
+ * Returns the reason string if unsendable, or null if OK.
+ */
+export function isUnsendable(name: string): string | null {
+  for (const { pattern, reason } of UNSENDABLE_PATTERNS) {
+    if (pattern.test(name)) return reason;
+  }
+  return null;
+}
+
 // ===== WEIGHT VALIDATION GUARDRAILS =====
 // These prevent pricing errors that can lose money on every sale.
 // Max allowed weight per category — anything above triggers a sanity check
