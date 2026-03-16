@@ -137,24 +137,52 @@ export default function Catalog() {
     retry: 1,
   });
 
-  // ─── MERGE results: local first, then live (deduplicated by ASIN) ───
+  // ─── MERGE results: live API first (most relevant), then local catalog ───
   const localProducts = localData?.products || [];
   const liveProducts = liveData?.products || [];
+  const hasSearch = !!search && search.trim().length >= 2;
 
-  // Build set of ASINs already in local results
+  // Build set of ASINs already in live results to deduplicate
+  const liveAsins = new Set<string>();
+  liveProducts.forEach(lp => liveAsins.add(lp.asin));
+
+  // Filter out live results that already exist in local catalog (by ASIN)
   const localAsins = new Set<string>();
   localProducts.forEach(p => {
     if (p.amazonAsin) localAsins.add(p.amazonAsin);
   });
-
-  // Filter out live results that are already in local catalog
   const uniqueLiveProducts = liveProducts.filter(lp => !localAsins.has(lp.asin));
 
-  // For display: are we showing combined results?
-  const hasSearch = !!search && search.trim().length >= 2;
+  // When searching: filter local results to only show relevant ones
+  // This prevents accessories from showing up when user searches "laptops i5"
+  const filteredLocalProducts = (() => {
+    if (!hasSearch || uniqueLiveProducts.length === 0) return localProducts;
+    
+    // Extract core search words (ignore short words like "de", "en", "y")
+    const searchWords = search.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
+    if (searchWords.length === 0) return localProducts;
+    
+    // Score each local product by how many search words appear in its name
+    const scored = localProducts
+      .filter(p => !p.amazonAsin || !liveAsins.has(p.amazonAsin)) // Deduplicate vs live
+      .map(p => {
+        const nameLower = (p.name || "").toLowerCase();
+        const matchCount = searchWords.filter(w => nameLower.includes(w)).length;
+        const matchRatio = matchCount / searchWords.length;
+        return { product: p, matchRatio, matchCount };
+      })
+      // Only keep local results where at least half the search words match in the name
+      .filter(s => s.matchRatio >= 0.5)
+      // Sort by relevance (more matches first)
+      .sort((a, b) => b.matchRatio - a.matchRatio || b.matchCount - a.matchCount);
+    
+    return scored.map(s => s.product);
+  })();
+
+  // For display
   const isSearching = localLoading || (hasSearch && liveLoading);
   const totalLocal = localData?.total || 0;
-  const totalCombined = totalLocal + uniqueLiveProducts.length;
+  const totalCombined = (hasSearch ? filteredLocalProducts.length : totalLocal) + uniqueLiveProducts.length;
   const totalPages = Math.max(
     localData ? Math.ceil(localData.total / 24) : 0,
     hasSearch && liveProducts.length > 0 ? page + 1 : 0 // Enable next page if live results exist
@@ -315,47 +343,28 @@ export default function Catalog() {
           )}
 
           {/* LOCAL Products grid */}
-          {localLoading ? (
+          {localLoading && !hasSearch ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({length: 8}).map((_, i) => (
                 <Skeleton key={i} className="h-72 rounded-lg" />
               ))}
             </div>
-          ) : localProducts.length === 0 && uniqueLiveProducts.length === 0 && !liveLoading ? (
+          ) : filteredLocalProducts.length === 0 && uniqueLiveProducts.length === 0 && !liveLoading && !localLoading ? (
             <div className="text-center py-16">
               <Search className="w-12 h-12 mx-auto mb-3 text-gray-200" />
               <p className="text-gray-500 text-lg">No se encontraron productos</p>
               <p className="text-gray-400 text-sm mt-2">Intenta con otros filtros o busca algo diferente</p>
             </div>
-          ) : (
+          ) : hasSearch && !category ? (
+            /* ─── SEARCH MODE: Live results FIRST, then relevant local results ─── */
             <>
-              {/* Local catalog results */}
-              {localProducts.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {localProducts.map(p => (
-                    <ProductCard key={p.id} product={p} />
-                  ))}
-                </div>
-              )}
-
-              {/* Live API results section */}
-              {hasSearch && !category && (liveLoading || uniqueLiveProducts.length > 0) && (
-                <div className="mt-8">
-                  {/* Divider between local and live */}
-                  {localProducts.length > 0 && uniqueLiveProducts.length > 0 && (
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="flex-1 border-t border-gray-200" />
-                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
-                        <ShoppingBag className="w-3.5 h-3.5" /> Más resultados disponibles
-                      </span>
-                      <div className="flex-1 border-t border-gray-200" />
-                    </div>
-                  )}
-
+              {/* Live API results (primary - most relevant) */}
+              {(liveLoading || uniqueLiveProducts.length > 0) && (
+                <div>
                   {/* Live loading skeleton */}
                   {liveLoading && uniqueLiveProducts.length === 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {Array.from({length: 4}).map((_, i) => (
+                      {Array.from({length: 8}).map((_, i) => (
                         <div key={`live-skel-${i}`} className="animate-pulse">
                           <div className="bg-gray-100 rounded-lg h-72" />
                         </div>
@@ -423,6 +432,38 @@ export default function Catalog() {
                       })}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Local catalog results (secondary - filtered for relevance) */}
+              {filteredLocalProducts.length > 0 && (
+                <div className={uniqueLiveProducts.length > 0 ? "mt-8" : ""}>
+                  {/* Divider between live and local */}
+                  {uniqueLiveProducts.length > 0 && (
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="flex-1 border-t border-gray-200" />
+                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
+                        <ShoppingBag className="w-3.5 h-3.5" /> En nuestro catálogo
+                      </span>
+                      <div className="flex-1 border-t border-gray-200" />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {filteredLocalProducts.map(p => (
+                      <ProductCard key={p.id} product={p} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            /* ─── BROWSE MODE: just local catalog (no search) ─── */
+            <>
+              {localProducts.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {localProducts.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
                 </div>
               )}
             </>

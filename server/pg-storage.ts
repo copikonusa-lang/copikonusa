@@ -233,15 +233,24 @@ export class PgStorage implements IStorage {
     else if (filters?.sort === "name") orderBy = asc(productsTable.name);
     else if (searchTerm && !filters?.sort) {
       // Relevance-based ordering when searching:
-      // Exact name start > exact phrase in name > shorter name (more specific) > similarity > reviews
+      // Heavy emphasis on name containing the core search words.
+      // Products whose name matches the search are MUCH more relevant than
+      // products that only match on description or category.
       const qLower = searchTerm.toLowerCase();
+      // Split into individual words for multi-word matching (e.g. "laptops i5")
+      const words = qLower.split(/\s+/).filter((w: string) => w.length >= 2);
+      // Build word-matching bonus: each word found in name adds 30 points
+      let wordMatchSql = sql`0`;
+      for (const word of words) {
+        wordMatchSql = sql`${wordMatchSql} + CASE WHEN LOWER(name) ILIKE ${'%' + word + '%'} THEN 30 ELSE 0 END`;
+      }
       orderBy = sql`
         CASE WHEN LOWER(name) LIKE ${qLower + '%'} THEN 100 ELSE 0 END
-        + CASE WHEN LOWER(name) LIKE ${'% ' + qLower + ' %'} THEN 40 ELSE 0 END
-        + CASE WHEN LOWER(name) ILIKE ${'%' + qLower + '%'} THEN 20 ELSE 0 END
+        + CASE WHEN LOWER(name) ILIKE ${'%' + qLower + '%'} THEN 50 ELSE 0 END
+        + (${wordMatchSql})
         + (50.0 / GREATEST(LENGTH(name), 1))
         + similarity(LOWER(name), ${qLower}) * 30
-        + LEAST(COALESCE(reviews, 0)::float / 50000.0, 20)
+        + LEAST(COALESCE(reviews, 0)::float / 50000.0, 10)
         DESC
       `;
     }
