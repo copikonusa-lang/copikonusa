@@ -194,12 +194,11 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     }
     const currentHash = window.location.hash.replace(/^#/, '').split('?')[0];
     if (currentHash === '/catalogo') {
-      // Already on catalogo — wouter won't re-navigate to same hash path.
-      // Force remount: briefly change hash so wouter unmounts Catalog, then navigate back.
-      window.location.hash = '/_r';
-      setTimeout(() => {
-        setLocation(`/catalogo?search=${encoded}`);
-      }, 20);
+      // Already on catalogo — emit custom event to update search state directly
+      // then update the URL hash for browser history
+      window.dispatchEvent(new CustomEvent('copikon-search', { detail: { search: trimmed } }));
+      window.location.hash = `/catalogo?search=${encoded}`;
+      window.scrollTo(0, 0);
     } else {
       setLocation(`/catalogo?search=${encoded}`);
     }
@@ -209,6 +208,7 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
   const goToProduct = (slug: string) => {
     setOpen(false);
     setQuery("");
+    window.scrollTo(0, 0);
     setLocation(`/producto/${slug}`);
   };
 
@@ -232,6 +232,7 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
       if (data.slug) {
         setOpen(false);
         setQuery("");
+        window.scrollTo(0, 0);
         setLocation(`/producto/${data.slug}`);
       }
     } catch (e) {

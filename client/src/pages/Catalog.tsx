@@ -215,6 +215,7 @@ export default function Catalog() {
       });
       const data = await res.json();
       if (data.slug) {
+        window.scrollTo(0, 0);
         setLocation(`/producto/${data.slug}`);
       }
     } catch (e) {
@@ -401,8 +402,9 @@ export default function Catalog() {
                                 onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
                               />
                               {isImporting && (
-                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2 z-10">
                                   <Loader2 className="w-6 h-6 animate-spin text-copikon-red" />
+                                  <span className="text-xs text-gray-500 font-medium">Abriendo...</span>
                                 </div>
                               )}
                             </div>

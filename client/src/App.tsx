@@ -1,5 +1,6 @@
 import { Switch, Route, Router } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
+import { useEffect, useRef } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -26,8 +27,26 @@ import Returns from "@/pages/Returns";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 
+// Scroll to top on route change (fixes product page opening scrolled down)
+function ScrollToTop() {
+  const [location] = useHashLocation();
+  const prevLocation = useRef(location);
+  useEffect(() => {
+    // Only scroll to top when the base path changes (not just query params)
+    const prevPath = prevLocation.current.split('?')[0];
+    const currPath = location.split('?')[0];
+    if (prevPath !== currPath) {
+      window.scrollTo(0, 0);
+    }
+    prevLocation.current = location;
+  }, [location]);
+  return null;
+}
+
 function AppRouter() {
   return (
+    <>
+    <ScrollToTop />
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/catalogo" component={Catalog} />
@@ -48,6 +67,7 @@ function AppRouter() {
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
+    </>
   );
 }
 
