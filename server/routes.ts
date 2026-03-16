@@ -936,7 +936,8 @@ export async function registerRoutes(
           };
         })
         .filter((p: any) => p.weight <= 150) // Filter <= 150 lbs
-        .filter((p: any) => !isUnsendable(p.name)); // Block unsendable products (too large/heavy for air shipping)
+        .filter((p: any) => !isUnsendable(p.name)) // Block unsendable products (too large/heavy for air shipping)
+        .filter((p: any) => checkShippingViability(p.amazonPrice, p.weight, '').viable); // Block products where shipping > 1.5x product cost
 
       // Cache results
       searchCache.set(cacheKey, { results: products, pageInfo, timestamp: Date.now() });
@@ -1007,6 +1008,13 @@ export async function registerRoutes(
       else if (/office|desk|pen|printer|paper|binder|stapler/i.test(nameLower)) detectedCategory = "office";
       else if (/snack|food|candy|chocolate|coffee|tea|comida|protein.*bar/i.test(nameLower)) detectedCategory = "food";
       else if (/luggage|suitcase|maleta|travel|backpack|bag|mochila/i.test(nameLower)) detectedCategory = "home";
+
+      // Block products where shipping makes them uncompetitive
+      const importViability = checkShippingViability(basePrice, realWeight, detectedCategory);
+      if (!importViability.viable) {
+        console.log(`[BLOCKED] Import rejected shipping-prohibitive: "${name.slice(0, 60)}" — ratio ${importViability.ratio}x`);
+        return res.status(400).json({ message: "Este producto tiene un costo de envío demasiado alto en relación a su precio. No es viable para envío aéreo." });
+      }
 
       // Generate unique slug: base slug + ASIN suffix to avoid duplicates
       // Remove 'amazon' from slugs to avoid exposing source
