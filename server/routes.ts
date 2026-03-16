@@ -981,20 +981,14 @@ export async function registerRoutes(
         return res.json({ slug: existingByAsin[0].slug, id: existingByAsin[0].id });
       }
 
+      // Auto-detect category from name (must be before weight calculation for viability check)
+      const nameLower = name.toLowerCase();
+      let detectedCategory = "tech";
+
       // Fetch REAL weight from API (critical for accurate pricing)
       const weightData = await getProductWeight(asin);
       const fallbackWeight = estimatedWeight || estimateWeight(name);
-      const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, fallbackWeight, name, category);
-      const isWeightVerified = !!(weightData.packageWeight || weightData.itemWeight);
 
-      // Create new product with REAL weight
-      const basePrice = amazonPrice || price || 0;
-      const shippingPerLb = 5.50;
-      const totalPriceUsd = +(basePrice * 1.15 + realWeight * shippingPerLb).toFixed(2);
-
-      // Auto-detect category from name
-      const nameLower = name.toLowerCase();
-      let detectedCategory = "tech";
       if (/shampoo|conditioner|hair|skin|makeup|beauty|cream|serum|perfum|cologne|lotion|kerastase|olaplex/i.test(nameLower)) detectedCategory = "beauty";
       else if (/shoe|sneaker|boot|sandal|zapato|calzado|nike|adidas|jordan|new balance/i.test(nameLower)) detectedCategory = "shoes";
       else if (/shirt|pants|dress|jacket|hoodie|ropa|clothing|jeans|polo|sweater/i.test(nameLower)) detectedCategory = "clothing";
@@ -1011,6 +1005,14 @@ export async function registerRoutes(
       else if (/office|desk|pen|printer|paper|binder|stapler/i.test(nameLower)) detectedCategory = "office";
       else if (/snack|food|candy|chocolate|coffee|tea|comida|protein.*bar/i.test(nameLower)) detectedCategory = "food";
       else if (/luggage|suitcase|maleta|travel|backpack|bag|mochila/i.test(nameLower)) detectedCategory = "home";
+
+      // Calculate real weight using API data + fallback
+      const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, fallbackWeight, name, detectedCategory);
+      const isWeightVerified = !!(weightData.itemWeight || weightData.packageWeight);
+
+      // Calculate pricing: cost * 1.15 markup + shipping at $5.50/lb
+      const basePrice = amazonPrice || price || 0;
+      const totalPriceUsd = +(basePrice * 1.15 + realWeight * 5.50).toFixed(2);
 
       // Block products where shipping makes them uncompetitive
       const importViability = checkShippingViability(basePrice, realWeight, detectedCategory);
