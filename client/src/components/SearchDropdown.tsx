@@ -194,10 +194,12 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     }
     const currentHash = window.location.hash.replace(/^#/, '').split('?')[0];
     if (currentHash === '/catalogo') {
-      // Already on catalogo — emit custom event to update search state directly
-      // then update the URL hash for browser history
+      // Already on catalogo — fire custom event so Catalog.tsx picks up the new search immediately
+      // Use setLocation to properly update wouter's hash routing
       window.dispatchEvent(new CustomEvent('copikon-search', { detail: { search: trimmed } }));
-      window.location.hash = `/catalogo?search=${encoded}`;
+      // Update URL params for bookmarkability (put search in window.location.search)
+      const newUrl = window.location.pathname + '?search=' + encoded + '#/catalogo';
+      window.history.replaceState(null, '', newUrl);
       window.scrollTo(0, 0);
     } else {
       setLocation(`/catalogo?search=${encoded}`);
