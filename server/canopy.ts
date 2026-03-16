@@ -90,6 +90,15 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // Outdoor/recreation
   { pattern: /\bpool\s*table\b(?!.{0,20}\b(cover|cloth|chalk|cue|ball)\b)/i, reason: "Pool table" },
   { pattern: /\btrampoline\b(?!.{0,20}\b(pad|spring|net|mat|cover|mini|fitness|rebounder)\b)/i, reason: "Trampoline" },
+  // HAZMAT / Chemicals / Bulk liquids — CANNOT ship by air
+  { pattern: /\b\d+\s*gallon.*\b(bleach|chlorine|cloro|chemical|acid|ammonia|detergent)\b/i, reason: "Bulk chemical liquid (HAZMAT)" },
+  { pattern: /\b(bleach|chlorine|cloro)\b.*\b\d+\s*gallon/i, reason: "Bulk chemical liquid (HAZMAT)" },
+  { pattern: /\b(muriatic|hydrochloric|sulfuric)\s*acid\b/i, reason: "Corrosive acid (HAZMAT)" },
+  { pattern: /\bgasoline\b|\bkerosene\b|\bpropane\s*(tank|cylinder)\b/i, reason: "Flammable fuel (HAZMAT)" },
+  { pattern: /\bammonia\b(?!.{0,20}\b(free|fragrance)\b)/i, reason: "Ammonia (HAZMAT)" },
+  { pattern: /\bpesticide\b|\bherbicide\b|\binsecticide\b.*\b(gallon|concentrate)\b/i, reason: "Pesticide (HAZMAT)" },
+  { pattern: /\bpool\s*(chlorine|shock|chemical)\b.*\b(\d+\s*lb|gallon|bucket)\b/i, reason: "Pool chemicals (HAZMAT)" },
+  { pattern: /\b(5|6|10|15|20|25|30|40|50|55)\s*gallon\b(?!.{0,30}\b(bag|trash|garbage|storage|container|pot|planter|drum\s*liner|liner)\b)/i, reason: "Bulk liquid (too heavy for air)" },
   // Industrial
   { pattern: /\btable\s*saw\b(?!.{0,20}\b(blade|fence|guard|jig|insert)\b)/i, reason: "Table saw" },
   { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
@@ -245,6 +254,16 @@ export function estimateWeightByName(name: string, category: string): number {
   // ═══ DRILL / POWER TOOL KITS — moderately heavy ═══
   if (/\bdrill\b|\bimpact.*driver\b|\bsaw\b.*\bcordless\b|\bpower.*tool.*kit\b/.test(t)) return 8.0;
   if (/\bscrewdriver.*set\b|\btool.*set\b/.test(t)) return 3.0;
+
+  // ═══ BULK LIQUIDS — extract weight from gallon count (1 gallon ≈ 8.6 lbs) ═══
+  const gallonMatch = t.match(/(\d+\.?\d*)\s*gallon/i);
+  if (gallonMatch) return +(parseFloat(gallonMatch[1]) * 8.6).toFixed(1);
+
+  // ═══ EXTRACT WEIGHT FROM NAME (e.g. "22.5 lbs", "5 Pounds", "500g") ═══
+  const lbInName = t.match(/(\d+\.?\d*)\s*(?:lbs?|pounds?)/);
+  if (lbInName && !(/dumbbell|pesa|barbell|kettlebell|weight.*set/.test(t))) return Math.min(parseFloat(lbInName[1]), 80);
+  const kgInName = t.match(/(\d+\.?\d*)\s*(?:kg|kilograms?)/);
+  if (kgInName) return Math.min(+(parseFloat(kgInName[1]) * 2.2).toFixed(1), 80);
 
   // Category fallback
   const catW: Record<string, number> = {phones:0.5,beauty:0.5,health:1.0,clothing:1.0,shoes:2.0,toys:2.0,gaming:1.5,tech:2.0,office:1.5,food:2.0,pets:2.0,home:3.0,baby:3.0,sports:3.0,auto:3.0};

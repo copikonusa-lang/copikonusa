@@ -5231,6 +5231,15 @@ var UNSENDABLE_PATTERNS = [
   // Outdoor/recreation
   { pattern: /\bpool\s*table\b(?!.{0,20}\b(cover|cloth|chalk|cue|ball)\b)/i, reason: "Pool table" },
   { pattern: /\btrampoline\b(?!.{0,20}\b(pad|spring|net|mat|cover|mini|fitness|rebounder)\b)/i, reason: "Trampoline" },
+  // HAZMAT / Chemicals / Bulk liquids — CANNOT ship by air
+  { pattern: /\b\d+\s*gallon.*\b(bleach|chlorine|cloro|chemical|acid|ammonia|detergent)\b/i, reason: "Bulk chemical liquid (HAZMAT)" },
+  { pattern: /\b(bleach|chlorine|cloro)\b.*\b\d+\s*gallon/i, reason: "Bulk chemical liquid (HAZMAT)" },
+  { pattern: /\b(muriatic|hydrochloric|sulfuric)\s*acid\b/i, reason: "Corrosive acid (HAZMAT)" },
+  { pattern: /\bgasoline\b|\bkerosene\b|\bpropane\s*(tank|cylinder)\b/i, reason: "Flammable fuel (HAZMAT)" },
+  { pattern: /\bammonia\b(?!.{0,20}\b(free|fragrance)\b)/i, reason: "Ammonia (HAZMAT)" },
+  { pattern: /\bpesticide\b|\bherbicide\b|\binsecticide\b.*\b(gallon|concentrate)\b/i, reason: "Pesticide (HAZMAT)" },
+  { pattern: /\bpool\s*(chlorine|shock|chemical)\b.*\b(\d+\s*lb|gallon|bucket)\b/i, reason: "Pool chemicals (HAZMAT)" },
+  { pattern: /\b(5|6|10|15|20|25|30|40|50|55)\s*gallon\b(?!.{0,30}\b(bag|trash|garbage|storage|container|pot|planter|drum\s*liner|liner)\b)/i, reason: "Bulk liquid (too heavy for air)" },
   // Industrial
   { pattern: /\btable\s*saw\b(?!.{0,20}\b(blade|fence|guard|jig|insert)\b)/i, reason: "Table saw" },
   { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
@@ -5363,6 +5372,12 @@ function estimateWeightByName(name, category) {
   if (/\bnotes?\b.*\bpad\b|notepad|cuaderno/.test(t)) return 0.5;
   if (/\bdrill\b|\bimpact.*driver\b|\bsaw\b.*\bcordless\b|\bpower.*tool.*kit\b/.test(t)) return 8;
   if (/\bscrewdriver.*set\b|\btool.*set\b/.test(t)) return 3;
+  const gallonMatch = t.match(/(\d+\.?\d*)\s*gallon/i);
+  if (gallonMatch) return +(parseFloat(gallonMatch[1]) * 8.6).toFixed(1);
+  const lbInName = t.match(/(\d+\.?\d*)\s*(?:lbs?|pounds?)/);
+  if (lbInName && !/dumbbell|pesa|barbell|kettlebell|weight.*set/.test(t)) return Math.min(parseFloat(lbInName[1]), 80);
+  const kgInName = t.match(/(\d+\.?\d*)\s*(?:kg|kilograms?)/);
+  if (kgInName) return Math.min(+(parseFloat(kgInName[1]) * 2.2).toFixed(1), 80);
   const catW = { phones: 0.5, beauty: 0.5, health: 1, clothing: 1, shoes: 2, toys: 2, gaming: 1.5, tech: 2, office: 1.5, food: 2, pets: 2, home: 3, baby: 3, sports: 3, auto: 3 };
   return catW[category] || 2;
 }
