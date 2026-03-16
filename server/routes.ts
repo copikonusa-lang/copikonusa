@@ -275,6 +275,8 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   "crema facial": ["face cream", "moisturizer"],
   "protector solar": ["sunscreen", "SPF", "sunblock"],
   "bloqueador solar": ["sunscreen", "sunblock"],
+  "perfume hombre": ["men cologne", "men fragrance", "cologne for men"],
+  "perfume mujer": ["women perfume", "women fragrance", "perfume for women"],
   "perfume": ["perfume", "cologne", "fragrance"],
   "colonia": ["cologne", "fragrance"],
   "desodorante": ["deodorant"],
@@ -320,8 +322,17 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   "esponja": ["sponge"],
   "bolsa de basura": ["trash bags", "garbage bags"],
   // ── BABY & KIDS ──
+  "ropa de bebe": ["baby clothes", "baby clothing", "infant clothes"],
+  "ropa bebe": ["baby clothes", "baby clothing", "infant clothes"],
+  "ropa de niño": ["boys clothes", "kids clothing"],
+  "ropa de niña": ["girls clothes", "girls clothing"],
+  "ropa niño": ["boys clothes", "kids clothing"],
+  "ropa niña": ["girls clothes", "girls clothing"],
+  "ropa": ["clothes", "clothing"],
   "juguete": ["toy"],
   "juguetes": ["toys"],
+  "juguetes niños": ["kids toys", "children toys"],
+  "juguetes niñas": ["girls toys"],
   "muñeca": ["doll"],
   "muñeco": ["action figure", "doll"],
   "lego": ["LEGO", "building blocks"],
@@ -448,6 +459,17 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   "carpa": ["tent"],
   "linterna": ["flashlight", "lantern"],
   "silla plegable": ["folding chair", "camping chair"],
+  // ── GENERAL MODIFIERS ──
+  "hombre": ["men", "mens"],
+  "mujer": ["women", "womens"],
+  "niño": ["kids", "boys", "children"],
+  "niña": ["girls"],
+  "bebe": ["baby", "infant"],
+  "bebé": ["baby", "infant"],
+  "grande": ["large", "big"],
+  "pequeño": ["small", "mini"],
+  "barato": ["cheap", "affordable", "budget"],
+  "mejor": ["best", "top rated"],
 };
 
 /**
@@ -480,6 +502,40 @@ function expandSearchQuery(query: string): string[] {
   }
   
   return patterns;
+}
+
+/**
+ * Translates a Spanish search query to English for the live Amazon/Canopy API.
+ * Returns the best English translation of the query.
+ * Unlike expandSearchQuery (which returns multiple patterns for SQL), this returns
+ * a single optimized English query string for the Amazon search API.
+ */
+function translateQueryToEnglish(query: string): string {
+  const qLower = query.toLowerCase().trim()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const qOriginal = query.toLowerCase().trim();
+  
+  // Try to translate each word/phrase from Spanish to English
+  // Process longest keys first to match multi-word phrases before individual words
+  const sortedKeys = Object.keys(SEARCH_SYNONYMS).sort((a, b) => b.length - a.length);
+  let translated = qLower;
+  const usedKeys = new Set<string>();
+  
+  for (const key of sortedKeys) {
+    const keyNorm = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (translated.includes(keyNorm) && !usedKeys.has(keyNorm)) {
+      // Use the first (most common) English synonym
+      const englishTerm = SEARCH_SYNONYMS[key][0];
+      translated = translated.replace(keyNorm, englishTerm);
+      usedKeys.add(keyNorm);
+    }
+  }
+  
+  // Clean up extra spaces
+  translated = translated.replace(/\s+/g, " ").trim();
+  
+  // If nothing was translated (query is already in English or unknown), return original
+  return translated || qOriginal;
 }
 
 function generateToken(): string {
@@ -847,8 +903,13 @@ export async function registerRoutes(
         return res.json({ products: cached.results, pageInfo: cached.pageInfo, source: "cache" });
       }
 
-      // Search via Canopy
-      const { results, pageInfo } = await canopySearch(query, page);
+      // Translate Spanish query to English for better Amazon results
+      // e.g. "ropa bebe" -> "baby clothes", "aspiradora" -> "vacuum"
+      const englishQuery = translateQueryToEnglish(query);
+      console.log(`[Search] "${query}" -> "${englishQuery}"`);
+
+      // Search via Canopy with the English-translated query
+      const { results, pageInfo } = await canopySearch(englishQuery, page);
 
       // Transform to CopikonUSA products
       const products = results
@@ -2410,6 +2471,125 @@ export async function registerRoutes(
         console.log(`[WEIGHT FIX] Done: ${fixed} fixed, ${skipped} skipped, ${deactivated} deactivated, ${errors} errors`);
       } catch (e: any) {
         console.error("[WEIGHT FIX] Fatal error:", e.message);
+        await db.update(syncLogsTable).set({
+          status: "error",
+          completedAt: new Date().toISOString(),
+          details: { error: e.message },
+        }).where(eq(syncLogsTable.id, log.id));
+      }
+    })();
+  });
+
+  // ===== CATALOG HEALTH CHECK & CLEANUP =====
+  app.post("/api/admin/sync/cleanup", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable, syncLogsTable } = await import("@shared/schema");
+    const { eq, and, sql: sqlTag, count } = await import("drizzle-orm");
+
+    // Create sync log
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "catalog_cleanup",
+      status: "running",
+      startedAt: new Date().toISOString(),
+      details: {},
+    }).returning();
+
+    res.json({ message: "Catalog cleanup started", logId: log.id });
+
+    // Run in background
+    (async () => {
+      try {
+        let deactivated = 0, fixed = 0;
+        const alerts: string[] = [];
+
+        // 1. Find and remove duplicates (keep highest reviews)
+        const dupeRows = await db.execute(sqlTag`
+          SELECT amazon_asin, array_agg(id ORDER BY COALESCE(reviews, 0) DESC) as ids
+          FROM products
+          WHERE is_active = true AND amazon_asin IS NOT NULL
+          GROUP BY amazon_asin
+          HAVING COUNT(*) > 1
+        `);
+        for (const row of (dupeRows.rows || dupeRows) as any[]) {
+          const ids: number[] = row.ids;
+          if (ids.length > 1) {
+            // Keep first (highest reviews), deactivate rest
+            for (const id of ids.slice(1)) {
+              await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, id));
+              deactivated++;
+            }
+            alerts.push(`Dedup ASIN ${row.amazon_asin}: kept #${ids[0]}, removed ${ids.slice(1).join(",")}`);
+          }
+        }
+
+        // 2. Deactivate products over 100 lbs
+        const heavyRows = await db.execute(sqlTag`
+          SELECT id, name, weight FROM products
+          WHERE is_active = true AND weight > 100
+        `);
+        for (const row of (heavyRows.rows || heavyRows) as any[]) {
+          await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
+          deactivated++;
+          alerts.push(`Too heavy: #${row.id} ${row.weight}lbs - ${(row.name || "").slice(0, 50)}`);
+        }
+
+        // 3. Deactivate products with zero or negative price
+        const badPriceRows = await db.execute(sqlTag`
+          SELECT id, name, total_price_usd FROM products
+          WHERE is_active = true AND (total_price_usd IS NULL OR total_price_usd <= 0)
+        `);
+        for (const row of (badPriceRows.rows || badPriceRows) as any[]) {
+          await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
+          deactivated++;
+          alerts.push(`Bad price: #${row.id} $${row.total_price_usd} - ${(row.name || "").slice(0, 50)}`);
+        }
+
+        // 4. Deactivate products with weird unicode (spam)
+        const allActive = await db.execute(sqlTag`
+          SELECT id, name FROM products WHERE is_active = true
+        `);
+        for (const row of (allActive.rows || allActive) as any[]) {
+          const name = row.name || "";
+          if ([...name].some((c: string) => c.codePointAt(0)! > 0xFFFF)) {
+            await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
+            deactivated++;
+            alerts.push(`Spam name: #${row.id} - ${name.slice(0, 50)}`);
+          }
+        }
+
+        // 5. Run unsendable check on all active products
+        const checkUnsendable = await db.execute(sqlTag`
+          SELECT id, name FROM products WHERE is_active = true
+        `);
+        for (const row of (checkUnsendable.rows || checkUnsendable) as any[]) {
+          const reason = isUnsendable(row.name);
+          if (reason) {
+            await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, row.id));
+            deactivated++;
+            alerts.push(`Unsendable [${reason}]: #${row.id} - ${(row.name || "").slice(0, 50)}`);
+          }
+        }
+
+        // Get final count
+        const countResult = await db.select({ count: count() }).from(productsTable).where(eq(productsTable.isActive, true));
+        const totalActive = countResult[0]?.count || 0;
+
+        await db.update(syncLogsTable).set({
+          status: "completed",
+          completedAt: new Date().toISOString(),
+          details: {
+            deactivated,
+            fixed,
+            totalActive,
+            alerts: alerts.slice(0, 100),
+          },
+        }).where(eq(syncLogsTable.id, log.id));
+
+        console.log(`[CLEANUP] Done: ${deactivated} deactivated, ${totalActive} active products remaining`);
+      } catch (e: any) {
+        console.error("[CLEANUP] Fatal error:", e.message);
+        const { syncLogsTable } = await import("@shared/schema");
         await db.update(syncLogsTable).set({
           status: "error",
           completedAt: new Date().toISOString(),
