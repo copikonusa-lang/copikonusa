@@ -3168,9 +3168,18 @@ export async function registerRoutes(
       if (dupeRows.length > 0) {
         let totalDeduped = 0;
         for (const dupe of dupeRows) {
-          const idsToDeactivate = (dupe.ids as number[]).slice(1); // keep first (newest), deactivate rest
+          // Parse ids: PostgreSQL returns array_agg as string "{1,2,3}" via raw SQL
+          let ids: number[] = [];
+          if (Array.isArray(dupe.ids)) {
+            ids = dupe.ids.map(Number);
+          } else if (typeof dupe.ids === 'string') {
+            ids = dupe.ids.replace(/[{}]/g, '').split(',').map(Number).filter(n => !isNaN(n));
+          }
+          const idsToDeactivate = ids.slice(1); // keep first (newest), deactivate rest
           if (idsToDeactivate.length > 0) {
-            await db.execute(sqlTag`UPDATE products SET is_active = false WHERE id = ANY(${idsToDeactivate})`);
+            for (const id of idsToDeactivate) {
+              await db.execute(sqlTag`UPDATE products SET is_active = false WHERE id = ${id}`);
+            }
             totalDeduped += idsToDeactivate.length;
           }
         }
