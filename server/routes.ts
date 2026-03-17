@@ -939,6 +939,7 @@ export async function registerRoutes(
         })
         .filter((p: any) => p.weight <= 150) // Filter <= 150 lbs
         .filter((p: any) => !isUnsendable(p.name)) // Block unsendable products
+        .filter((p: any) => checkProductShippability(p.name, p.weight).shippable) // Block unshippable furniture/equipment
         .filter((p: any) => checkShippingViability(p.amazonPrice, p.weight, '').viable) // Block shipping-prohibitive
         .filter((p: any, i: number, arr: any[]) => arr.findIndex((x: any) => x.asin === p.asin) === i); // Deduplicate by ASIN
 
