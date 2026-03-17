@@ -3203,7 +3203,7 @@ export async function registerRoutes(
       let searchOk = false;
       try {
         const testResult = await canopySearch("test", 1);
-        searchOk = testResult && testResult.length > 0;
+        searchOk = testResult && testResult.results && testResult.results.length > 0;
       } catch { searchOk = false; }
       if (!searchOk) issues.push("API de búsqueda (Canopy) no responde");
 
