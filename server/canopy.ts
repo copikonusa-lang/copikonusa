@@ -141,9 +141,18 @@ const UNSENDABLE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // Industrial
   { pattern: /\btable\s*saw\b(?!.{0,20}\b(blade|fence|guard|jig|insert)\b)/i, reason: "Table saw" },
   { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
-  // Heavy weight sets with racks (100+ lbs total = unsendable)
-  { pattern: /\b(dumbbell|weight)\s*(set|kit)\b.*\b(rack|stand|tree|tower)\b/i, reason: "Dumbbell/weight set with rack" },
-  { pattern: /\b(rack|stand|tree|tower)\b.*\b(dumbbell|weight)\s*(set|kit)\b/i, reason: "Dumbbell/weight set with rack" },
+  // Dumbbells, weights, barbells — ALL too heavy for air shipping
+  { pattern: /\bdumbbell(s)?\b(?!.{0,20}\b(rack only|stand only|storage only)\b)/i, reason: "Gym: dumbbell" },
+  { pattern: /\bmancuerna(s)?\b/i, reason: "Gym: mancuerna" },
+  { pattern: /\bbarbell\b(?!.{0,20}\b(pad|mat|yoga|clamp|collar|clip)\b)/i, reason: "Gym: barbell" },
+  { pattern: /\bkettlebell(s)?\b/i, reason: "Gym: kettlebell" },
+  { pattern: /\bpesas?\s*(libres?|rusas?|ajustable|de\s*tobillo)\b/i, reason: "Gym: pesas" },
+  { pattern: /\bhand\s*weight(s)?\b/i, reason: "Gym: hand weights" },
+  { pattern: /\bweight\s*(set|plate|bench)(s)?\b/i, reason: "Gym: weight set/bench" },
+  { pattern: /\bbanco\s*de\s*pesas\b/i, reason: "Gym: banco de pesas" },
+  { pattern: /\b(home|gimnasio\s*en)\s*(gym|casa)\b.*\b(weight|pila|station|equipo|system|multifuncional)\b/i, reason: "Gym: home gym system" },
+  { pattern: /\b(dumbbell|weight)\s*(set|kit)\b.*\b(rack|stand|tree|tower)\b/i, reason: "Gym: weight set with rack" },
+  { pattern: /\b(rack|stand|tree|tower)\b.*\b(dumbbell|weight)\s*(set|kit)\b/i, reason: "Gym: weight set with rack" },
   // Gaming cockpit
   { pattern: /\bgaming\s*(cockpit|workstation|pod)\b/i, reason: "Gaming cockpit" },
   // Drones — restricted for air shipping (exclude toys, LEGO, orb balls)
