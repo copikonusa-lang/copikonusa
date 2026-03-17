@@ -5243,6 +5243,9 @@ var UNSENDABLE_PATTERNS = [
   // Industrial
   { pattern: /\btable\s*saw\b(?!.{0,20}\b(blade|fence|guard|jig|insert)\b)/i, reason: "Table saw" },
   { pattern: /\blawn\s*mower\b(?!.{0,20}\b(blade|belt|filter|cover|wheel|part)\b)/i, reason: "Lawn mower" },
+  // Heavy weight sets with racks (100+ lbs total = unsendable)
+  { pattern: /\b(dumbbell|weight)\s*(set|kit)\b.*\b(rack|stand|tree|tower)\b/i, reason: "Dumbbell/weight set with rack" },
+  { pattern: /\b(rack|stand|tree|tower)\b.*\b(dumbbell|weight)\s*(set|kit)\b/i, reason: "Dumbbell/weight set with rack" },
   // Gaming cockpit
   { pattern: /\bgaming\s*(cockpit|workstation|pod)\b/i, reason: "Gaming cockpit" },
   // Drones — restricted for air shipping (exclude toys, LEGO, orb balls)
@@ -5254,6 +5257,16 @@ var UNSENDABLE_PATTERNS = [
 function isUnsendable(name) {
   for (const { pattern, reason } of UNSENDABLE_PATTERNS) {
     if (pattern.test(name)) return reason;
+  }
+  const allLbMatches = name.match(/(\d+)\s*(?:lbs?|pounds?)\b/gi);
+  if (allLbMatches) {
+    const maxWeight = Math.max(...allLbMatches.map((m) => parseInt(m)));
+    if (maxWeight >= 80) return `Product indicates ${maxWeight} lbs in name (exceeds air shipping limit)`;
+  }
+  const kgMatches = name.match(/(\d+)\s*(?:kg|kilograms?)\b/gi);
+  if (kgMatches) {
+    const maxKg = Math.max(...kgMatches.map((m) => parseInt(m)));
+    if (maxKg >= 35) return `Product indicates ${maxKg} kg in name (exceeds air shipping limit)`;
   }
   return null;
 }
