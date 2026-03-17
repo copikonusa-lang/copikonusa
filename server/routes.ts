@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
-import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs, isUnsendable, estimateWeightByName, checkShippingViability } from "./canopy";
+import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs, isUnsendable, estimateWeightByName, checkShippingViability, extractWeightFromName, checkProductShippability } from "./canopy";
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
@@ -2001,6 +2001,21 @@ export async function registerRoutes(
                 }
               } catch { /* use fallback weight */ }
 
+              // Auto-correct weight from product name if it differs significantly
+              const nameWeight = extractWeightFromName(full.title || "");
+              if (nameWeight !== null && Math.abs(nameWeight - realWeight) / Math.max(realWeight, 0.1) > 0.3) {
+                console.log(`[CATALOG GROWTH] Weight correction from name: "${full.title?.slice(0, 50)}" — ${realWeight}→${nameWeight} lbs`);
+                realWeight = nameWeight;
+              }
+
+              // Check product shippability (furniture, heavy equipment, >50 lbs)
+              const shippability = checkProductShippability(full.title || "", realWeight);
+              if (!shippability.shippable) {
+                console.log(`[CATALOG GROWTH] Blocked unshippable: "${full.title?.slice(0, 60)}" — ${shippability.reason}`);
+                skipped++;
+                continue;
+              }
+
               // Check shipping viability BEFORE importing
               const baseP = full.price?.value || 0;
               const importViability = checkShippingViability(baseP, realWeight, search.category);
@@ -2228,6 +2243,36 @@ export async function registerRoutes(
                   weightSource = "api";
                 }
               } catch { /* keep current weight */ }
+
+              // ── GUARDRAIL 5.5: Auto-correct weight from product name ──
+              const nameExtracted = extractWeightFromName(product.name);
+              if (nameExtracted !== null) {
+                const diff = Math.abs(nameExtracted - weight) / Math.max(weight, 0.1);
+                if (diff > 0.3) {
+                  console.log(`[SYNC] Weight correction from name: #${product.id} "${product.name.slice(0, 50)}" — ${weight}→${nameExtracted} lbs`);
+                  weight = nameExtracted;
+                  weightUpdated = true;
+                  weightSource = "name_extracted";
+                }
+              }
+
+              // ── GUARDRAIL 5.6: Check product shippability ──
+              const shipCheck = checkProductShippability(product.name, weight);
+              if (!shipCheck.shippable) {
+                if (product.isActive) {
+                  await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+                  deactivated++;
+                  alerts.push({
+                    type: "unshippable",
+                    productId: product.id,
+                    name: product.name,
+                    weight,
+                    reason: shipCheck.reason,
+                  });
+                  console.log(`[SYNC] Deactivated unshippable: #${product.id} "${product.name.slice(0, 50)}" — ${shipCheck.reason}`);
+                }
+                return;
+              }
 
               // ── GUARDRAIL 6: Sanity check — weight vs price ratio ──
               // If shipping cost ($5.50/lb) would be more than 3x the product price, something is wrong
@@ -2744,6 +2789,133 @@ export async function registerRoutes(
       } catch (e: any) {
         console.error("[OPTIMIZE] Fatal error:", e.message);
         const { syncLogsTable } = await import("@shared/schema");
+        await db.update(syncLogsTable).set({
+          status: "error",
+          completedAt: new Date().toISOString(),
+          details: { error: e.message },
+        }).where(eq(syncLogsTable.id, log.id));
+      }
+    })();
+  });
+
+  // ===== AUTO WEIGHT FIX: Name-based weight extraction across ALL active products =====
+  // Extracts weights from product names, corrects underweighted products, deactivates unshippable ones.
+  // No API calls needed — purely name-based detection.
+  app.post("/api/admin/sync/fix-weights-auto", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable, syncLogsTable } = await import("@shared/schema");
+    const { eq, sql: sqlTag } = await import("drizzle-orm");
+
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "auto_weight_fix",
+      status: "running",
+      startedAt: new Date().toISOString(),
+    }).returning();
+
+    res.json({ message: "Auto weight fix started", logId: log.id });
+
+    (async () => {
+      try {
+        let corrected = 0, deactivated = 0, skipped = 0;
+        const details: any[] = [];
+
+        const allActive = await db.execute(sqlTag`
+          SELECT id, name, weight, base_price, category, specs
+          FROM products
+          WHERE is_active = true
+        `);
+
+        const rows = (allActive.rows || allActive) as any[];
+        console.log(`[AUTO WEIGHT FIX] Processing ${rows.length} active products...`);
+
+        for (const product of rows) {
+          const currentWeight = Number(product.weight) || 0;
+          const name = product.name || "";
+
+          // Step 1: Extract weight from name
+          const nameWeight = extractWeightFromName(name);
+
+          // Step 2: Check shippability with best available weight
+          const checkWeight = nameWeight !== null ? nameWeight : currentWeight;
+          const shipCheck = checkProductShippability(name, checkWeight);
+
+          if (!shipCheck.shippable) {
+            await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+            deactivated++;
+            details.push({
+              action: "deactivated",
+              id: product.id,
+              name: name.slice(0, 60),
+              weight: checkWeight,
+              reason: shipCheck.reason,
+            });
+            continue;
+          }
+
+          // Step 3: Correct weight if name-extracted weight is >2x current weight
+          if (nameWeight !== null && nameWeight > currentWeight * 2) {
+            const basePrice = Number(product.base_price) || 0;
+            const newPrice = +(basePrice * 1.15 + nameWeight * 5.50).toFixed(2);
+
+            // Re-check shipping viability with corrected weight
+            const viability = checkShippingViability(basePrice, nameWeight, product.category || '');
+
+            if (!viability.viable) {
+              await db.update(productsTable).set({ isActive: false }).where(eq(productsTable.id, product.id));
+              deactivated++;
+              details.push({
+                action: "deactivated",
+                id: product.id,
+                name: name.slice(0, 60),
+                oldWeight: currentWeight,
+                newWeight: nameWeight,
+                reason: `Shipping prohibitive after weight correction: ratio ${viability.ratio}x`,
+              });
+              continue;
+            }
+
+            await db.update(productsTable).set({
+              weight: nameWeight,
+              totalPriceUsd: newPrice,
+              specs: {
+                ...(product.specs || {}),
+                weightSource: "name_auto_fix",
+                previousWeight: currentWeight,
+                autoFixedAt: new Date().toISOString(),
+              },
+            }).where(eq(productsTable.id, product.id));
+
+            corrected++;
+            details.push({
+              action: "corrected",
+              id: product.id,
+              name: name.slice(0, 60),
+              oldWeight: currentWeight,
+              newWeight: nameWeight,
+              oldPrice: +(basePrice * 1.15 + currentWeight * 5.50).toFixed(2),
+              newPrice,
+            });
+          } else {
+            skipped++;
+          }
+        }
+
+        await db.update(syncLogsTable).set({
+          status: "completed",
+          completedAt: new Date().toISOString(),
+          details: {
+            processed: rows.length,
+            corrected,
+            deactivated,
+            skipped,
+            changes: details.slice(0, 200),
+          },
+        }).where(eq(syncLogsTable.id, log.id));
+
+        console.log(`[AUTO WEIGHT FIX] Done: ${corrected} corrected, ${deactivated} deactivated, ${skipped} skipped out of ${rows.length}`);
+      } catch (e: any) {
+        console.error("[AUTO WEIGHT FIX] Fatal error:", e.message);
         await db.update(syncLogsTable).set({
           status: "error",
           completedAt: new Date().toISOString(),

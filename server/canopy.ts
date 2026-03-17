@@ -508,6 +508,114 @@ export function checkShippingViability(basePrice: number, weight: number, catego
   };
 }
 
+// ===== AUTOMATIC WEIGHT EXTRACTION FROM PRODUCT NAME =====
+// Parses explicit weights from product names ("30 lb", "5 kg", "1 gallon" for liquids).
+// Skips false positives: diaper sizing, resistance/capacity ratings, suction force, foam density.
+// Returns null if no reliable weight found.
+
+export function extractWeightFromName(name: string): number | null {
+  const t = name.toLowerCase();
+
+  // ── SKIP: diaper/training pants sizing ("Size 3 (13-26 lbs)") ──
+  const isDiaper = /diaper|pull-?up|training\s*pants|underwear/i.test(t);
+
+  // ── SKIP: resistance, capacity, load-bearing ratings ──
+  const isCapacity = /resistance|capacity|load[\s-]*bearing|arm\s*trainer|twister\s*arm|exerciser|chair/i.test(t);
+
+  // ── SKIP: suction/magnetic force ──
+  const isSuction = /suction|magnetic/i.test(t);
+
+  // ── SKIP: foam density ("30kg/m³") ──
+  const hasDensity = /\d+\s*kg\s*\/\s*m|density/i.test(t);
+
+  // ── Try kg first (but skip density patterns like "30kg/m³") ──
+  if (!hasDensity && !isDiaper && !isCapacity && !isSuction) {
+    const kgMatch = t.match(/(\d+\.?\d*)\s*(?:kg|kilograms?)\b/i);
+    if (kgMatch) {
+      // Make sure it's not followed by /m (density)
+      const idx = t.indexOf(kgMatch[0]);
+      const after = t.slice(idx + kgMatch[0].length, idx + kgMatch[0].length + 5);
+      if (!/^[\s]*\/\s*m/i.test(after)) {
+        return +(parseFloat(kgMatch[1]) * 2.20462).toFixed(2);
+      }
+    }
+  }
+
+  // ── Try lbs/pounds ──
+  if (!isDiaper && !isCapacity && !isSuction) {
+    const lbMatch = t.match(/(\d+\.?\d*)\s*(?:lbs?|pounds?)\b/i);
+    if (lbMatch) {
+      return +parseFloat(lbMatch[1]).toFixed(2);
+    }
+  }
+
+  // ── Try gallons (liquid = ~8.3 lb/gallon) ──
+  // Skip non-liquid gallon references: trash bags, buckets, containers, storage, pots, planters
+  const gallonMatch = t.match(/(\d+\.?\d*)\s*gallon/i);
+  if (gallonMatch) {
+    const isNonLiquid = /trash|garbage|bag|bucket|container|storage|pot|planter|drum\s*liner|liner|bin|tote|can\b/i.test(t);
+    if (!isNonLiquid) {
+      return +(parseFloat(gallonMatch[1]) * 8.3).toFixed(2);
+    }
+  }
+
+  return null;
+}
+
+// ===== PRODUCT SHIPPABILITY CHECK =====
+// Returns false for products that can't be shipped by air economically.
+
+export function checkProductShippability(name: string, weight: number): { shippable: boolean; reason: string } {
+  const t = name.toLowerCase();
+
+  // Weight over 50 lbs = can't ship by air economically
+  if (weight > 50) {
+    return { shippable: false, reason: `Weight ${weight} lbs exceeds 50 lb air shipping limit` };
+  }
+
+  // Furniture patterns
+  if (/\b(sofa|couch|loveseat|sectional|futon)\b/i.test(name)) {
+    return { shippable: false, reason: "Furniture: sofa/couch" };
+  }
+  // Mattress (not protector/cover/topper/pad)
+  if (/\bmattress\b/i.test(name) && !/protector|cover|pad|topper|bag|encasement/i.test(name)) {
+    return { shippable: false, reason: "Furniture: mattress" };
+  }
+
+  // Heavy equipment
+  if (/\btreadmill\b/i.test(name) && !/mat|cover|lubricant|belt|oil|key|desk|clip|pad|protection|floor/i.test(name)) {
+    return { shippable: false, reason: "Heavy equipment: treadmill" };
+  }
+  if (/\belliptical\b/i.test(name) && !/mat|pad|desk|under|mini|portable/i.test(name)) {
+    return { shippable: false, reason: "Heavy equipment: elliptical" };
+  }
+  if (/\bexercise\s*bike\b/i.test(name) && !/seat|cover|pedal|cushion/i.test(name)) {
+    return { shippable: false, reason: "Heavy equipment: exercise bike" };
+  }
+
+  // Appliances — "dishwasher safe" is NOT a dishwasher
+  if (/\bwashing\s*machine\b/i.test(name) && !/cleaner|clean|tab|detergent|cover|hose|filter|mini|portable|limpiador|affresh|descaler/i.test(name)) {
+    return { shippable: false, reason: "Heavy appliance: washing machine" };
+  }
+  if (/\brefrigerator\b/i.test(name) && !/mat|magnet|organizer|bin|shelf|light|thermometer|filter|seal|mini|fridge|deodorizer|odor|freshener|cleaner/i.test(name)) {
+    return { shippable: false, reason: "Heavy appliance: refrigerator" };
+  }
+  // "dishwasher" but NOT "dishwasher safe", "dishwasher-safe", "dishwasher friendly", etc.
+  if (/\bdishwasher\b/i.test(name) && !/dishwasher[\s-]*safe|dishwasher[\s-]*friendly|dishwasher[\s-]*clean|safe.*dishwasher|top[\s-]*rack|rack[\s-]*dishwasher/i.test(name)) {
+    // Only block if it seems like an actual dishwasher appliance
+    if (/\b(portable|countertop|built[\s-]*in|freestanding|stainless)\b.*\bdishwasher\b|\bdishwasher\b.*\b(portable|countertop|built[\s-]*in|freestanding|stainless)\b/i.test(name)) {
+      return { shippable: false, reason: "Heavy appliance: dishwasher" };
+    }
+  }
+
+  // Dumbbell/weight/barbell sets over 20 lbs
+  if (/\b(dumbbell|weight|barbell)\s*(set|kit)\b/i.test(name) && weight > 20) {
+    return { shippable: false, reason: `Heavy gym equipment: ${weight} lbs` };
+  }
+
+  return { shippable: true, reason: "" };
+}
+
 export function canopyToProduct(cp: CanopyProduct, category: string, weight: number = 1): Omit<Product, "id"> & { id: number } {
   const basePrice = cp.price?.value || 0;
   const shippingPerLb = 5.50;
