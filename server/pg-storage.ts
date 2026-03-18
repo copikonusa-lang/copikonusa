@@ -254,7 +254,15 @@ export class PgStorage implements IStorage {
         DESC
       `;
     }
-    else orderBy = desc(productsTable.reviews);
+    else {
+      // Popularity score: rating × log(reviews+1) + freshness bonus + daily rotation
+      orderBy = sql`
+        (COALESCE(rating, 0) * LN(GREATEST(COALESCE(reviews, 0), 0) + 1))
+        + CASE WHEN created_at > NOW() - INTERVAL '7 days' THEN 15 ELSE 0 END
+        + (HASHTEXT(id::text || TO_CHAR(NOW(), 'YYYY-MM-DD')) % 100) / 100.0 * 3
+        DESC
+      `;
+    }
 
     // Pagination
     const page = filters?.page || 1;

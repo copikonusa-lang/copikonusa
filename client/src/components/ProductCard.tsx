@@ -45,6 +45,11 @@ export default function ProductCard({ product, bcvRate = 62 }: ProductCardProps)
               {product.badge}
             </span>
           )}
+          {!product.badge && product.createdAt && new Date(product.createdAt) > new Date(Date.now() - 7*24*60*60*1000) && (
+            <span className="absolute top-2 right-2 px-2.5 py-1 text-[11px] font-bold rounded-sm z-10 shadow-sm bg-emerald-600 text-white">
+              Nuevo
+            </span>
+          )}
         </div>
       </Link>
 

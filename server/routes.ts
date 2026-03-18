@@ -1903,14 +1903,14 @@ export async function registerRoutes(
     { query: "baby essentials", category: "baby", weight: 1 },
     { query: "diapers", category: "baby", weight: 2 },
     { query: "baby formula", category: "baby", weight: 2 },
-    { query: "stroller", category: "baby", weight: 10 },
+    // stroller removed — too heavy/bulky
     // Pets
     { query: "dog food best seller", category: "pets", weight: 5 },
     { query: "cat food", category: "pets", weight: 3 },
     { query: "dog toys", category: "pets", weight: 0.5 },
     // Sports
     { query: "yoga mat", category: "sports", weight: 2 },
-    { query: "dumbbells", category: "sports", weight: 5 },
+    // dumbbells removed — in unsendable filter
     { query: "resistance bands", category: "sports", weight: 0.3 },
     // Food & Snacks
     { query: "snacks variety pack", category: "food", weight: 2 },
@@ -1918,7 +1918,7 @@ export async function registerRoutes(
     { query: "protein bars", category: "food", weight: 1 },
     // Office
     { query: "desk organizer", category: "office", weight: 1 },
-    { query: "office chair", category: "office", weight: 15 },
+    // office chair removed — in unsendable filter
     // Toys
     { query: "LEGO sets", category: "toys", weight: 1 },
     { query: "action figures", category: "toys", weight: 0.5 },
@@ -1926,6 +1926,73 @@ export async function registerRoutes(
     // Automotive
     { query: "car accessories", category: "auto", weight: 1 },
     { query: "dash cam", category: "auto", weight: 0.5 },
+    // More Tech
+    { query: "wireless earbuds", category: "tech", weight: 0.3 },
+    { query: "USB hub", category: "tech", weight: 0.5 },
+    { query: "tablet accessories", category: "tech", weight: 0.5 },
+    { query: "power bank", category: "tech", weight: 0.5 },
+    { query: "smart watch", category: "tech", weight: 0.3 },
+    { query: "ring light", category: "tech", weight: 1 },
+    { query: "webcam", category: "tech", weight: 0.5 },
+    { query: "microphone streaming", category: "tech", weight: 1 },
+    { query: "monitor stand", category: "tech", weight: 2 },
+    // More Beauty
+    { query: "face moisturizer", category: "beauty", weight: 0.5 },
+    { query: "nail polish set", category: "beauty", weight: 0.5 },
+    { query: "curling iron", category: "beauty", weight: 1 },
+    { query: "beard trimmer", category: "beauty", weight: 0.5 },
+    { query: "body lotion", category: "beauty", weight: 0.5 },
+    // More Clothing
+    { query: "Jordan sneakers", category: "shoes", weight: 2 },
+    { query: "New Balance shoes", category: "shoes", weight: 2 },
+    { query: "Crocs", category: "shoes", weight: 1 },
+    { query: "baseball cap", category: "clothing", weight: 0.3 },
+    { query: "leggings women", category: "clothing", weight: 0.5 },
+    { query: "men shorts", category: "clothing", weight: 0.5 },
+    { query: "crossbody bag", category: "clothing", weight: 0.5 },
+    // More Home
+    { query: "blender", category: "home", weight: 3 },
+    { query: "instant pot", category: "home", weight: 8 },
+    { query: "LED light strip", category: "home", weight: 0.5 },
+    { query: "throw blanket", category: "home", weight: 2 },
+    { query: "water filter", category: "home", weight: 1 },
+    { query: "candles", category: "home", weight: 1 },
+    { query: "bathroom organizer", category: "home", weight: 1 },
+    // More Health
+    { query: "fish oil omega 3", category: "health", weight: 0.5 },
+    { query: "collagen powder", category: "health", weight: 1 },
+    { query: "melatonin gummies", category: "health", weight: 0.3 },
+    { query: "first aid kit", category: "health", weight: 1 },
+    // More Baby
+    { query: "baby bottles", category: "baby", weight: 1 },
+    { query: "baby monitor", category: "baby", weight: 1 },
+    { query: "baby toys", category: "baby", weight: 0.5 },
+    // More Pets
+    { query: "dog treats", category: "pets", weight: 1 },
+    { query: "cat litter", category: "pets", weight: 15 },
+    { query: "pet bed", category: "pets", weight: 3 },
+    // More Sports
+    { query: "running shoes", category: "sports", weight: 2 },
+    { query: "sports bra", category: "sports", weight: 0.3 },
+    { query: "gym bag", category: "sports", weight: 1 },
+    { query: "water bottle", category: "sports", weight: 0.5 },
+    // More Food
+    { query: "chocolate variety", category: "food", weight: 1 },
+    { query: "tea variety pack", category: "food", weight: 0.5 },
+    { query: "nut butter", category: "food", weight: 1 },
+    // More Office
+    { query: "pens markers set", category: "office", weight: 0.5 },
+    { query: "laptop stand", category: "office", weight: 1 },
+    { query: "planner notebook", category: "office", weight: 0.5 },
+    // More Toys
+    { query: "hot wheels", category: "toys", weight: 0.5 },
+    { query: "Barbie dolls", category: "toys", weight: 0.5 },
+    { query: "nerf guns", category: "toys", weight: 1 },
+    { query: "play doh", category: "toys", weight: 1 },
+    // More Auto
+    { query: "car phone mount", category: "auto", weight: 0.3 },
+    { query: "car seat covers", category: "auto", weight: 2 },
+    { query: "tire pressure gauge", category: "auto", weight: 0.3 },
   ];
 
   app.post("/api/admin/sync/grow-catalog", requireAdmin, async (req, res) => {
@@ -1937,7 +2004,7 @@ export async function registerRoutes(
     
     // Pick 5 random categories to search today
     const shuffled = [...GROWTH_CATEGORIES].sort(() => Math.random() - 0.5);
-    const todaySearches = shuffled.slice(0, 5);
+    const todaySearches = shuffled.slice(0, 8);
 
     // Create sync log
     const [log] = await db.insert(syncLogsTable).values({
