@@ -1132,7 +1132,7 @@ export async function registerRoutes(
         // Use real weight from API if available
         const itemW = parseWeightToLbs(detail.itemWeight);
         const pkgW = parseWeightToLbs(detail.packageWeight);
-        const weight = getBestWeight(itemW, pkgW, estimateWeight(detail.title || ""), detail.title || "", product.category);
+        const weight = getBestWeight(itemW, pkgW, estimateWeight(detail.title || ""), detail.title || "", "");
         const copikonPrice = calculateCopikonPrice(amazonPrice, weight);
         const result = {
           price: copikonPrice,
