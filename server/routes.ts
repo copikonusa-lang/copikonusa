@@ -1109,9 +1109,9 @@ export async function registerRoutes(
     const asin = req.params.asin;
     if (!asin) return res.json({});
     
-    // Check cache
+    // Check cache (only serve cached results that have actual data)
     const cached = variantCache.get(asin);
-    if (cached && Date.now() - cached.timestamp < 12 * 60 * 60 * 1000) {
+    if (cached && cached.data?.price && Date.now() - cached.timestamp < 12 * 60 * 60 * 1000) {
       return res.json(cached.data);
     }
     
