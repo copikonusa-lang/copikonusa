@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORIES } from "@shared/schema";
 import { CopikonLogo } from "./CopikonLogo";
-import { PerplexityAttribution } from "./PerplexityAttribution";
 import SearchDropdown from "./SearchDropdown";
 
 function Header() {
@@ -145,13 +144,13 @@ function Header() {
       <nav className="border-t border-gray-100 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-0.5 overflow-x-auto py-1.5 text-sm" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <a href="#/catalogo" className="inline-flex items-center px-3 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy shrink-0" data-testid="link-all-categories"
+            <a href="/catalogo" className="inline-flex items-center px-3 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap font-medium text-copikon-navy shrink-0" data-testid="link-all-categories"
               onClick={(e) => { e.preventDefault(); setLocation('/catalogo'); }}
             >
               Todos
             </a>
             {CATEGORIES.map(cat => (
-              <a key={cat.id} href={`#/catalogo?category=${cat.id}`} className="inline-flex items-center px-2.5 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700 text-xs shrink-0" data-testid={`link-category-${cat.id}`}
+              <a key={cat.id} href={`/catalogo?category=${cat.id}`} className="inline-flex items-center px-2.5 py-1.5 rounded-md hover:bg-gray-200 whitespace-nowrap text-gray-700 text-xs shrink-0" data-testid={`link-category-${cat.id}`}
                 onClick={(e) => { e.preventDefault(); setLocation(`/catalogo?category=${cat.id}`); }}>
                 <span className="mr-1">{cat.icon}</span> {cat.name}
               </a>
@@ -173,7 +172,7 @@ function Header() {
             </Link>
             <div className="border-t border-gray-100 my-2" />
             {CATEGORIES.map(cat => (
-              <a key={cat.id} href={`#/catalogo?category=${cat.id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
+              <a key={cat.id} href={`/catalogo?category=${cat.id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
                 onClick={(e) => { e.preventDefault(); setLocation(`/catalogo?category=${cat.id}`); setMenuOpen(false); }}
               >
                 <span>{cat.icon}</span> {cat.name}
@@ -252,9 +251,7 @@ function Footer() {
 
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-400">
           <p>© {new Date().getFullYear()} CopikonUSA. Todos los derechos reservados.</p>
-          <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-            Created with Perplexity Computer
-          </a>
+          <span>© {new Date().getFullYear()} Copikon Venezuela Ca.</span>
         </div>
       </div>
     </footer>

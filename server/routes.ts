@@ -876,6 +876,26 @@ export async function registerRoutes(
       [/\bLight\b/g, "Luz"], [/\bLights\b/gi, "Luces"],
       [/\bSmall\b/gi, "Pequeño"], [/\bLarge\b/gi, "Grande"],
       [/\bMini\b/gi, "Mini"], [/\bHeavy Duty\b/gi, "Resistente"],
+      // More product types and descriptors
+      [/\bCount\b/gi, "Unidades"],
+      [/\bSize\b/g, "Talla"],
+      [/\bPiece\b/gi, "Pieza"],
+      [/\bPieces\b/gi, "Piezas"],
+      [/\bWipes\b/gi, "Toallitas"],
+      [/\bScent\b/gi, "Aroma"],
+      [/\bScented\b/gi, "Con aroma"],
+      [/\bUnscented\b/gi, "Sin aroma"],
+      [/\bOrganic\b/gi, "Orgánico"],
+      [/\bNatural\b/gi, "Natural"],
+      [/\bPremium\b/gi, "Premium"],
+      [/\bOriginal\b/gi, "Original"],
+      [/\bCompatible\b/gi, "Compatible"],
+      [/\bProfessional\b/gi, "Profesional"],
+      [/\bHypoallergenic\b/gi, "Hipoalergénico"],
+      [/\bLightweight\b/gi, "Liviano"],
+      [/\bDurable\b/gi, "Duradero"],
+      [/\bWorks\b/gi, "Funciona"],
+      [/\bSimple\b/gi, "Simple"],
       // Remove Amazon-specific branding phrases
       [/\bAmazon's? Choice\b/gi, ""],
       [/\bBest Seller\b/gi, ""],
@@ -887,6 +907,28 @@ export async function registerRoutes(
     // Clean up extra spaces
     result = result.replace(/\s+/g, " ").trim();
     return result;
+  }
+
+  function smartTruncateTitle(title: string, maxLen = 80): string {
+    let result = title;
+    // Remove bracketed notes like [Not for iPhone 16 Pro...]
+    result = result.replace(/\s*\[[^\]]*\]\s*/g, ' ');
+    // Remove trailing parenthetical notes
+    result = result.replace(/\s*\([^)]*\)\s*$/, '');
+    // Remove trailing pipe-separated descriptions
+    result = result.replace(/\s*\|.*$/, '');
+    // Remove trailing comma-separated descriptors if still too long
+    if (result.length > maxLen) {
+      const lastComma = result.lastIndexOf(',', maxLen);
+      if (lastComma > maxLen * 0.5) {
+        result = result.slice(0, lastComma);
+      }
+    }
+    // Hard truncate at word boundary
+    if (result.length > maxLen) {
+      result = result.slice(0, maxLen).replace(/\s+\S*$/, '') + '...';
+    }
+    return result.replace(/\s+/g, ' ').trim();
   }
 
   app.get("/api/search/amazon", async (req, res) => {
@@ -922,7 +964,7 @@ export async function registerRoutes(
           let title = (r.title || "").trim();
           // Translate title: replace Amazon branding, translate common words to Spanish
           title = translateTitle(title);
-          if (title.length > 120) title = title.slice(0, 117) + "...";
+          title = smartTruncateTitle(title);
 
           return {
             asin: r.asin,
@@ -2094,7 +2136,7 @@ export async function registerRoutes(
               }
 
               const productData = canopyToProduct(full, search.category, realWeight);
-              productData.name = translateTitle(productData.name);
+              productData.name = smartTruncateTitle(translateTitle(productData.name));
               productData.description = translateTitle(productData.description || productData.name);
               // Tag weight source in specs
               (productData as any).specs = { ...((productData as any).specs || {}), weightSource };
@@ -2508,7 +2550,7 @@ export async function registerRoutes(
           // Use a simple translation approach: key English->Spanish word replacements
           for (const product of batch) {
             try {
-              const translated_name = translateTitle(product.name);
+              const translated_name = smartTruncateTitle(translateTitle(product.name));
               if (translated_name !== product.name) {
                 await db.update(productsTable)
                   .set({ name: translated_name })

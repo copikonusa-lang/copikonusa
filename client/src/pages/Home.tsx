@@ -13,6 +13,13 @@ import { useCart } from "@/lib/cart";
 // ===== HERO CAROUSEL =====
 function HeroBanner() {
   const [, setLocation] = useLocation();
+
+  // Fetch top-rated products for hero images
+  const { data: topProductsData } = useQuery<{ products: Product[]; total: number }>({
+    queryKey: ["/api/products?limit=6&sort=rating"],
+  });
+  const topProducts = topProductsData?.products || [];
+
   const slides = [
     {
       title: "Tu tienda americana en Venezuela",
@@ -21,6 +28,7 @@ function HeroBanner() {
       link: "/catalogo",
       bg: "from-copikon-navy via-copikon-navy to-gray-900",
       accent: "text-copikon-logo-red",
+      productIndices: [0, 1],
     },
     {
       title: "Tecnología al mejor precio",
@@ -29,6 +37,7 @@ function HeroBanner() {
       link: "/catalogo?category=tech",
       bg: "from-gray-900 via-gray-800 to-copikon-navy",
       accent: "text-blue-400",
+      productIndices: [2, 3],
     },
     {
       title: "Calzado y Moda desde USA",
@@ -37,6 +46,7 @@ function HeroBanner() {
       link: "/catalogo?category=shoes",
       bg: "from-copikon-navy to-gray-900",
       accent: "text-orange-400",
+      productIndices: [4, 5],
     },
   ];
 
@@ -48,6 +58,9 @@ function HeroBanner() {
   }, []);
 
   const slide = slides[current];
+  const slideProducts = slide.productIndices
+    .map(i => topProducts[i])
+    .filter(Boolean);
 
   return (
     <section className={`relative bg-gradient-to-r ${slide.bg} text-white overflow-hidden transition-all duration-700`}>
@@ -57,32 +70,69 @@ function HeroBanner() {
         }} />
       </div>
       <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-16">
-        <div className="max-w-2xl">
-          <h1 className="font-display font-bold text-2xl md:text-4xl leading-tight mb-3" data-testid="text-hero-title">
-            {slide.title.split(" ").slice(0, -2).join(" ")}{" "}
-            <span className={slide.accent}>{slide.title.split(" ").slice(-2).join(" ")}</span>
-          </h1>
-          <p className="text-gray-300 text-base mb-6 leading-relaxed max-w-lg">
-            {slide.subtitle}
-          </p>
-          <Link href={slide.link}>
-            <Button className="bg-copikon-red hover:bg-red-800 text-white px-6 h-11 font-semibold" data-testid="button-hero-cta">
-              {slide.cta} <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          {/* Left: text content */}
+          <div>
+            <h1 className="font-display font-bold text-2xl md:text-4xl leading-tight mb-3" data-testid="text-hero-title">
+              {slide.title.split(" ").slice(0, -2).join(" ")}{" "}
+              <span className={slide.accent}>{slide.title.split(" ").slice(-2).join(" ")}</span>
+            </h1>
+            <p className="text-gray-300 text-base mb-6 leading-relaxed max-w-lg">
+              {slide.subtitle}
+            </p>
+            <Link href={slide.link}>
+              <Button className="bg-copikon-red hover:bg-red-800 text-white px-6 h-11 font-semibold" data-testid="button-hero-cta">
+                {slide.cta} <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
 
-        {/* Slide indicators */}
-        <div className="flex gap-2 mt-8">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === current ? "bg-copikon-red w-8" : "bg-white/30 w-4 hover:bg-white/50"
-              }`}
-            />
-          ))}
+            {/* Slide indicators */}
+            <div className="flex gap-2 mt-8">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === current ? "bg-copikon-red w-8" : "bg-white/30 w-4 hover:bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Right: floating product cards (desktop only) */}
+          {slideProducts.length > 0 && (
+            <div className="hidden md:flex justify-center items-center gap-4 py-4">
+              {slideProducts.map((product, idx) => (
+                <div
+                  key={product.id}
+                  className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-500 cursor-pointer hover:scale-105"
+                  style={{
+                    width: 160,
+                    transform: `rotate(${idx === 0 ? -4 : 4}deg)`,
+                    marginTop: idx === 0 ? 0 : 24,
+                  }}
+                  onClick={() => setLocation(`/producto/${product.slug}`)}
+                >
+                  <div className="w-full bg-gray-50" style={{ height: 140 }}>
+                    <ProductImage
+                      src={product.image || ""}
+                      alt={product.name}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-gray-800 text-[11px] font-semibold leading-tight line-clamp-2 mb-1">
+                      {product.name.length > 40 ? product.name.slice(0, 38) + "…" : product.name}
+                    </p>
+                    <p className="text-copikon-red font-bold text-sm">
+                      ${product.totalPriceUsd?.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

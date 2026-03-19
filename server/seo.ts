@@ -142,33 +142,33 @@ Sitemap: ${DOMAIN}/sitemap.xml
 
   <!-- Static Pages -->
   <url>
-    <loc>${DOMAIN}/#/catalogo</loc>
+    <loc>${DOMAIN}/catalogo</loc>
     <lastmod>${now}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>${DOMAIN}/#/faq</loc>
+    <loc>${DOMAIN}/faq</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>${DOMAIN}/#/metodos-de-pago</loc>
+    <loc>${DOMAIN}/metodos-de-pago</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>${DOMAIN}/#/sobre-nosotros</loc>
+    <loc>${DOMAIN}/sobre-nosotros</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>${DOMAIN}/#/terminos</loc>
+    <loc>${DOMAIN}/terminos</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>${DOMAIN}/#/devoluciones</loc>
+    <loc>${DOMAIN}/devoluciones</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -177,7 +177,7 @@ Sitemap: ${DOMAIN}/sitemap.xml
 `;
       for (const cat of categories) {
         xml += `  <url>
-    <loc>${DOMAIN}/#/catalogo?category=${cat.id}</loc>
+    <loc>${DOMAIN}/catalogo?category=${cat.id}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
@@ -197,7 +197,7 @@ Sitemap: ${DOMAIN}/sitemap.xml
             ? `${DOMAIN}/api/img?url=${encodeURIComponent(prod.image)}`
             : prod.image;
           xml += `  <url>
-    <loc>${DOMAIN}/#/producto/${prod.slug}</loc>
+    <loc>${DOMAIN}/producto/${prod.slug}</loc>
     <lastmod>${prod.createdAt ? prod.createdAt.split("T")[0] : now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>${imgUrl ? `
@@ -225,7 +225,7 @@ Sitemap: ${DOMAIN}/sitemap.xml
   app.get("/p/:slug", async (req, res) => {
     try {
       const product = await storage.getProductBySlug(req.params.slug);
-      if (!product) return res.redirect("/#/catalogo");
+      if (!product) return res.redirect("/catalogo");
 
       const priceUsd = product.totalPriceUsd.toFixed(2);
       const imgUrl = product.image?.startsWith("http")
@@ -246,7 +246,7 @@ Sitemap: ${DOMAIN}/sitemap.xml
         },
         "offers": {
           "@type": "Offer",
-          "url": `${DOMAIN}/#/producto/${product.slug}`,
+          "url": `${DOMAIN}/producto/${product.slug}`,
           "priceCurrency": "USD",
           "price": priceUsd,
           "availability": product.isActive ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
@@ -287,11 +287,11 @@ Sitemap: ${DOMAIN}/sitemap.xml
   <meta property="og:title" content="${escapeHtml(product.name)} — CopikonUSA">
   <meta property="og:description" content="$${priceUsd} USD — Envío aéreo USA a Venezuela. Pago en bolívares.">
   <meta property="og:image" content="${imgUrl}">
-  <meta property="og:url" content="${DOMAIN}/#/producto/${product.slug}">
+  <meta property="og:url" content="${DOMAIN}/producto/${product.slug}">
   <meta property="og:type" content="product">
   <meta property="product:price:amount" content="${priceUsd}">
   <meta property="product:price:currency" content="USD">
-  <link rel="canonical" href="${DOMAIN}/#/producto/${product.slug}">
+  <link rel="canonical" href="${DOMAIN}/producto/${product.slug}">
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
 </head>
 <body>
@@ -299,8 +299,8 @@ Sitemap: ${DOMAIN}/sitemap.xml
   <p>Precio: $${priceUsd} USD</p>
   <p>${escapeHtml(product.description || "")}</p>
   <p>Categoría: ${escapeHtml(catName)}</p>
-  <a href="${DOMAIN}/#/producto/${product.slug}">Ver producto en CopikonUSA</a>
-  <script>window.location.href = "${DOMAIN}/#/producto/${product.slug}";</script>
+  <a href="${DOMAIN}/producto/${product.slug}">Ver producto en CopikonUSA</a>
+  <script>window.location.href = "${DOMAIN}/producto/${product.slug}";</script>
 </body>
 </html>`);
     } catch (err) {
@@ -314,7 +314,7 @@ Sitemap: ${DOMAIN}/sitemap.xml
     try {
       const cat = req.params.category;
       const seo = CATEGORY_SEO[cat];
-      if (!seo) return res.redirect("/#/catalogo");
+      if (!seo) return res.redirect("/catalogo");
 
       const result = await storage.getProducts({ category: cat, limit: 50, page: 1 });
       const products = result.products || [];
@@ -324,21 +324,21 @@ Sitemap: ${DOMAIN}/sitemap.xml
         "@type": "CollectionPage",
         "name": seo.h1,
         "description": seo.description,
-        "url": `${DOMAIN}/#/catalogo?category=${cat}`,
+        "url": `${DOMAIN}/catalogo?category=${cat}`,
         "mainEntity": {
           "@type": "ItemList",
           "numberOfItems": result.total || products.length,
           "itemListElement": products.slice(0, 20).map((p: any, i: number) => ({
             "@type": "ListItem",
             "position": i + 1,
-            "url": `${DOMAIN}/#/producto/${p.slug}`,
+            "url": `${DOMAIN}/producto/${p.slug}`,
             "name": p.name
           }))
         }
       };
 
       const productListHtml = products.slice(0, 20).map((p: any) => 
-        `<li><a href="${DOMAIN}/#/producto/${p.slug}">${escapeHtml(p.name)} — $${p.totalPriceUsd?.toFixed(2)} USD</a></li>`
+        `<li><a href="${DOMAIN}/producto/${p.slug}">${escapeHtml(p.name)} — $${p.totalPriceUsd?.toFixed(2)} USD</a></li>`
       ).join("\n      ");
 
       res.send(`<!DOCTYPE html>
@@ -350,9 +350,9 @@ Sitemap: ${DOMAIN}/sitemap.xml
   <meta name="description" content="${seo.description}">
   <meta property="og:title" content="${seo.title}">
   <meta property="og:description" content="${seo.description}">
-  <meta property="og:url" content="${DOMAIN}/#/catalogo?category=${cat}">
+  <meta property="og:url" content="${DOMAIN}/catalogo?category=${cat}">
   <meta property="og:type" content="website">
-  <link rel="canonical" href="${DOMAIN}/#/catalogo?category=${cat}">
+  <link rel="canonical" href="${DOMAIN}/catalogo?category=${cat}">
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
 </head>
 <body>
@@ -361,8 +361,8 @@ Sitemap: ${DOMAIN}/sitemap.xml
   <ul>
       ${productListHtml}
   </ul>
-  <a href="${DOMAIN}/#/catalogo?category=${cat}">Ver todos los productos</a>
-  <script>window.location.href = "${DOMAIN}/#/catalogo?category=${cat}";</script>
+  <a href="${DOMAIN}/catalogo?category=${cat}">Ver todos los productos</a>
+  <script>window.location.href = "${DOMAIN}/catalogo?category=${cat}";</script>
 </body>
 </html>`);
     } catch (err) {
@@ -402,7 +402,7 @@ Sitemap: ${DOMAIN}/sitemap.xml
         "description": "Tu Tienda Americana en Venezuela — Compra productos de USA con envío aéreo y pago en bolívares",
         "potentialAction": {
           "@type": "SearchAction",
-          "target": `${DOMAIN}/#/catalogo?search={search_term_string}`,
+          "target": `${DOMAIN}/catalogo?search={search_term_string}`,
           "query-input": "required name=search_term_string"
         }
       }
