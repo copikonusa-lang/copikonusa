@@ -616,11 +616,23 @@ export function dictionaryTranslateBullets(bullets: string[]): string[] {
   return bullets.map(b => dictionaryTranslate(b));
 }
 
-// ============ L3: API TRANSLATION (Anthropic or Dictionary fallback) ============
+// ============ PROTECTED BRANDS (never translate these) ============
+
+const PROTECTED_BRANDS = [
+  "Nintendo Switch", "PlayStation", "Xbox", "iPhone", "iPad", "MacBook", "AirPods",
+  "Echo Dot", "Fire Stick", "Kindle", "Alexa", "Samsung Galaxy", "Google Pixel",
+  "CeraVe", "Neutrogena", "L'Oreal", "Maybelline", "Pampers", "Huggies", "Luvs",
+  "Roku", "Chromecast", "Apple Watch", "Galaxy Watch", "Fitbit", "GoPro",
+  "Dyson", "Roomba", "Instant Pot", "KitchenAid", "Vitamix", "Keurig",
+  "Bose", "JBL", "Sony", "Beats", "Anker", "Logitech",
+];
+
+// ============ L3: API TRANSLATION (Anthropic only — no dictionary for long text) ============
 
 /**
  * Translates a product description from English to natural Venezuelan Spanish.
- * Uses Anthropic API if available, otherwise falls back to dictionary.
+ * Uses Anthropic API if available, otherwise returns the ORIGINAL English text.
+ * Dictionary-based translation is NOT used for descriptions — it produces broken Spanglish.
  */
 export async function translateDescription(englishText: string): Promise<string> {
   if (!englishText || englishText.trim().length < 5) return englishText;
@@ -629,8 +641,9 @@ export async function translateDescription(englishText: string): Promise<string>
   const cached = getCached(`desc:${englishText}`);
   if (cached) return cached;
 
-  // Try Anthropic API first
+  // Use Anthropic API if available
   if (client) {
+    const brandsList = PROTECTED_BRANDS.join(", ");
     try {
       const response = await client.messages.create({
         model: "claude-sonnet-4-20250514",
@@ -642,6 +655,7 @@ export async function translateDescription(englishText: string): Promise<string>
 Reglas:
 - Español natural y fluido, NO traducción literal/robótica
 - NO traduzcas marcas, nombres de modelos, números de modelo, siglas técnicas (USB-C, Bluetooth, WiFi, HD, etc.)
+- NUNCA traduzcas estas marcas/nombres: ${brandsList}
 - Preserva números, medidas y especificaciones técnicas exactas
 - Preserva el formato: si hay viñetas o saltos de línea, mantenlos
 - NO agregues información extra ni comentarios
@@ -656,19 +670,18 @@ ${englishText}`
       setCache(`desc:${englishText}`, translated);
       return translated;
     } catch (e: any) {
-      console.error("[TRANSLATE] Anthropic description error, falling back to dictionary:", e.message);
+      console.error("[TRANSLATE] Anthropic description error, returning English:", e.message);
     }
   }
 
-  // Fallback: dictionary-based translation
-  const translated = dictionaryTranslate(englishText);
-  setCache(`desc:${englishText}`, translated);
-  return translated;
+  // No API key or API failed — return original English (clean English > broken Spanglish)
+  return englishText;
 }
 
 /**
  * Translates an array of feature bullets from English to Spanish.
- * Uses Anthropic API if available, otherwise falls back to dictionary.
+ * Uses Anthropic API if available, otherwise returns the ORIGINAL English bullets.
+ * Dictionary-based translation is NOT used for bullets — it produces broken Spanglish.
  */
 export async function translateBullets(bullets: string[]): Promise<string[]> {
   if (!bullets || bullets.length === 0) return bullets;
@@ -677,8 +690,9 @@ export async function translateBullets(bullets: string[]): Promise<string[]> {
   const cached = getCached(cacheKey);
   if (cached) return cached.split("|||");
 
-  // Try Anthropic API first
+  // Use Anthropic API if available
   if (client) {
+    const brandsList = PROTECTED_BRANDS.join(", ");
     try {
       const numbered = bullets.map((b, i) => `${i + 1}. ${b}`).join("\n");
       const response = await client.messages.create({
@@ -691,6 +705,7 @@ export async function translateBullets(bullets: string[]): Promise<string[]> {
 Reglas:
 - Español natural y fluido, NO traducción literal
 - NO traduzcas marcas, nombres de modelos, siglas técnicas (USB-C, Bluetooth, WiFi, HD, LED, etc.)
+- NUNCA traduzcas estas marcas/nombres: ${brandsList}
 - Preserva números, medidas y especificaciones exactas
 - Responde SOLO con las líneas traducidas, numeradas igual (1. 2. 3. etc.), sin comentarios extra
 
@@ -710,12 +725,10 @@ ${numbered}`
         return translated;
       }
     } catch (e: any) {
-      console.error("[TRANSLATE] Anthropic bullets error, falling back to dictionary:", e.message);
+      console.error("[TRANSLATE] Anthropic bullets error, returning English:", e.message);
     }
   }
 
-  // Fallback: dictionary-based translation
-  const translated = dictionaryTranslateBullets(bullets);
-  setCache(cacheKey, translated.join("|||"));
-  return translated;
+  // No API key or API failed — return original English bullets (clean English > broken Spanglish)
+  return bullets;
 }
