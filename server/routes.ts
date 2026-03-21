@@ -2682,6 +2682,16 @@ export async function registerRoutes(
     })();
   });
 
+  // ===== CLEAR BAD CACHED TRANSLATIONS =====
+  app.post("/api/admin/sync/clear-translations", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { sql } = await import("drizzle-orm");
+
+    const result = await db.execute(sql`UPDATE products SET description_es = NULL, features_es = NULL`);
+    res.json({ message: "Traducciones limpiadas", cleared: result.rowCount || 0 });
+  });
+
   // ===== GET SYNC LOGS =====
   app.get("/api/admin/sync/logs", requireAdmin, async (req, res) => {
     if (!(storage instanceof PgStorage)) return res.json([]);
