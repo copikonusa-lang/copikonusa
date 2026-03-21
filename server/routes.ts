@@ -1210,7 +1210,7 @@ export async function registerRoutes(
 
       const result = {
         images: [detail.mainImageUrl, ...(detail.imageUrls || [])].filter(Boolean),
-        featureBullets: translatedBullets,
+        featureBullets: rawBullets,
         translatedDescription,
         descriptionEs: translatedDescription,
         featuresEs: translatedBullets,

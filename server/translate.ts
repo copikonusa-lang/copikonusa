@@ -616,23 +616,30 @@ export function dictionaryTranslateBullets(bullets: string[]): string[] {
   return bullets.map(b => dictionaryTranslate(b));
 }
 
-// ============ PROTECTED BRANDS (never translate these) ============
+// ============ PROTECTED BRAND NAMES (never translate) ============
 
 const PROTECTED_BRANDS = [
   "Nintendo Switch", "PlayStation", "Xbox", "iPhone", "iPad", "MacBook", "AirPods",
-  "Echo Dot", "Fire Stick", "Kindle", "Alexa", "Samsung Galaxy", "Google Pixel",
-  "CeraVe", "Neutrogena", "L'Oreal", "Maybelline", "Pampers", "Huggies", "Luvs",
+  "Echo Dot", "Fire Stick", "Fire TV", "Kindle", "Alexa",
+  "Samsung Galaxy", "Google Pixel", "Google Nest", "Google Home",
+  "CeraVe", "Neutrogena", "L'Oreal", "L'Oréal", "Maybelline", "Dove", "Olay",
+  "Pampers", "Huggies", "Luvs",
+  "Nike", "Adidas", "Under Armour", "Puma", "Reebok", "New Balance",
+  "Instant Pot", "KitchenAid", "Keurig", "Nespresso", "Vitamix",
+  "Dyson", "Roomba", "iRobot", "Ring", "Bose", "JBL", "Sony", "LG",
   "Roku", "Chromecast", "Apple Watch", "Galaxy Watch", "Fitbit", "GoPro",
-  "Dyson", "Roomba", "Instant Pot", "KitchenAid", "Vitamix", "Keurig",
-  "Bose", "JBL", "Sony", "Beats", "Anker", "Logitech",
-];
+  "Beats", "Anker", "Logitech",
+  "Crocs", "Converse", "Vans", "Ray-Ban", "Oakley",
+  "Stanley", "YETI", "Hydro Flask", "Contigo",
+  "Lego", "Hot Wheels", "Barbie", "Play-Doh",
+].join(", ");
 
-// ============ L3: API TRANSLATION (Anthropic only — no dictionary for long text) ============
+// ============ L3: API TRANSLATION (Anthropic, or return English) ============
 
 /**
  * Translates a product description from English to natural Venezuelan Spanish.
- * Uses Anthropic API if available, otherwise returns the ORIGINAL English text.
- * Dictionary-based translation is NOT used for descriptions — it produces broken Spanglish.
+ * Uses Anthropic API if available, otherwise returns original English.
+ * Dictionary fallback is NOT used for descriptions — it produces broken Spanglish.
  */
 export async function translateDescription(englishText: string): Promise<string> {
   if (!englishText || englishText.trim().length < 5) return englishText;
@@ -641,21 +648,23 @@ export async function translateDescription(englishText: string): Promise<string>
   const cached = getCached(`desc:${englishText}`);
   if (cached) return cached;
 
-  // Use Anthropic API if available
-  if (client) {
-    const brandsList = PROTECTED_BRANDS.join(", ");
-    try {
-      const response = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: [{
-          role: "user",
-          content: `Traduce esta descripción de producto de Amazon al español natural para consumidores venezolanos.
+  // No API key → return original English (clean English > broken Spanglish)
+  if (!client) {
+    return englishText;
+  }
+
+  try {
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      messages: [{
+        role: "user",
+        content: `Traduce esta descripción de producto de Amazon al español natural para consumidores venezolanos.
 
 Reglas:
 - Español natural y fluido, NO traducción literal/robótica
-- NO traduzcas marcas, nombres de modelos, números de modelo, siglas técnicas (USB-C, Bluetooth, WiFi, HD, etc.)
-- NUNCA traduzcas estas marcas/nombres: ${brandsList}
+- NUNCA traduzcas estas marcas/nombres de producto, déjalos exactamente como están: ${PROTECTED_BRANDS}
+- NO traduzcas nombres de modelos, números de modelo, ni siglas técnicas (USB-C, Bluetooth, WiFi, HD, LED, HDMI, NFC, etc.)
 - Preserva números, medidas y especificaciones técnicas exactas
 - Preserva el formato: si hay viñetas o saltos de línea, mantenlos
 - NO agregues información extra ni comentarios
@@ -663,25 +672,22 @@ Reglas:
 
 Texto:
 ${englishText}`
-        }],
-      });
+      }],
+    });
 
-      const translated = (response.content[0] as any).text?.trim() || englishText;
-      setCache(`desc:${englishText}`, translated);
-      return translated;
-    } catch (e: any) {
-      console.error("[TRANSLATE] Anthropic description error, returning English:", e.message);
-    }
+    const translated = (response.content[0] as any).text?.trim() || englishText;
+    setCache(`desc:${englishText}`, translated);
+    return translated;
+  } catch (e: any) {
+    console.error("[TRANSLATE] Anthropic description error, returning original English:", e.message);
+    return englishText;
   }
-
-  // No API key or API failed — return original English (clean English > broken Spanglish)
-  return englishText;
 }
 
 /**
  * Translates an array of feature bullets from English to Spanish.
- * Uses Anthropic API if available, otherwise returns the ORIGINAL English bullets.
- * Dictionary-based translation is NOT used for bullets — it produces broken Spanglish.
+ * Uses Anthropic API if available, otherwise returns original English bullets.
+ * Dictionary fallback is NOT used — it produces broken Spanglish.
  */
 export async function translateBullets(bullets: string[]): Promise<string[]> {
   if (!bullets || bullets.length === 0) return bullets;
@@ -690,45 +696,47 @@ export async function translateBullets(bullets: string[]): Promise<string[]> {
   const cached = getCached(cacheKey);
   if (cached) return cached.split("|||");
 
-  // Use Anthropic API if available
-  if (client) {
-    const brandsList = PROTECTED_BRANDS.join(", ");
-    try {
-      const numbered = bullets.map((b, i) => `${i + 1}. ${b}`).join("\n");
-      const response = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 2048,
-        messages: [{
-          role: "user",
-          content: `Traduce estas características de producto de Amazon al español natural para consumidores venezolanos.
+  // No API key → return original English bullets
+  if (!client) {
+    return bullets;
+  }
+
+  try {
+    const numbered = bullets.map((b, i) => `${i + 1}. ${b}`).join("\n");
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2048,
+      messages: [{
+        role: "user",
+        content: `Traduce estas características de producto de Amazon al español natural para consumidores venezolanos.
 
 Reglas:
 - Español natural y fluido, NO traducción literal
-- NO traduzcas marcas, nombres de modelos, siglas técnicas (USB-C, Bluetooth, WiFi, HD, LED, etc.)
-- NUNCA traduzcas estas marcas/nombres: ${brandsList}
+- NUNCA traduzcas estas marcas/nombres de producto, déjalos exactamente como están: ${PROTECTED_BRANDS}
+- NO traduzcas nombres de modelos, números de modelo, ni siglas técnicas (USB-C, Bluetooth, WiFi, HD, LED, HDMI, NFC, etc.)
 - Preserva números, medidas y especificaciones exactas
 - Responde SOLO con las líneas traducidas, numeradas igual (1. 2. 3. etc.), sin comentarios extra
 
 Características:
 ${numbered}`
-        }],
-      });
+      }],
+    });
 
-      const text = (response.content[0] as any).text?.trim() || "";
-      const translated = text
-        .split("\n")
-        .map((line: string) => line.replace(/^\d+\.\s*/, "").trim())
-        .filter((line: string) => line.length > 0);
+    const text = (response.content[0] as any).text?.trim() || "";
+    const translated = text
+      .split("\n")
+      .map((line: string) => line.replace(/^\d+\.\s*/, "").trim())
+      .filter((line: string) => line.length > 0);
 
-      if (translated.length === bullets.length) {
-        setCache(cacheKey, translated.join("|||"));
-        return translated;
-      }
-    } catch (e: any) {
-      console.error("[TRANSLATE] Anthropic bullets error, returning English:", e.message);
+    if (translated.length === bullets.length) {
+      setCache(cacheKey, translated.join("|||"));
+      return translated;
     }
+    // Count mismatch — return original English rather than broken translation
+    console.warn("[TRANSLATE] Bullet count mismatch, returning original English");
+    return bullets;
+  } catch (e: any) {
+    console.error("[TRANSLATE] Anthropic bullets error, returning original English:", e.message);
+    return bullets;
   }
-
-  // No API key or API failed — return original English bullets (clean English > broken Spanglish)
-  return bullets;
 }
