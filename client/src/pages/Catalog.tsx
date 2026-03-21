@@ -67,15 +67,13 @@ export default function Catalog() {
           }
           return prev;
         });
-        if (newCat) {
-          setCategory(prev => {
-            if (prev !== newCat) {
-              setPage(1);
-              return newCat;
-            }
-            return prev;
-          });
-        }
+        setCategory(prev => {
+          if (prev !== newCat) {
+            setPage(1);
+            return newCat;
+          }
+          return prev;
+        });
       }
     };
 
@@ -84,6 +82,7 @@ export default function Catalog() {
       const detail = (e as CustomEvent).detail;
       if (detail?.search !== undefined) {
         setSearch(detail.search);
+        setCategory(""); // Reset category so search covers all products
         setPage(1);
         lastUrlRef.current = window.location.hash + window.location.search;
       }
@@ -106,7 +105,7 @@ export default function Catalog() {
     const p = getParams();
     const urlCat = p.get("category") || "";
     const urlSearch = p.get("search") || "";
-    if (urlCat) setCategory(urlCat);
+    setCategory(urlCat);
     if (urlSearch) setSearch(urlSearch);
     setPage(1);
   }, [location]);
