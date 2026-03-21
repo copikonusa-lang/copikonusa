@@ -20,6 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 interface AmazonDetail {
   images: string[];
   featureBullets: string[];
+  translatedDescription?: string;
   variants: { asin: string; text: string; attributes: { name: string; value: string }[] }[];
   brand: string;
 }
@@ -229,8 +230,9 @@ function VariantSelector({ variants, onVariantSelect, selectedAsin, loadingVaria
   );
 }
 
-function DescriptionTab({ featureBullets, product }: { featureBullets: string[]; product: Product }) {
+function DescriptionTab({ featureBullets, product, translatedDescription }: { featureBullets: string[]; product: Product; translatedDescription?: string }) {
   const hasFeatures = featureBullets && featureBullets.length > 0;
+  const description = translatedDescription || product.description;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
@@ -239,8 +241,8 @@ function DescriptionTab({ featureBullets, product }: { featureBullets: string[];
           <Package className="w-5 h-5 text-copikon-red" />
           Acerca de este producto
         </h3>
-        {product.description && product.description !== product.name && (
-          <p className="text-sm text-gray-700 leading-relaxed mb-4">{product.description}</p>
+        {description && description !== product.name && (
+          <p className="text-sm text-gray-700 leading-relaxed mb-4">{description}</p>
         )}
       </div>
 
@@ -613,6 +615,7 @@ export default function ProductDetail() {
             <DescriptionTab
               featureBullets={amazonDetail?.featureBullets || []}
               product={product}
+              translatedDescription={amazonDetail?.translatedDescription}
             />
           </TabsContent>
 

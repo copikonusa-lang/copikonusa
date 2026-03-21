@@ -7,6 +7,7 @@ import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getF
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
+import { translateDescription, translateBullets } from "./translate";
 
 // Simple in-memory sessions: token -> userId
 const sessions = new Map<string, string>();
@@ -1175,9 +1176,24 @@ export async function registerRoutes(
       const detail = await getFullProductDetail(asin);
       if (!detail) return res.json({ images: [], featureBullets: [], variants: [] });
 
+      // Translate feature bullets and description to Spanish in parallel
+      const rawBullets = detail.featureBullets || [];
+      const rawDescription = product.description || "";
+      const needsDescTranslation = rawDescription && rawDescription !== product.name && /[a-zA-Z]/.test(rawDescription);
+
+      const [translatedBullets, translatedDescription] = await Promise.all([
+        rawBullets.length > 0
+          ? translateBullets(rawBullets).catch(() => rawBullets)
+          : Promise.resolve(rawBullets),
+        needsDescTranslation
+          ? translateDescription(rawDescription).catch(() => rawDescription)
+          : Promise.resolve(rawDescription),
+      ]);
+
       const result = {
         images: [detail.mainImageUrl, ...(detail.imageUrls || [])].filter(Boolean),
-        featureBullets: detail.featureBullets || [],
+        featureBullets: translatedBullets,
+        translatedDescription,
         variants: (detail.variants || []).map(v => ({
           asin: v.asin,
           text: v.text,
@@ -1186,7 +1202,7 @@ export async function registerRoutes(
         brand: (detail.brand || "").replace(/^Amazon$/i, "").replace(/Amazon\s+Basics/gi, "Copikon Basics"),
       };
 
-      // Cache
+      // Cache (translations are cached, so cached responses will have Spanish bullets)
       detailCache.set(asin, { data: result, timestamp: Date.now() });
       if (detailCache.size > 300) {
         const oldest = [...detailCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
@@ -2137,7 +2153,13 @@ export async function registerRoutes(
 
               const productData = canopyToProduct(full, search.category, realWeight);
               productData.name = smartTruncateTitle(translateTitle(productData.name));
-              productData.description = translateTitle(productData.description || productData.name);
+              // Translate description to Spanish using AI (fire-and-forget — save English if it fails)
+              try {
+                const rawDesc = full.description || full.title || productData.name;
+                productData.description = await translateDescription(rawDesc);
+              } catch {
+                productData.description = translateTitle(productData.description || productData.name);
+              }
               // Tag weight source in specs
               (productData as any).specs = { ...((productData as any).specs || {}), weightSource };
               
@@ -2569,6 +2591,67 @@ export async function registerRoutes(
         status: "completed",
       }).where(eq(syncLogsTable.id, log.id));
       console.log(`[TRANSLATE] Done: ${translated} translated, ${errors} errors`);
+    })();
+  });
+
+  // ===== CRON: TRANSLATE DESCRIPTIONS (AI) =====
+  app.post("/api/admin/sync/translate-descriptions", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable, syncLogsTable } = await import("@shared/schema");
+    const { eq, sql } = await import("drizzle-orm");
+
+    // Find products whose descriptions look English (contain common English words)
+    const allProducts = await db.select({ id: productsTable.id, name: productsTable.name, description: productsTable.description })
+      .from(productsTable)
+      .where(eq(productsTable.isActive, true));
+
+    // Filter to products with English descriptions (heuristic: contains common English words)
+    const englishProducts = allProducts.filter(p => {
+      const desc = p.description || "";
+      if (desc.length < 10) return false;
+      return /\b(for|with|and|the|this|that|from|your|our|these|is|are|has|have|can|will|not|all|one|two|get|use|set|new|top|best|made|high|quality|design|pack|size|color|inch|compatible|wireless|portable|bluetooth|waterproof|rechargeable|lightweight|durable|premium|professional|adjustable|stainless|steel)\b/i.test(desc);
+    });
+
+    const batchSize = +(req.query.batch || 50);
+    const productsToProcess = englishProducts.slice(0, batchSize);
+
+    const [log] = await db.insert(syncLogsTable).values({
+      type: "description_translation",
+      startedAt: new Date().toISOString(),
+      totalProducts: productsToProcess.length,
+      status: "running",
+    }).returning();
+
+    res.json({ message: `Traducción de descripciones iniciada para ${productsToProcess.length} de ${englishProducts.length} productos`, logId: log.id });
+
+    // Background translation
+    (async () => {
+      let translated = 0, errors = 0;
+      for (const product of productsToProcess) {
+        try {
+          const translatedDesc = await translateDescription(product.description || product.name);
+          if (translatedDesc !== product.description) {
+            await db.update(productsTable)
+              .set({ description: translatedDesc })
+              .where(eq(productsTable.id, product.id));
+            translated++;
+          }
+        } catch {
+          errors++;
+        }
+        // Small delay to avoid rate limits
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      await db.update(syncLogsTable).set({
+        completedAt: new Date().toISOString(),
+        updated: translated,
+        errors,
+        status: "completed",
+        details: { total: englishProducts.length, processed: productsToProcess.length },
+      }).where(eq(syncLogsTable.id, log.id));
+      console.log(`[TRANSLATE-DESC] Done: ${translated} translated, ${errors} errors`);
     })();
   });
 
