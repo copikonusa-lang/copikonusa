@@ -36,6 +36,8 @@ export const productsTable = pgTable("products", {
   isManual: boolean("is_manual").default(false),
   amazonAsin: text("amazon_asin").default(""),
   oldPrice: real("old_price"),
+  descriptionEs: text("description_es").default(""),
+  featuresEs: jsonb("features_es").$type<string[]>().default([]),
   createdAt: text("created_at").notNull(),
 });
 
@@ -137,6 +139,8 @@ export interface Product {
   isManual: boolean;
   amazonAsin: string;
   oldPrice?: number;
+  descriptionEs: string;
+  featuresEs: string[];
   createdAt: string;
 }
 

@@ -4,6 +4,7 @@ import { registerWhatsAppRoutes } from "./whatsapp";
 import { registerSEORoutes } from "./seo";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { getDb, getPool } from "./db";
 
 const app = express();
 const httpServer = createServer(app);
@@ -62,7 +63,24 @@ app.use((req, res, next) => {
   next();
 });
 
+async function runAutoMigrations() {
+  try {
+    // Initialize the DB connection to get the pool
+    getDb();
+    const pool = getPool();
+    if (!pool) return;
+    await pool.query(`
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS description_es TEXT DEFAULT '';
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS features_es JSONB DEFAULT '[]';
+    `);
+    console.log("[MIGRATION] Auto-migration complete: description_es, features_es columns ensured");
+  } catch (e: any) {
+    console.error("[MIGRATION] Auto-migration error:", e.message);
+  }
+}
+
 (async () => {
+  await runAutoMigrations();
   await registerRoutes(httpServer, app);
   registerWhatsAppRoutes(app);
   registerSEORoutes(app);

@@ -687,6 +687,8 @@ export function canopyToProduct(cp: CanopyProduct, category: string, weight: num
     isActive: true,
     isManual: false,
     amazonAsin: cp.asin,
+    descriptionEs: "",
+    featuresEs: [],
     createdAt: new Date().toISOString(),
   };
 }

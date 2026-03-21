@@ -7,7 +7,7 @@ import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getF
 import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
-import { translateDescription, translateBullets } from "./translate";
+import { translateDescription, translateBullets, getDbTranslation, saveDbTranslation } from "./translate";
 
 // Simple in-memory sessions: token -> userId
 const sessions = new Map<string, string>();
@@ -1165,35 +1165,55 @@ export async function registerRoutes(
       if (!product) return res.status(404).json({ message: "Producto no encontrado" });
       // Try amazonAsin field first, then specs.ASIN
       const asin = product.amazonAsin || (product.specs as any)?.ASIN || "";
-      if (!asin) return res.json({ images: [], featureBullets: [], variants: [] });
+      if (!asin) return res.json({ images: [], featureBullets: [], variants: [], descriptionEs: "", featuresEs: [] });
 
-      // Check cache
+      // Check in-memory cache (L1)
       const cached = detailCache.get(asin);
       if (cached && Date.now() - cached.timestamp < DETAIL_CACHE_TTL) {
         return res.json(cached.data);
       }
 
-      const detail = await getFullProductDetail(asin);
-      if (!detail) return res.json({ images: [], featureBullets: [], variants: [] });
+      // Check DB for existing translations (L2) while fetching detail in parallel
+      const [detail, dbTranslation] = await Promise.all([
+        getFullProductDetail(asin),
+        getDbTranslation(product.id),
+      ]);
 
-      // Translate feature bullets and description to Spanish in parallel
+      if (!detail) return res.json({ images: [], featureBullets: [], variants: [], descriptionEs: "", featuresEs: [] });
+
       const rawBullets = detail.featureBullets || [];
       const rawDescription = product.description || "";
       const needsDescTranslation = rawDescription && rawDescription !== product.name && /[a-zA-Z]/.test(rawDescription);
 
-      const [translatedBullets, translatedDescription] = await Promise.all([
-        rawBullets.length > 0
-          ? translateBullets(rawBullets).catch(() => rawBullets)
-          : Promise.resolve(rawBullets),
-        needsDescTranslation
-          ? translateDescription(rawDescription).catch(() => rawDescription)
-          : Promise.resolve(rawDescription),
-      ]);
+      let translatedBullets: string[];
+      let translatedDescription: string;
+
+      // Use DB translations if available (L2), otherwise translate via API/dictionary (L3)
+      if (dbTranslation && dbTranslation.descriptionEs && dbTranslation.featuresEs.length > 0) {
+        translatedDescription = dbTranslation.descriptionEs;
+        translatedBullets = dbTranslation.featuresEs;
+      } else {
+        [translatedBullets, translatedDescription] = await Promise.all([
+          rawBullets.length > 0
+            ? translateBullets(rawBullets).catch(() => rawBullets)
+            : Promise.resolve(rawBullets),
+          needsDescTranslation
+            ? translateDescription(rawDescription).catch(() => rawDescription)
+            : Promise.resolve(rawDescription),
+        ]);
+
+        // Save translations to DB (L2) in background — fire and forget
+        if (translatedDescription || translatedBullets.length > 0) {
+          saveDbTranslation(product.id, translatedDescription, translatedBullets).catch(() => {});
+        }
+      }
 
       const result = {
         images: [detail.mainImageUrl, ...(detail.imageUrls || [])].filter(Boolean),
         featureBullets: translatedBullets,
         translatedDescription,
+        descriptionEs: translatedDescription,
+        featuresEs: translatedBullets,
         variants: (detail.variants || []).map(v => ({
           asin: v.asin,
           text: v.text,
@@ -1202,7 +1222,7 @@ export async function registerRoutes(
         brand: (detail.brand || "").replace(/^Amazon$/i, "").replace(/Amazon\s+Basics/gi, "Copikon Basics"),
       };
 
-      // Cache (translations are cached, so cached responses will have Spanish bullets)
+      // Cache (L1)
       detailCache.set(asin, { data: result, timestamp: Date.now() });
       if (detailCache.size > 300) {
         const oldest = [...detailCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
@@ -1212,7 +1232,7 @@ export async function registerRoutes(
       res.json(result);
     } catch (e: any) {
       console.error("Amazon detail error:", e.message);
-      res.json({ images: [], featureBullets: [], variants: [] });
+      res.json({ images: [], featureBullets: [], variants: [], descriptionEs: "", featuresEs: [] });
     }
   });
 
@@ -2601,20 +2621,27 @@ export async function registerRoutes(
     const { productsTable, syncLogsTable } = await import("@shared/schema");
     const { eq, sql } = await import("drizzle-orm");
 
-    // Find products whose descriptions look English (contain common English words)
-    const allProducts = await db.select({ id: productsTable.id, name: productsTable.name, description: productsTable.description })
+    // Find active products that don't have a Spanish description yet
+    const allProducts = await db.select({
+      id: productsTable.id,
+      name: productsTable.name,
+      description: productsTable.description,
+      descriptionEs: productsTable.descriptionEs,
+    })
       .from(productsTable)
       .where(eq(productsTable.isActive, true));
 
-    // Filter to products with English descriptions (heuristic: contains common English words)
-    const englishProducts = allProducts.filter(p => {
+    // Filter to products missing Spanish translation
+    const untranslatedProducts = allProducts.filter(p => {
       const desc = p.description || "";
+      const descEs = p.descriptionEs || "";
       if (desc.length < 10) return false;
+      if (descEs.length > 10) return false; // Already translated
       return /\b(for|with|and|the|this|that|from|your|our|these|is|are|has|have|can|will|not|all|one|two|get|use|set|new|top|best|made|high|quality|design|pack|size|color|inch|compatible|wireless|portable|bluetooth|waterproof|rechargeable|lightweight|durable|premium|professional|adjustable|stainless|steel)\b/i.test(desc);
     });
 
     const batchSize = +(req.query.batch || 50);
-    const productsToProcess = englishProducts.slice(0, batchSize);
+    const productsToProcess = untranslatedProducts.slice(0, batchSize);
 
     const [log] = await db.insert(syncLogsTable).values({
       type: "description_translation",
@@ -2623,17 +2650,17 @@ export async function registerRoutes(
       status: "running",
     }).returning();
 
-    res.json({ message: `Traducción de descripciones iniciada para ${productsToProcess.length} de ${englishProducts.length} productos`, logId: log.id });
+    res.json({ message: `Traducción de descripciones iniciada para ${productsToProcess.length} de ${untranslatedProducts.length} productos`, logId: log.id });
 
-    // Background translation
+    // Background translation — saves to description_es column (not description)
     (async () => {
       let translated = 0, errors = 0;
       for (const product of productsToProcess) {
         try {
           const translatedDesc = await translateDescription(product.description || product.name);
-          if (translatedDesc !== product.description) {
+          if (translatedDesc && translatedDesc !== product.description) {
             await db.update(productsTable)
-              .set({ description: translatedDesc })
+              .set({ descriptionEs: translatedDesc })
               .where(eq(productsTable.id, product.id));
             translated++;
           }
@@ -2649,7 +2676,7 @@ export async function registerRoutes(
         updated: translated,
         errors,
         status: "completed",
-        details: { total: englishProducts.length, processed: productsToProcess.length },
+        details: { total: untranslatedProducts.length, processed: productsToProcess.length },
       }).where(eq(syncLogsTable.id, log.id));
       console.log(`[TRANSLATE-DESC] Done: ${translated} translated, ${errors} errors`);
     })();

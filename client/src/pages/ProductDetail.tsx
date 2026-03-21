@@ -21,6 +21,8 @@ interface AmazonDetail {
   images: string[];
   featureBullets: string[];
   translatedDescription?: string;
+  descriptionEs?: string;
+  featuresEs?: string[];
   variants: { asin: string; text: string; attributes: { name: string; value: string }[] }[];
   brand: string;
 }
@@ -613,9 +615,9 @@ export default function ProductDetail() {
 
           <TabsContent value="description" className="mt-4">
             <DescriptionTab
-              featureBullets={amazonDetail?.featureBullets || []}
+              featureBullets={amazonDetail?.featuresEs || amazonDetail?.featureBullets || []}
               product={product}
-              translatedDescription={amazonDetail?.translatedDescription}
+              translatedDescription={amazonDetail?.descriptionEs || amazonDetail?.translatedDescription}
             />
           </TabsContent>
 
