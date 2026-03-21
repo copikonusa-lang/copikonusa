@@ -63,6 +63,10 @@ export default function Catalog() {
         setSearch(prev => {
           if (prev !== newSearch) {
             setPage(1);
+            if (!newSearch) {
+              // Search was cleared via URL navigation — notify SearchDropdown
+              window.dispatchEvent(new CustomEvent("copikon-clear-search"));
+            }
             return newSearch;
           }
           return prev;
@@ -194,7 +198,10 @@ export default function Catalog() {
   // but sidebar clicks set state directly which takes priority until next URL change
   const updateFilters = useCallback((newCategory: string) => {
     setCategory(newCategory);
+    setSearch(""); // Clear search when selecting a category — they are mutually exclusive
     setPage(1);
+    // Notify SearchDropdown to clear its input field
+    window.dispatchEvent(new CustomEvent("copikon-clear-search"));
   }, []);
 
   // Import a live result into local catalog and navigate to it

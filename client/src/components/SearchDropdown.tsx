@@ -83,6 +83,18 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Clear search input when a category is selected (search and category are mutually exclusive)
+  useEffect(() => {
+    const handler = () => {
+      setQuery("");
+      setLocalResults([]);
+      setLiveResults([]);
+      setOpen(false);
+    };
+    window.addEventListener("copikon-clear-search", handler);
+    return () => window.removeEventListener("copikon-clear-search", handler);
+  }, []);
+
   // Fast local autocomplete search
   const doLocalSearch = useCallback(async (q: string) => {
     if (abortRef.current) abortRef.current.abort();
