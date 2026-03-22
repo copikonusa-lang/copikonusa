@@ -3476,45 +3476,44 @@ export async function registerRoutes(
   app.post("/api/admin/sync/recalculate-prices", requireAdmin, async (_req, res) => {
     if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
     const db = (storage as PgStorage).db;
-    const { productsTable } = await import("@shared/schema");
-    const { eq, and, gt, sql: sqlTag } = await import("drizzle-orm");
+    const { sql: sqlTag } = await import("drizzle-orm");
 
     try {
-      // Fetch all active products with valid base price and weight
-      const products = await db.select().from(productsTable).where(
-        and(eq(productsTable.isActive, true), gt(productsTable.basePrice, 0), gt(productsTable.weight, 0))
-      );
+      // Count how many will change BEFORE updating
+      const [countResult] = await db.execute(sqlTag`
+        SELECT COUNT(*) as cnt FROM products
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+        AND ABS(total_price_usd - ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)) > 0.01
+      `);
+      const willUpdate = parseInt((countResult as any).cnt || "0");
 
-      let updated = 0;
-      const examples: { id: number; name: string; weight: number; oldPrice: number; newPrice: number }[] = [];
+      // Get examples BEFORE update
+      const examples = await db.execute(sqlTag`
+        SELECT id, name, weight, total_price_usd as old_price,
+          ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2) as new_price
+        FROM products
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+        AND ABS(total_price_usd - ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)) > 0.01
+        LIMIT 10
+      `);
 
-      for (const product of products) {
-        const effectiveWeight = Math.max(product.weight, 1);
-        const newPrice = +(product.basePrice * 1.15 + effectiveWeight * 5.50).toFixed(2);
-
-        if (Math.abs(newPrice - product.totalPriceUsd) > 0.01) {
-          await db.update(productsTable)
-            .set({ totalPriceUsd: newPrice })
-            .where(eq(productsTable.id, product.id));
-
-          updated++;
-          if (examples.length < 10) {
-            examples.push({
-              id: product.id,
-              name: product.name.slice(0, 60),
-              weight: product.weight,
-              oldPrice: product.totalPriceUsd,
-              newPrice,
-            });
-          }
-        }
-      }
+      // Single bulk UPDATE
+      await db.execute(sqlTag`
+        UPDATE products
+        SET total_price_usd = ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+      `);
 
       res.json({
-        message: `Recalculated prices for ${updated} products (of ${products.length} active)`,
-        updated,
-        totalActive: products.length,
-        examples,
+        message: `Precios recalculados para ${willUpdate} productos con mínimo 1 lb`,
+        updated: willUpdate,
+        examples: (examples as any[]).slice(0, 10).map((e: any) => ({
+          id: e.id,
+          name: (e.name || "").slice(0, 60),
+          weight: parseFloat(e.weight),
+          oldPrice: parseFloat(e.old_price),
+          newPrice: parseFloat(e.new_price),
+        })),
       });
     } catch (e: any) {
       res.status(500).json({ message: e.message });
