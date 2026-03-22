@@ -15,7 +15,8 @@ export function formatBs(amountUsd: number, bcvRate: number = 62, differential: 
 }
 
 export function calculatePriceUsd(basePrice: number, weight: number, shippingPerLb: number = 5.5): number {
-  return +(basePrice * 1.15 + weight * shippingPerLb).toFixed(2);
+  const effectiveWeight = Math.max(weight, 1);
+  return +(basePrice * 1.15 + effectiveWeight * shippingPerLb).toFixed(2);
 }
 
 export function calculatePriceBs(priceUsd: number, bcvRate: number = 62, differential: number = 1.5): number {

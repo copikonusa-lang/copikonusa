@@ -4643,7 +4643,7 @@ var PgStorage = class {
         const bp = data.basePrice ?? current.basePrice;
         const w = data.weight ?? current.weight;
         const shippingPerLb = parseFloat(await this.getSetting("shipping_per_lb") || "5.50");
-        updateData.totalPriceUsd = +(bp * 1.15 + w * shippingPerLb).toFixed(2);
+        updateData.totalPriceUsd = +(bp * 1.15 + Math.max(w, 1) * shippingPerLb).toFixed(2);
       }
     }
     const rows = await this.db.update(productsTable).set(updateData).where((0, import_drizzle_orm.eq)(productsTable.id, id)).returning();
@@ -5013,7 +5013,7 @@ var MemStorage = class {
       const bp = data.basePrice ?? product.basePrice;
       const w = data.weight ?? product.weight;
       const shippingPerLb = parseFloat(await this.getSetting("shipping_per_lb") || "5.50");
-      updated.totalPriceUsd = +(bp * 1.15 + w * shippingPerLb).toFixed(2);
+      updated.totalPriceUsd = +(bp * 1.15 + Math.max(w, 1) * shippingPerLb).toFixed(2);
     }
     this.products.set(id, updated);
     return updated;
@@ -5696,7 +5696,7 @@ function checkProductShippability(name, weight) {
 function canopyToProduct(cp, category, weight = 1) {
   const basePrice = cp.price?.value || 0;
   const shippingPerLb = 5.5;
-  const totalPriceUsd = +(basePrice * 1.15 + weight * shippingPerLb).toFixed(2);
+  const totalPriceUsd = +(basePrice * 1.15 + Math.max(weight, 1) * shippingPerLb).toFixed(2);
   return {
     id: 0,
     name: cp.title || "Sin nombre",
@@ -7555,7 +7555,8 @@ async function registerRoutes(httpServer2, app2) {
     return estimateWeightByName(title, category || "default");
   }
   function calculateCopikonPrice(amazonPrice, weightLbs) {
-    return +(amazonPrice * 1.15 + weightLbs * 5.5).toFixed(2);
+    const effectiveWeight = Math.max(weightLbs, 1);
+    return +(amazonPrice * 1.15 + effectiveWeight * 5.5).toFixed(2);
   }
   function translateTitle(title) {
     const replacements = [
@@ -7773,7 +7774,7 @@ async function registerRoutes(httpServer2, app2) {
       const realWeight = getBestWeight(weightData.itemWeight, weightData.packageWeight, fallbackWeight, name, detectedCategory);
       const isWeightVerified = !!(weightData.itemWeight || weightData.packageWeight);
       const basePrice = amazonPrice || price || 0;
-      const totalPriceUsd = +(basePrice * 1.15 + realWeight * 5.5).toFixed(2);
+      const totalPriceUsd = +(basePrice * 1.15 + Math.max(realWeight, 1) * 5.5).toFixed(2);
       const importViability = checkShippingViability(basePrice, realWeight, detectedCategory);
       if (!importViability.viable) {
         console.log(`[BLOCKED] Import rejected shipping-prohibitive: "${name.slice(0, 60)}" \u2014 ratio ${importViability.ratio}x`);
@@ -8052,10 +8053,10 @@ async function registerRoutes(httpServer2, app2) {
         SELECT
           CASE
             WHEN base_price <= 0 OR weight <= 0 THEN 'sin_datos'
-            WHEN (weight * 5.50) / base_price > 2.0 THEN 'critico_2x'
-            WHEN (weight * 5.50) / base_price > 1.5 THEN 'alto_1.5x'
-            WHEN (weight * 5.50) / base_price > 1.0 THEN 'moderado_1x'
-            WHEN (weight * 5.50) / base_price > 0.5 THEN 'normal_0.5x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 2.0 THEN 'critico_2x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 1.5 THEN 'alto_1.5x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 1.0 THEN 'moderado_1x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 0.5 THEN 'normal_0.5x'
             ELSE 'bajo'
           END as bracket,
           COUNT(*) as count
@@ -8064,10 +8065,10 @@ async function registerRoutes(httpServer2, app2) {
       `);
       const worstRatios = await db2.execute(sqlTag`
         SELECT id, name, base_price, weight, category,
-          ROUND((weight * 5.50 / NULLIF(base_price, 0))::numeric, 2) as ratio
+          ROUND((GREATEST(weight, 1) * 5.50 / NULLIF(base_price, 0))::numeric, 2) as ratio
         FROM products
         WHERE is_active = true AND base_price > 0 AND weight > 0
-        ORDER BY (weight * 5.50 / NULLIF(base_price, 0)) DESC
+        ORDER BY (GREATEST(weight, 1) * 5.50 / NULLIF(base_price, 0)) DESC
         LIMIT 10
       `);
       const { syncLogsTable: syncLogsTable3 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
@@ -8317,7 +8318,7 @@ async function registerRoutes(httpServer2, app2) {
         const detail = await getProductByAsin(item.amazonAsin);
         const currentPrice = detail?.price?.value || 0;
         const available = !!(detail && detail.price?.value);
-        const originalBase = item.priceUsd / 1.15 - item.weight * 5.5 / 1.15;
+        const originalBase = item.priceUsd / 1.15 - Math.max(item.weight, 1) * 5.5 / 1.15;
         const priceChange = originalBase > 0 ? Math.abs(currentPrice - originalBase) / originalBase : 0;
         if (!available || priceChange > 0.15) hasIssues = true;
         totalCurrentCost += currentPrice * item.quantity;
@@ -8954,7 +8955,7 @@ async function registerRoutes(httpServer2, app2) {
                 console.log(`[SYNC] Deactivated shipping-prohibitive: #${product.id} "${product.name.slice(0, 50)}" \u2014 ratio ${viability.ratio}x`);
                 return;
               }
-              const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.5).toFixed(2);
+              const newTotalPriceUsd = +(newBasePrice * 1.15 + Math.max(weight, 1) * 5.5).toFixed(2);
               const oldTotalPrice = product.totalPriceUsd;
               const priceChange = oldTotalPrice > 0 ? Math.abs(newTotalPriceUsd - oldTotalPrice) / oldTotalPrice : 0;
               if (priceChange > 0.2) {
@@ -9196,7 +9197,7 @@ async function registerRoutes(httpServer2, app2) {
             if (!weightData.itemWeight && !weightData.packageWeight) {
               const betterEstimate = estimateWeightByName(product.name, product.category);
               if (Math.abs(betterEstimate - product.weight) > 0.5) {
-                const newPrice2 = +(product.basePrice * 1.15 + betterEstimate * 5.5).toFixed(2);
+                const newPrice2 = +(product.basePrice * 1.15 + Math.max(betterEstimate, 1) * 5.5).toFixed(2);
                 await db2.update(productsTable2).set({
                   weight: betterEstimate,
                   totalPriceUsd: newPrice2,
@@ -9224,8 +9225,8 @@ async function registerRoutes(httpServer2, app2) {
             }
             const weightChange = Math.abs(realWeight - product.weight);
             const weightChangePct = product.weight > 0 ? weightChange / product.weight * 100 : 999;
-            const newPrice = +(product.basePrice * 1.15 + realWeight * 5.5).toFixed(2);
-            const oldPrice = +(product.basePrice * 1.15 + product.weight * 5.5).toFixed(2);
+            const newPrice = +(product.basePrice * 1.15 + Math.max(realWeight, 1) * 5.5).toFixed(2);
+            const oldPrice = +(product.basePrice * 1.15 + Math.max(product.weight, 1) * 5.5).toFixed(2);
             await db2.update(productsTable2).set({
               weight: realWeight,
               totalPriceUsd: newPrice,
@@ -9454,7 +9455,7 @@ async function registerRoutes(httpServer2, app2) {
           }
           if (nameWeight !== null && nameWeight > currentWeight * 2) {
             const basePrice = Number(product.base_price) || 0;
-            const newPrice = +(basePrice * 1.15 + nameWeight * 5.5).toFixed(2);
+            const newPrice = +(basePrice * 1.15 + Math.max(nameWeight, 1) * 5.5).toFixed(2);
             const viability = checkShippingViability(basePrice, nameWeight, product.category || "");
             if (!viability.viable) {
               await db2.update(productsTable2).set({ isActive: false }).where(eq3(productsTable2.id, product.id));
@@ -9486,7 +9487,7 @@ async function registerRoutes(httpServer2, app2) {
               name: name.slice(0, 60),
               oldWeight: currentWeight,
               newWeight: nameWeight,
-              oldPrice: +(basePrice * 1.15 + currentWeight * 5.5).toFixed(2),
+              oldPrice: +(basePrice * 1.15 + Math.max(currentWeight, 1) * 5.5).toFixed(2),
               newPrice
             });
           } else {
@@ -9656,7 +9657,7 @@ async function registerRoutes(httpServer2, app2) {
           COUNT(*) FILTER (WHERE is_active = true AND (total_price_usd IS NULL OR total_price_usd <= 0)) as no_total,
           COUNT(*) FILTER (WHERE is_active = true AND weight > 150) as over_weight,
           COUNT(*) FILTER (WHERE is_active = true AND (image IS NULL OR image = '')) as no_image,
-          COUNT(*) FILTER (WHERE is_active = true AND base_price > 0 AND weight > 0 AND (weight * 5.50 / base_price) > 2.0) as bad_ratio
+          COUNT(*) FILTER (WHERE is_active = true AND base_price > 0 AND weight > 0 AND (GREATEST(weight, 1) * 5.50 / base_price) > 2.0) as bad_ratio
         FROM products
       `);
       const stats = (catalogStats.rows || catalogStats)[0];
@@ -9679,9 +9680,9 @@ async function registerRoutes(httpServer2, app2) {
         const badProducts = await db2.execute(sqlTag`
           UPDATE products SET is_active = false
           WHERE is_active = true AND base_price > 0 AND weight > 0
-            AND (weight * 5.50 / base_price) > 2.0
+            AND (GREATEST(weight, 1) * 5.50 / base_price) > 2.0
             AND category NOT IN ('tech', 'phones', 'gaming')
-          RETURNING id, name, ROUND((weight * 5.50 / base_price)::numeric, 2) as ratio
+          RETURNING id, name, ROUND((GREATEST(weight, 1) * 5.50 / base_price)::numeric, 2) as ratio
         `);
         const badRows = badProducts.rows || badProducts;
         if (badRows.length > 0) {
@@ -9690,19 +9691,19 @@ async function registerRoutes(httpServer2, app2) {
       }
       const priceCheck = await db2.execute(sqlTag`
         SELECT id, name, base_price, weight, total_price_usd,
-          ROUND((base_price * 1.15 + weight * 5.50)::numeric, 2) as expected_price
+          ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2) as expected_price
         FROM products
         WHERE is_active = true AND base_price > 0 AND weight > 0
-          AND ABS(total_price_usd - (base_price * 1.15 + weight * 5.50)) > 1.00
+          AND ABS(total_price_usd - (base_price * 1.15 + GREATEST(weight, 1) * 5.50)) > 1.00
         LIMIT 100
       `);
       const mismatchedPrices = priceCheck.rows || priceCheck;
       if (mismatchedPrices.length > 0) {
         const updated = await db2.execute(sqlTag`
-          UPDATE products 
-          SET total_price_usd = ROUND((base_price * 1.15 + weight * 5.50)::numeric, 2)
+          UPDATE products
+          SET total_price_usd = ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)
           WHERE is_active = true AND base_price > 0 AND weight > 0
-            AND ABS(total_price_usd - (base_price * 1.15 + weight * 5.50)) > 1.00
+            AND ABS(total_price_usd - (base_price * 1.15 + GREATEST(weight, 1) * 5.50)) > 1.00
         `);
         fixes.push(`Corregidos ${mismatchedPrices.length} precios desincronizados (diferencia > $1 de la f\xF3rmula)`);
       }
@@ -9778,6 +9779,416 @@ async function registerRoutes(httpServer2, app2) {
         warnings,
         autoFixes: fixes,
         recentSyncLogs: recentLogs.slice(0, 5).map((l) => ({ type: l.type, status: l.status, startedAt: l.startedAt }))
+      });
+    } catch (e) {
+      res.status(500).json({ status: "error", message: e.message });
+    }
+  });
+  app2.post("/api/admin/sync/recalculate-prices", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db2 = storage.db;
+    const { productsTable: productsTable2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+    const { eq: eq3, and: and2, gt, sql: sqlTag } = await import("drizzle-orm");
+    try {
+      const products = await db2.select().from(productsTable2).where(
+        and2(eq3(productsTable2.isActive, true), gt(productsTable2.basePrice, 0), gt(productsTable2.weight, 0))
+      );
+      let updated = 0;
+      const examples = [];
+      for (const product of products) {
+        const effectiveWeight = Math.max(product.weight, 1);
+        const newPrice = +(product.basePrice * 1.15 + effectiveWeight * 5.5).toFixed(2);
+        if (Math.abs(newPrice - product.totalPriceUsd) > 0.01) {
+          await db2.update(productsTable2).set({ totalPriceUsd: newPrice }).where(eq3(productsTable2.id, product.id));
+          updated++;
+          if (examples.length < 10) {
+            examples.push({
+              id: product.id,
+              name: product.name.slice(0, 60),
+              weight: product.weight,
+              oldPrice: product.totalPriceUsd,
+              newPrice
+            });
+          }
+        }
+      }
+      res.json({
+        message: `Recalculated prices for ${updated} products (of ${products.length} active)`,
+        updated,
+        totalActive: products.length,
+        examples
+      });
+    } catch (e) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+  app2.get("/api/admin/audit/weights", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db2 = storage.db;
+    const { productsTable: productsTable2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+    const { eq: eq3 } = await import("drizzle-orm");
+    try {
+      const allActive = await db2.select().from(productsTable2).where(eq3(productsTable2.isActive, true));
+      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const categoryWeights = {};
+      for (const p of allActive) {
+        if (p.weight > 0.02) {
+          if (!categoryWeights[p.category]) categoryWeights[p.category] = [];
+          categoryWeights[p.category].push(p.weight);
+        }
+      }
+      const categoryAvg = {};
+      for (const [cat, weights] of Object.entries(categoryWeights)) {
+        categoryAvg[cat] = weights.reduce((a, b) => a + b, 0) / weights.length;
+      }
+      const findings = [];
+      for (const p of allActive) {
+        const reasons = [];
+        let severity = "low";
+        const nameLower = (p.name || "").toLowerCase();
+        if (p.weight === 0.01 || p.weight === 0.02) {
+          reasons.push("placeholder_weight");
+          severity = "critical";
+        }
+        if (p.weight === 0 || p.weight == null) {
+          reasons.push("zero_weight");
+          severity = "critical";
+        }
+        if (p.category === "baby") {
+          if (/diaper|diapers|pañal|pañales/i.test(nameLower) && p.weight < 2) {
+            reasons.push("baby_diaper_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/wipes|toallitas/i.test(nameLower) && /\d{2,}.*ct|\d{2,}.*count|\d{3,}/.test(nameLower) && p.weight < 1) {
+            reasons.push("baby_wipes_bulk_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/formula|fórmula/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("baby_formula_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "food") {
+          if (/k-cup|keurig|pods/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("food_kcups_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/pack|count|ct\b/i.test(nameLower)) {
+            const numMatch = nameLower.match(/(\d+)/);
+            if (numMatch && parseInt(numMatch[1]) >= 20 && p.weight < 0.5) {
+              reasons.push("food_bulk_too_light");
+              if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+            }
+          }
+        }
+        if (p.category === "tech") {
+          if (/alarm clock|clock|lamp|light|hatch/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("tech_device_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/headphones|auriculares|audífonos/i.test(nameLower) && p.weight > 5) {
+            reasons.push("tech_headphones_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 15) {
+            reasons.push("tech_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "gaming") {
+          if (/gift card|digital code|digital/i.test(nameLower) && p.weight > 0.1) {
+            reasons.push("gaming_digital_has_weight");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/nintendo switch|ps5|xbox/i.test(nameLower) && p.weight < 1) {
+            reasons.push("gaming_console_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 20) {
+            reasons.push("gaming_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "beauty") {
+          if (/perfume|cologne|fragrance|eau de/i.test(nameLower) && p.weight > 3) {
+            reasons.push("beauty_fragrance_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "phones") {
+          if (/cable|charger|cargador|adapter/i.test(nameLower) && p.weight > 3) {
+            reasons.push("phones_cable_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/screen protector|protector de pantalla|tempered glass/i.test(nameLower) && p.weight > 1) {
+            reasons.push("phones_protector_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "home") {
+          if (p.weight > 25) {
+            reasons.push("home_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "clothing" || p.category === "shoes") {
+          if (p.weight < 0.05) {
+            reasons.push("clothing_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 5) {
+            reasons.push("clothing_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "pets") {
+          if (/food|treats|litter|comida/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("pets_food_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        const multipackMatch = nameLower.match(/(\d+)\s*-?\s*(pack|count|ct|sheets|wipes|pods|capsules)/);
+        if (multipackMatch && parseInt(multipackMatch[1]) >= 50 && p.weight < 0.5) {
+          reasons.push("multipack_weight_mismatch");
+          if (severityOrder[severity] > severityOrder["medium"]) severity = "medium";
+        }
+        const avg = categoryAvg[p.category];
+        if (avg && p.weight > 0.02) {
+          if (p.weight > avg * 3) {
+            reasons.push("statistical_outlier_heavy");
+          }
+          if (p.weight < avg / 10) {
+            reasons.push("statistical_outlier_light");
+          }
+        }
+        if (reasons.length > 0) {
+          findings.push({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            weight: p.weight,
+            basePrice: p.basePrice,
+            amazonAsin: p.amazonAsin || "",
+            severity,
+            reasons,
+            suggestedWeight: null
+          });
+        }
+      }
+      findings.sort((a, b) => {
+        const sd = severityOrder[a.severity] - severityOrder[b.severity];
+        if (sd !== 0) return sd;
+        return a.category.localeCompare(b.category);
+      });
+      const bySeverity = { critical: 0, high: 0, medium: 0, low: 0 };
+      const byCategory = {};
+      for (const f of findings) {
+        bySeverity[f.severity] = (bySeverity[f.severity] || 0) + 1;
+        byCategory[f.category] = (byCategory[f.category] || 0) + 1;
+      }
+      res.json({
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        totalActive: allActive.length,
+        totalSuspicious: findings.length,
+        bySeverity,
+        byCategory,
+        products: findings
+      });
+    } catch (e) {
+      res.status(500).json({ status: "error", message: e.message });
+    }
+  });
+  app2.post("/api/admin/audit/weights/auto-fix", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db2 = storage.db;
+    const { productsTable: productsTable2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+    const { eq: eq3 } = await import("drizzle-orm");
+    try {
+      const limit = Math.min(Math.max(parseInt(req.query.limit) || 50, 1), 200);
+      const allActive = await db2.select().from(productsTable2).where(eq3(productsTable2.isActive, true));
+      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const findings = [];
+      for (const p of allActive) {
+        const reasons = [];
+        let severity = "low";
+        const nameLower = (p.name || "").toLowerCase();
+        if (p.weight === 0.01 || p.weight === 0.02) {
+          reasons.push("placeholder_weight");
+          severity = "critical";
+        }
+        if (p.weight === 0 || p.weight == null) {
+          reasons.push("zero_weight");
+          severity = "critical";
+        }
+        if (p.category === "baby") {
+          if (/diaper|diapers|pañal|pañales/i.test(nameLower) && p.weight < 2) {
+            reasons.push("baby_diaper_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/wipes|toallitas/i.test(nameLower) && /\d{2,}.*ct|\d{2,}.*count|\d{3,}/.test(nameLower) && p.weight < 1) {
+            reasons.push("baby_wipes_bulk_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/formula|fórmula/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("baby_formula_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "food") {
+          if (/k-cup|keurig|pods/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("food_kcups_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/pack|count|ct\b/i.test(nameLower)) {
+            const numMatch = nameLower.match(/(\d+)/);
+            if (numMatch && parseInt(numMatch[1]) >= 20 && p.weight < 0.5) {
+              reasons.push("food_bulk_too_light");
+              if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+            }
+          }
+        }
+        if (p.category === "tech") {
+          if (/alarm clock|clock|lamp|light|hatch/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("tech_device_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/headphones|auriculares|audífonos/i.test(nameLower) && p.weight > 5) {
+            reasons.push("tech_headphones_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 15) {
+            reasons.push("tech_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "gaming") {
+          if (/gift card|digital code|digital/i.test(nameLower) && p.weight > 0.1) {
+            reasons.push("gaming_digital_has_weight");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/nintendo switch|ps5|xbox/i.test(nameLower) && p.weight < 1) {
+            reasons.push("gaming_console_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 20) {
+            reasons.push("gaming_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "beauty") {
+          if (/perfume|cologne|fragrance|eau de/i.test(nameLower) && p.weight > 3) {
+            reasons.push("beauty_fragrance_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "phones") {
+          if (/cable|charger|cargador|adapter/i.test(nameLower) && p.weight > 3) {
+            reasons.push("phones_cable_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/screen protector|protector de pantalla|tempered glass/i.test(nameLower) && p.weight > 1) {
+            reasons.push("phones_protector_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "home") {
+          if (p.weight > 25) {
+            reasons.push("home_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "clothing" || p.category === "shoes") {
+          if (p.weight < 0.05) {
+            reasons.push("clothing_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 5) {
+            reasons.push("clothing_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (p.category === "pets") {
+          if (/food|treats|litter|comida/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("pets_food_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+        if (reasons.length > 0 && (severity === "critical" || severity === "high")) {
+          findings.push({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            weight: p.weight,
+            basePrice: p.basePrice,
+            amazonAsin: p.amazonAsin || "",
+            severity,
+            reasons
+          });
+        }
+      }
+      findings.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+      const toProcess = findings.slice(0, limit);
+      const fixes = [];
+      const skippedProducts = [];
+      for (const product of toProcess) {
+        const nameLower = (product.name || "").toLowerCase();
+        if (/gift\s*card|digital\s*code|\bdigital\b|\[digital/i.test(nameLower)) {
+          skippedProducts.push({ id: product.id, name: product.name, reason: "digital_product" });
+          continue;
+        }
+        let newWeight = null;
+        let source = "";
+        if (product.amazonAsin) {
+          try {
+            const { itemWeight, packageWeight } = await getProductWeight(product.amazonAsin);
+            const fallbackEstimate = estimateWeightByName(product.name, product.category);
+            const canopyWeight = getBestWeight(itemWeight, packageWeight, fallbackEstimate, product.name, product.category);
+            if (itemWeight && itemWeight > 0 || packageWeight && packageWeight > 0) {
+              if (canopyWeight !== product.weight) {
+                newWeight = canopyWeight;
+                source = "canopy_api";
+              }
+            }
+          } catch {
+          }
+          await new Promise((r) => setTimeout(r, 500));
+        }
+        if (newWeight === null) {
+          const estimated = estimateWeightByName(product.name, product.category);
+          const isPlaceholder = product.weight === 0.01 || product.weight === 0.02 || product.weight === 0;
+          if (isPlaceholder) {
+            newWeight = estimated;
+            source = "name_estimate";
+          } else if (Math.abs(estimated - product.weight) / product.weight > 0.5) {
+            newWeight = estimated;
+            source = "name_estimate";
+          }
+        }
+        if (newWeight === null || newWeight === product.weight) {
+          skippedProducts.push({ id: product.id, name: product.name, reason: "no_weight_available" });
+          continue;
+        }
+        const newPrice = +(product.basePrice * 1.15 + Math.max(newWeight, 1) * 5.5).toFixed(2);
+        await db2.update(productsTable2).set({ weight: newWeight, totalPriceUsd: newPrice }).where(eq3(productsTable2.id, product.id));
+        fixes.push({
+          id: product.id,
+          name: product.name,
+          category: product.category,
+          oldWeight: product.weight,
+          newWeight,
+          source,
+          oldPrice: +(product.basePrice * 1.15 + Math.max(product.weight, 1) * 5.5).toFixed(2),
+          newPrice,
+          reasons: product.reasons
+        });
+      }
+      res.json({
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        processed: toProcess.length,
+        fixed: fixes.length,
+        skipped: skippedProducts.length,
+        fixes,
+        skippedProducts
       });
     } catch (e) {
       res.status(500).json({ status: "error", message: e.message });

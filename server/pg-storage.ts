@@ -296,7 +296,7 @@ export class PgStorage implements IStorage {
         const bp = data.basePrice ?? current.basePrice;
         const w = data.weight ?? current.weight;
         const shippingPerLb = parseFloat(await this.getSetting("shipping_per_lb") || "5.50");
-        updateData.totalPriceUsd = +(bp * 1.15 + w * shippingPerLb).toFixed(2);
+        updateData.totalPriceUsd = +(bp * 1.15 + Math.max(w, 1) * shippingPerLb).toFixed(2);
       }
     }
     const rows = await this.db.update(productsTable).set(updateData).where(eq(productsTable.id, id)).returning();

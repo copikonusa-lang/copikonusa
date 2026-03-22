@@ -248,7 +248,7 @@ export class MemStorage implements IStorage {
       const bp = data.basePrice ?? product.basePrice;
       const w = data.weight ?? product.weight;
       const shippingPerLb = parseFloat(await this.getSetting("shipping_per_lb") || "5.50");
-      updated.totalPriceUsd = +(bp * 1.15 + w * shippingPerLb).toFixed(2);
+      updated.totalPriceUsd = +(bp * 1.15 + Math.max(w, 1) * shippingPerLb).toFixed(2);
     }
     this.products.set(id, updated);
     return updated;

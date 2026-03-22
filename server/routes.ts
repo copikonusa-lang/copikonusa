@@ -821,7 +821,8 @@ export async function registerRoutes(
   }
 
   function calculateCopikonPrice(amazonPrice: number, weightLbs: number) {
-    return +(amazonPrice * 1.15 + weightLbs * 5.50).toFixed(2);
+    const effectiveWeight = Math.max(weightLbs, 1);
+    return +(amazonPrice * 1.15 + effectiveWeight * 5.50).toFixed(2);
   }
 
   // Title translation: English -> Spanish for product names
@@ -1056,7 +1057,7 @@ export async function registerRoutes(
 
       // Calculate pricing: cost * 1.15 markup + shipping at $5.50/lb
       const basePrice = amazonPrice || price || 0;
-      const totalPriceUsd = +(basePrice * 1.15 + realWeight * 5.50).toFixed(2);
+      const totalPriceUsd = +(basePrice * 1.15 + Math.max(realWeight, 1) * 5.50).toFixed(2);
 
       // Block products where shipping makes them uncompetitive
       const importViability = checkShippingViability(basePrice, realWeight, detectedCategory);
@@ -1402,10 +1403,10 @@ export async function registerRoutes(
         SELECT
           CASE
             WHEN base_price <= 0 OR weight <= 0 THEN 'sin_datos'
-            WHEN (weight * 5.50) / base_price > 2.0 THEN 'critico_2x'
-            WHEN (weight * 5.50) / base_price > 1.5 THEN 'alto_1.5x'
-            WHEN (weight * 5.50) / base_price > 1.0 THEN 'moderado_1x'
-            WHEN (weight * 5.50) / base_price > 0.5 THEN 'normal_0.5x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 2.0 THEN 'critico_2x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 1.5 THEN 'alto_1.5x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 1.0 THEN 'moderado_1x'
+            WHEN (GREATEST(weight, 1) * 5.50) / base_price > 0.5 THEN 'normal_0.5x'
             ELSE 'bajo'
           END as bracket,
           COUNT(*) as count
@@ -1416,10 +1417,10 @@ export async function registerRoutes(
       // Top 10 worst shipping ratios (active products)
       const worstRatios = await db.execute(sqlTag`
         SELECT id, name, base_price, weight, category,
-          ROUND((weight * 5.50 / NULLIF(base_price, 0))::numeric, 2) as ratio
+          ROUND((GREATEST(weight, 1) * 5.50 / NULLIF(base_price, 0))::numeric, 2) as ratio
         FROM products
         WHERE is_active = true AND base_price > 0 AND weight > 0
-        ORDER BY (weight * 5.50 / NULLIF(base_price, 0)) DESC
+        ORDER BY (GREATEST(weight, 1) * 5.50 / NULLIF(base_price, 0)) DESC
         LIMIT 10
       `);
 
@@ -1716,7 +1717,7 @@ export async function registerRoutes(
         const detail = await getProductByAsin(item.amazonAsin);
         const currentPrice = detail?.price?.value || 0;
         const available = !!(detail && detail.price?.value);
-        const originalBase = item.priceUsd / 1.15 - (item.weight * 5.50 / 1.15); // Reverse-calc base price
+        const originalBase = item.priceUsd / 1.15 - (Math.max(item.weight, 1) * 5.50 / 1.15); // Reverse-calc base price
         const priceChange = originalBase > 0 ? Math.abs(currentPrice - originalBase) / originalBase : 0;
 
         if (!available || priceChange > 0.15) hasIssues = true;
@@ -2460,7 +2461,7 @@ export async function registerRoutes(
                 return;
               }
 
-              const newTotalPriceUsd = +(newBasePrice * 1.15 + weight * 5.50).toFixed(2);
+              const newTotalPriceUsd = +(newBasePrice * 1.15 + Math.max(weight, 1) * 5.50).toFixed(2);
               const oldTotalPrice = product.totalPriceUsd;
               
               const priceChange = oldTotalPrice > 0 ? Math.abs(newTotalPriceUsd - oldTotalPrice) / oldTotalPrice : 0;
@@ -2769,7 +2770,7 @@ export async function registerRoutes(
               // No API weight available — use better estimate from name
               const betterEstimate = estimateWeightByName(product.name, product.category);
               if (Math.abs(betterEstimate - product.weight) > 0.5) {
-                const newPrice = +(product.basePrice * 1.15 + betterEstimate * 5.50).toFixed(2);
+                const newPrice = +(product.basePrice * 1.15 + Math.max(betterEstimate, 1) * 5.50).toFixed(2);
                 await db.update(productsTable).set({
                   weight: betterEstimate,
                   totalPriceUsd: newPrice,
@@ -2804,8 +2805,8 @@ export async function registerRoutes(
             const weightChangePct = product.weight > 0 ? (weightChange / product.weight * 100) : 999;
 
             // Calculate correct price
-            const newPrice = +(product.basePrice * 1.15 + realWeight * 5.50).toFixed(2);
-            const oldPrice = +(product.basePrice * 1.15 + product.weight * 5.50).toFixed(2);
+            const newPrice = +(product.basePrice * 1.15 + Math.max(realWeight, 1) * 5.50).toFixed(2);
+            const oldPrice = +(product.basePrice * 1.15 + Math.max(product.weight, 1) * 5.50).toFixed(2);
 
             await db.update(productsTable).set({
               weight: realWeight,
@@ -3086,7 +3087,7 @@ export async function registerRoutes(
           // Step 3: Correct weight if name-extracted weight is >2x current weight
           if (nameWeight !== null && nameWeight > currentWeight * 2) {
             const basePrice = Number(product.base_price) || 0;
-            const newPrice = +(basePrice * 1.15 + nameWeight * 5.50).toFixed(2);
+            const newPrice = +(basePrice * 1.15 + Math.max(nameWeight, 1) * 5.50).toFixed(2);
 
             // Re-check shipping viability with corrected weight
             const viability = checkShippingViability(basePrice, nameWeight, product.category || '');
@@ -3123,7 +3124,7 @@ export async function registerRoutes(
               name: name.slice(0, 60),
               oldWeight: currentWeight,
               newWeight: nameWeight,
-              oldPrice: +(basePrice * 1.15 + currentWeight * 5.50).toFixed(2),
+              oldPrice: +(basePrice * 1.15 + Math.max(currentWeight, 1) * 5.50).toFixed(2),
               newPrice,
             });
           } else {
@@ -3327,7 +3328,7 @@ export async function registerRoutes(
           COUNT(*) FILTER (WHERE is_active = true AND (total_price_usd IS NULL OR total_price_usd <= 0)) as no_total,
           COUNT(*) FILTER (WHERE is_active = true AND weight > 150) as over_weight,
           COUNT(*) FILTER (WHERE is_active = true AND (image IS NULL OR image = '')) as no_image,
-          COUNT(*) FILTER (WHERE is_active = true AND base_price > 0 AND weight > 0 AND (weight * 5.50 / base_price) > 2.0) as bad_ratio
+          COUNT(*) FILTER (WHERE is_active = true AND base_price > 0 AND weight > 0 AND (GREATEST(weight, 1) * 5.50 / base_price) > 2.0) as bad_ratio
         FROM products
       `);
       const stats = (catalogStats.rows || catalogStats)[0];
@@ -3355,9 +3356,9 @@ export async function registerRoutes(
         const badProducts = await db.execute(sqlTag`
           UPDATE products SET is_active = false
           WHERE is_active = true AND base_price > 0 AND weight > 0
-            AND (weight * 5.50 / base_price) > 2.0
+            AND (GREATEST(weight, 1) * 5.50 / base_price) > 2.0
             AND category NOT IN ('tech', 'phones', 'gaming')
-          RETURNING id, name, ROUND((weight * 5.50 / base_price)::numeric, 2) as ratio
+          RETURNING id, name, ROUND((GREATEST(weight, 1) * 5.50 / base_price)::numeric, 2) as ratio
         `);
         const badRows = badProducts.rows || badProducts;
         if (badRows.length > 0) {
@@ -3368,19 +3369,19 @@ export async function registerRoutes(
       // 5. Auto-fix: recalculate prices for products where totalPriceUsd doesn't match formula
       const priceCheck = await db.execute(sqlTag`
         SELECT id, name, base_price, weight, total_price_usd,
-          ROUND((base_price * 1.15 + weight * 5.50)::numeric, 2) as expected_price
+          ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2) as expected_price
         FROM products
         WHERE is_active = true AND base_price > 0 AND weight > 0
-          AND ABS(total_price_usd - (base_price * 1.15 + weight * 5.50)) > 1.00
+          AND ABS(total_price_usd - (base_price * 1.15 + GREATEST(weight, 1) * 5.50)) > 1.00
         LIMIT 100
       `);
       const mismatchedPrices = priceCheck.rows || priceCheck;
       if (mismatchedPrices.length > 0) {
         const updated = await db.execute(sqlTag`
-          UPDATE products 
-          SET total_price_usd = ROUND((base_price * 1.15 + weight * 5.50)::numeric, 2)
+          UPDATE products
+          SET total_price_usd = ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)
           WHERE is_active = true AND base_price > 0 AND weight > 0
-            AND ABS(total_price_usd - (base_price * 1.15 + weight * 5.50)) > 1.00
+            AND ABS(total_price_usd - (base_price * 1.15 + GREATEST(weight, 1) * 5.50)) > 1.00
         `);
         fixes.push(`Corregidos ${mismatchedPrices.length} precios desincronizados (diferencia > $1 de la fórmula)`);
       }
@@ -3468,6 +3469,55 @@ export async function registerRoutes(
       });
     } catch (e: any) {
       res.status(500).json({ status: 'error', message: e.message });
+    }
+  });
+
+  // ===== RECALCULATE PRICES (min 1 lb shipping weight) =====
+  app.post("/api/admin/sync/recalculate-prices", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable } = await import("@shared/schema");
+    const { eq, and, gt, sql: sqlTag } = await import("drizzle-orm");
+
+    try {
+      // Fetch all active products with valid base price and weight
+      const products = await db.select().from(productsTable).where(
+        and(eq(productsTable.isActive, true), gt(productsTable.basePrice, 0), gt(productsTable.weight, 0))
+      );
+
+      let updated = 0;
+      const examples: { id: number; name: string; weight: number; oldPrice: number; newPrice: number }[] = [];
+
+      for (const product of products) {
+        const effectiveWeight = Math.max(product.weight, 1);
+        const newPrice = +(product.basePrice * 1.15 + effectiveWeight * 5.50).toFixed(2);
+
+        if (Math.abs(newPrice - product.totalPriceUsd) > 0.01) {
+          await db.update(productsTable)
+            .set({ totalPriceUsd: newPrice })
+            .where(eq(productsTable.id, product.id));
+
+          updated++;
+          if (examples.length < 10) {
+            examples.push({
+              id: product.id,
+              name: product.name.slice(0, 60),
+              weight: product.weight,
+              oldPrice: product.totalPriceUsd,
+              newPrice,
+            });
+          }
+        }
+      }
+
+      res.json({
+        message: `Recalculated prices for ${updated} products (of ${products.length} active)`,
+        updated,
+        totalActive: products.length,
+        examples,
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
     }
   });
 
@@ -3941,7 +3991,7 @@ export async function registerRoutes(
         }
 
         // Step 3: Apply correction
-        const newPrice = +(product.basePrice * 1.15 + newWeight * 5.50).toFixed(2);
+        const newPrice = +(product.basePrice * 1.15 + Math.max(newWeight, 1) * 5.50).toFixed(2);
 
         await db.update(productsTable)
           .set({ weight: newWeight, totalPriceUsd: newPrice })
@@ -3954,7 +4004,7 @@ export async function registerRoutes(
           oldWeight: product.weight,
           newWeight,
           source,
-          oldPrice: +(product.basePrice * 1.15 + product.weight * 5.50).toFixed(2),
+          oldPrice: +(product.basePrice * 1.15 + Math.max(product.weight, 1) * 5.50).toFixed(2),
           newPrice,
           reasons: product.reasons,
         });

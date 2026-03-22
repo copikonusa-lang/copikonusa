@@ -667,7 +667,7 @@ export function checkProductShippability(name: string, weight: number): { shippa
 export function canopyToProduct(cp: CanopyProduct, category: string, weight: number = 1): Omit<Product, "id"> & { id: number } {
   const basePrice = cp.price?.value || 0;
   const shippingPerLb = 5.50;
-  const totalPriceUsd = +(basePrice * 1.15 + weight * shippingPerLb).toFixed(2);
+  const totalPriceUsd = +(basePrice * 1.15 + Math.max(weight, 1) * shippingPerLb).toFixed(2);
 
   return {
     id: 0,
