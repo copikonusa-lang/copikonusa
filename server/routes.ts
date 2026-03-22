@@ -3479,16 +3479,20 @@ export async function registerRoutes(
     const { sql: sqlTag } = await import("drizzle-orm");
 
     try {
+      // Use raw pool for direct SQL (avoids Drizzle execute() return format issues)
+      const { getPool } = await import('./db');
+      const pool = getPool();
+
       // Count how many will change BEFORE updating
-      const [countResult] = await db.execute(sqlTag`
+      const countRes = await pool.query(`
         SELECT COUNT(*) as cnt FROM products
         WHERE is_active = true AND base_price > 0 AND weight > 0
         AND ABS(total_price_usd - ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)) > 0.01
       `);
-      const willUpdate = parseInt((countResult as any).cnt || "0");
+      const willUpdate = parseInt(countRes.rows[0]?.cnt || "0");
 
       // Get examples BEFORE update
-      const examples = await db.execute(sqlTag`
+      const examplesRes = await pool.query(`
         SELECT id, name, weight, total_price_usd as old_price,
           ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2) as new_price
         FROM products
@@ -3498,7 +3502,7 @@ export async function registerRoutes(
       `);
 
       // Single bulk UPDATE
-      await db.execute(sqlTag`
+      await pool.query(`
         UPDATE products
         SET total_price_usd = ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)
         WHERE is_active = true AND base_price > 0 AND weight > 0
@@ -3507,7 +3511,7 @@ export async function registerRoutes(
       res.json({
         message: `Precios recalculados para ${willUpdate} productos con mínimo 1 lb`,
         updated: willUpdate,
-        examples: (examples as any[]).slice(0, 10).map((e: any) => ({
+        examples: examplesRes.rows.slice(0, 10).map((e: any) => ({
           id: e.id,
           name: (e.name || "").slice(0, 60),
           weight: parseFloat(e.weight),

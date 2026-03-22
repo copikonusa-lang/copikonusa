@@ -246,6 +246,34 @@ var init_schema = __esm({
   }
 });
 
+// server/db.ts
+var db_exports = {};
+__export(db_exports, {
+  getDb: () => getDb,
+  getPool: () => getPool
+});
+function getDb() {
+  if (!db && process.env.DATABASE_URL) {
+    pool = new import_pg.Pool({ connectionString: process.env.DATABASE_URL });
+    db = (0, import_node_postgres.drizzle)(pool, { schema: schema_exports });
+  }
+  return db;
+}
+function getPool() {
+  return pool;
+}
+var import_pg, import_node_postgres, db, pool;
+var init_db = __esm({
+  "server/db.ts"() {
+    "use strict";
+    import_pg = require("pg");
+    import_node_postgres = require("drizzle-orm/node-postgres");
+    init_schema();
+    db = null;
+    pool = null;
+  }
+});
+
 // vite.config.ts
 function missingAssetPlugin() {
   const virtualPrefix = "\0missing-asset:";
@@ -4390,25 +4418,7 @@ var products_data_default = [
 // server/pg-storage.ts
 init_schema();
 var import_drizzle_orm = require("drizzle-orm");
-
-// server/db.ts
-var import_pg = require("pg");
-var import_node_postgres = require("drizzle-orm/node-postgres");
-init_schema();
-var db = null;
-var pool = null;
-function getDb() {
-  if (!db && process.env.DATABASE_URL) {
-    pool = new import_pg.Pool({ connectionString: process.env.DATABASE_URL });
-    db = (0, import_node_postgres.drizzle)(pool, { schema: schema_exports });
-  }
-  return db;
-}
-function getPool() {
-  return pool;
-}
-
-// server/pg-storage.ts
+init_db();
 var import_crypto = require("crypto");
 var import_bcryptjs = __toESM(require("bcryptjs"), 1);
 function generateOrderNumber() {
@@ -6634,6 +6644,7 @@ Puedes ver los detalles en copikonusa.com`;
 
 // server/translate.ts
 var import_sdk = __toESM(require("@anthropic-ai/sdk"), 1);
+init_db();
 init_schema();
 var import_drizzle_orm2 = require("drizzle-orm");
 var ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || "";
@@ -9787,36 +9798,39 @@ async function registerRoutes(httpServer2, app2) {
   app2.post("/api/admin/sync/recalculate-prices", requireAdmin, async (_req, res) => {
     if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Requires PostgreSQL" });
     const db2 = storage.db;
-    const { productsTable: productsTable2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-    const { eq: eq3, and: and2, gt, sql: sqlTag } = await import("drizzle-orm");
+    const { sql: sqlTag } = await import("drizzle-orm");
     try {
-      const products = await db2.select().from(productsTable2).where(
-        and2(eq3(productsTable2.isActive, true), gt(productsTable2.basePrice, 0), gt(productsTable2.weight, 0))
-      );
-      let updated = 0;
-      const examples = [];
-      for (const product of products) {
-        const effectiveWeight = Math.max(product.weight, 1);
-        const newPrice = +(product.basePrice * 1.15 + effectiveWeight * 5.5).toFixed(2);
-        if (Math.abs(newPrice - product.totalPriceUsd) > 0.01) {
-          await db2.update(productsTable2).set({ totalPriceUsd: newPrice }).where(eq3(productsTable2.id, product.id));
-          updated++;
-          if (examples.length < 10) {
-            examples.push({
-              id: product.id,
-              name: product.name.slice(0, 60),
-              weight: product.weight,
-              oldPrice: product.totalPriceUsd,
-              newPrice
-            });
-          }
-        }
-      }
+      const { getPool: getPool3 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      const pool2 = getPool3();
+      const countRes = await pool2.query(`
+        SELECT COUNT(*) as cnt FROM products
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+        AND ABS(total_price_usd - ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)) > 0.01
+      `);
+      const willUpdate = parseInt(countRes.rows[0]?.cnt || "0");
+      const examplesRes = await pool2.query(`
+        SELECT id, name, weight, total_price_usd as old_price,
+          ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2) as new_price
+        FROM products
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+        AND ABS(total_price_usd - ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)) > 0.01
+        LIMIT 10
+      `);
+      await pool2.query(`
+        UPDATE products
+        SET total_price_usd = ROUND((base_price * 1.15 + GREATEST(weight, 1) * 5.50)::numeric, 2)
+        WHERE is_active = true AND base_price > 0 AND weight > 0
+      `);
       res.json({
-        message: `Recalculated prices for ${updated} products (of ${products.length} active)`,
-        updated,
-        totalActive: products.length,
-        examples
+        message: `Precios recalculados para ${willUpdate} productos con m\xEDnimo 1 lb`,
+        updated: willUpdate,
+        examples: examplesRes.rows.slice(0, 10).map((e) => ({
+          id: e.id,
+          name: (e.name || "").slice(0, 60),
+          weight: parseFloat(e.weight),
+          oldPrice: parseFloat(e.old_price),
+          newPrice: parseFloat(e.new_price)
+        }))
       });
     } catch (e) {
       res.status(500).json({ message: e.message });
@@ -10592,6 +10606,7 @@ function serveStatic(app2) {
 
 // server/index.ts
 var import_http = require("http");
+init_db();
 var app = (0, import_express2.default)();
 var httpServer = (0, import_http.createServer)(app);
 app.use(
