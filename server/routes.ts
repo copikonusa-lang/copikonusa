@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertOrderSchema, insertReviewSchema, PAYMENT_METHOD_LABELS, CLIENT_STATUS_LABELS, ORDER_STATUS_MAP, type OrderStatus } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { searchProducts as canopySearch, getProductByAsin, canopyToProduct, getFullProductDetail, getProductWeight, getBestWeight, parseWeightToLbs, isUnsendable, estimateWeightByName, checkShippingViability, extractWeightFromName, checkProductShippability } from "./canopy";
-import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert } from "./email";
+import { sendWelcomeEmail, sendOrderConfirmation, sendPaymentConfirmed, sendStatusUpdate, sendOrderShipped, sendReadyForPickup, sendOrderCancelled, sendPaymentReminder, sendAdminNewOrderAlert, sendAdminPaymentReceivedAlert, testResendConnection } from "./email";
 import { sendWhatsAppOrderUpdate } from "./whatsapp";
 import { PgStorage } from "./pg-storage";
 import { translateDescription, translateBullets, getDbTranslation, saveDbTranslation } from "./translate";
@@ -2691,6 +2691,14 @@ export async function registerRoutes(
 
     const result = await db.execute(sql`UPDATE products SET description_es = NULL, features_es = NULL`);
     res.json({ message: "Traducciones limpiadas", cleared: result.rowCount || 0 });
+  });
+
+  // ===== DIAGNOSE RESEND =====
+  app.post("/api/admin/test-resend", requireAdmin, async (req, res) => {
+    const to = (req.body.to || "").trim();
+    if (!to) return res.status(400).json({ message: "Se requiere campo 'to'" });
+    const result = await testResendConnection(to);
+    res.json(result);
   });
 
   // ===== TEST EMAIL TEMPLATES =====

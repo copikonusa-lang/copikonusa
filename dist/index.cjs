@@ -5746,6 +5746,28 @@ function getResend() {
   }
   return _resend;
 }
+async function testResendConnection(testTo) {
+  const keyLoaded = !!process.env.RESEND_API_KEY;
+  const keyPrefix = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.slice(0, 8) + "..." : "NOT SET";
+  if (!keyLoaded) {
+    return { success: false, keyLoaded, keyPrefix, error: "RESEND_API_KEY not set in environment" };
+  }
+  const resend = getResend();
+  if (!resend) {
+    return { success: false, keyLoaded, keyPrefix, error: "Resend client failed to initialize" };
+  }
+  try {
+    const result = await resend.emails.send({
+      from: "CopikonUSA <info@copikonusa.com>",
+      to: testTo,
+      subject: "Test de conexi\xF3n Resend \u2014 CopikonUSA",
+      html: "<h2>Conexi\xF3n exitosa</h2><p>Este email confirma que Resend est\xE1 configurado correctamente para CopikonUSA.</p><p>Fecha: " + (/* @__PURE__ */ new Date()).toISOString() + "</p>"
+    });
+    return { success: true, keyLoaded, keyPrefix, response: result };
+  } catch (error) {
+    return { success: false, keyLoaded, keyPrefix, error: error.message || String(error), response: error.response?.body || error.statusCode };
+  }
+}
 var FROM_INFO = "CopikonUSA <info@copikonusa.com>";
 var FROM_PEDIDOS = "CopikonUSA Pedidos <pedidos@copikonusa.com>";
 var FROM_SOPORTE = "CopikonUSA Soporte <soporte@copikonusa.com>";
@@ -9189,6 +9211,12 @@ async function registerRoutes(httpServer2, app2) {
     const { sql: sql2 } = await import("drizzle-orm");
     const result = await db2.execute(sql2`UPDATE products SET description_es = NULL, features_es = NULL`);
     res.json({ message: "Traducciones limpiadas", cleared: result.rowCount || 0 });
+  });
+  app2.post("/api/admin/test-resend", requireAdmin, async (req, res) => {
+    const to = (req.body.to || "").trim();
+    if (!to) return res.status(400).json({ message: "Se requiere campo 'to'" });
+    const result = await testResendConnection(to);
+    res.json(result);
   });
   app2.post("/api/admin/test-emails", requireAdmin, async (req, res) => {
     const to = (req.body.to || "").trim();

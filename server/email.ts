@@ -12,6 +12,33 @@ function getResend(): Resend | null {
   return _resend;
 }
 
+// ─── DIAGNOSTIC: Test Resend connection ─────────────────────────────────────
+export async function testResendConnection(testTo: string): Promise<{ success: boolean; keyLoaded: boolean; keyPrefix: string; response?: any; error?: string }> {
+  const keyLoaded = !!process.env.RESEND_API_KEY;
+  const keyPrefix = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.slice(0, 8) + "..." : "NOT SET";
+  
+  if (!keyLoaded) {
+    return { success: false, keyLoaded, keyPrefix, error: "RESEND_API_KEY not set in environment" };
+  }
+  
+  const resend = getResend();
+  if (!resend) {
+    return { success: false, keyLoaded, keyPrefix, error: "Resend client failed to initialize" };
+  }
+  
+  try {
+    const result = await resend.emails.send({
+      from: "CopikonUSA <info@copikonusa.com>",
+      to: testTo,
+      subject: "Test de conexión Resend — CopikonUSA",
+      html: "<h2>Conexión exitosa</h2><p>Este email confirma que Resend está configurado correctamente para CopikonUSA.</p><p>Fecha: " + new Date().toISOString() + "</p>",
+    });
+    return { success: true, keyLoaded, keyPrefix, response: result };
+  } catch (error: any) {
+    return { success: false, keyLoaded, keyPrefix, error: error.message || String(error), response: error.response?.body || error.statusCode };
+  }
+}
+
 // Official CopikonUSA email addresses
 const FROM_INFO = "CopikonUSA <info@copikonusa.com>";
 const FROM_PEDIDOS = "CopikonUSA Pedidos <pedidos@copikonusa.com>";
