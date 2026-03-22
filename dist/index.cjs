@@ -9190,6 +9190,130 @@ async function registerRoutes(httpServer2, app2) {
     const result = await db2.execute(sql2`UPDATE products SET description_es = NULL, features_es = NULL`);
     res.json({ message: "Traducciones limpiadas", cleared: result.rowCount || 0 });
   });
+  app2.post("/api/admin/test-emails", requireAdmin, async (req, res) => {
+    const to = (req.body.to || "").trim();
+    if (!to) return res.status(400).json({ message: "Se requiere campo 'to' con email destino" });
+    const results = [];
+    const now = /* @__PURE__ */ new Date();
+    const deadline = new Date(now.getTime() + 48 * 60 * 60 * 1e3);
+    const deadlineStr = deadline.toLocaleDateString("es-VE", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    try {
+      await sendWelcomeEmail(to, "Javier");
+      results.push({ template: "Bienvenida", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Bienvenida", status: e.message });
+    }
+    try {
+      await sendOrderConfirmation(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-001",
+        products: "Apple AirPods Pro (x1), Pampers Swaddlers 136ct (x2)",
+        totalUsd: "189.50",
+        totalBs: "11,370.00",
+        paymentMethod: "Pago M\xF3vil",
+        estimatedDelivery: "15-20 d\xEDas h\xE1biles",
+        branch: "Barquisimeto Centro",
+        paymentDeadline: deadlineStr
+      });
+      results.push({ template: "Confirmaci\xF3n de pedido", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Confirmaci\xF3n de pedido", status: e.message });
+    }
+    try {
+      await sendPaymentConfirmed(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-001",
+        totalUsd: "189.50",
+        estimatedDelivery: "15-20 d\xEDas h\xE1biles",
+        branch: "Barquisimeto Centro"
+      });
+      results.push({ template: "Pago confirmado", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Pago confirmado", status: e.message });
+    }
+    try {
+      await sendStatusUpdate(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-001",
+        status: "purchased",
+        statusLabel: "Comprado en USA",
+        branch: "Barquisimeto Centro"
+      });
+      results.push({ template: "Actualizaci\xF3n de status", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Actualizaci\xF3n de status", status: e.message });
+    }
+    try {
+      await sendOrderShipped(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-001",
+        trackingInfo: "USPS 9400111899223456789012",
+        estimatedDelivery: "10-15 d\xEDas h\xE1biles",
+        branch: "Barquisimeto Centro"
+      });
+      results.push({ template: "Pedido enviado", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Pedido enviado", status: e.message });
+    }
+    try {
+      await sendReadyForPickup(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-001",
+        branch: "Barquisimeto Centro",
+        branchAddress: "Av. Lara, C.C. Sambil, Local 45, Barquisimeto",
+        pickupDeadlineDays: 15
+      });
+      results.push({ template: "Listo para retirar", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Listo para retirar", status: e.message });
+    }
+    try {
+      await sendOrderCancelled(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-002",
+        reason: "No se recibi\xF3 el comprobante de pago dentro del plazo de 48 horas.",
+        refundInfo: "Si ya realizaste el pago, contacta a soporte para verificar."
+      });
+      results.push({ template: "Pedido cancelado", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Pedido cancelado", status: e.message });
+    }
+    try {
+      await sendPaymentReminder(to, {
+        customerName: "Javier",
+        orderNumber: "CK-TEST-001",
+        totalUsd: "189.50",
+        totalBs: "11,370.00",
+        paymentDeadline: deadlineStr,
+        hoursRemaining: 24
+      });
+      results.push({ template: "Recordatorio de pago", status: "enviado" });
+    } catch (e) {
+      results.push({ template: "Recordatorio de pago", status: e.message });
+    }
+    try {
+      await sendAdminNewOrderAlert({
+        orderNumber: "CK-TEST-001",
+        customerName: "Javier Espinoza",
+        totalUsd: "189.50",
+        products: "Apple AirPods Pro (x1), Pampers Swaddlers 136ct (x2)"
+      });
+      results.push({ template: "Alerta admin (nuevo pedido)", status: "enviado a admin@copikonusa.com" });
+    } catch (e) {
+      results.push({ template: "Alerta admin (nuevo pedido)", status: e.message });
+    }
+    try {
+      await sendAdminPaymentReceivedAlert({
+        orderNumber: "CK-TEST-001",
+        customerName: "Javier Espinoza",
+        totalUsd: "189.50"
+      });
+      results.push({ template: "Alerta admin (pago recibido)", status: "enviado a admin@copikonusa.com" });
+    } catch (e) {
+      results.push({ template: "Alerta admin (pago recibido)", status: e.message });
+    }
+    res.json({ message: `${results.filter((r) => r.status.startsWith("enviado")).length} emails enviados a ${to}`, results });
+  });
   app2.get("/api/admin/sync/logs", requireAdmin, async (req, res) => {
     if (!(storage instanceof PgStorage)) return res.json([]);
     const db2 = storage.db;
