@@ -3701,5 +3701,277 @@ export async function registerRoutes(
     }
   });
 
+  // ===== AUTO-FIX WEIGHT ANOMALIES =====
+  app.post("/api/admin/audit/weights/auto-fix", requireAdmin, async (req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+
+    try {
+      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 200);
+
+      // Step 1: Run the same audit logic to find suspicious products
+      const allActive = await db.select().from(productsTable).where(eq(productsTable.isActive, true));
+
+      const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+
+      type Finding = {
+        id: number;
+        name: string;
+        category: string;
+        weight: number;
+        basePrice: number;
+        amazonAsin: string;
+        severity: string;
+        reasons: string[];
+      };
+
+      const findings: Finding[] = [];
+
+      for (const p of allActive) {
+        const reasons: string[] = [];
+        let severity = "low";
+        const nameLower = (p.name || "").toLowerCase();
+
+        if (p.weight === 0.01 || p.weight === 0.02) {
+          reasons.push("placeholder_weight");
+          severity = "critical";
+        }
+        if (p.weight === 0 || p.weight == null) {
+          reasons.push("zero_weight");
+          severity = "critical";
+        }
+
+        if (p.category === "baby") {
+          if (/diaper|diapers|pañal|pañales/i.test(nameLower) && p.weight < 2.0) {
+            reasons.push("baby_diaper_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/wipes|toallitas/i.test(nameLower) && /\d{2,}.*ct|\d{2,}.*count|\d{3,}/.test(nameLower) && p.weight < 1.0) {
+            reasons.push("baby_wipes_bulk_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/formula|fórmula/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("baby_formula_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "food") {
+          if (/k-cup|keurig|pods/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("food_kcups_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/pack|count|ct\b/i.test(nameLower)) {
+            const numMatch = nameLower.match(/(\d+)/);
+            if (numMatch && parseInt(numMatch[1]) >= 20 && p.weight < 0.5) {
+              reasons.push("food_bulk_too_light");
+              if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+            }
+          }
+        }
+
+        if (p.category === "tech") {
+          if (/alarm clock|clock|lamp|light|hatch/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("tech_device_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/headphones|auriculares|audífonos/i.test(nameLower) && p.weight > 5) {
+            reasons.push("tech_headphones_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 15) {
+            reasons.push("tech_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "gaming") {
+          if (/gift card|digital code|digital/i.test(nameLower) && p.weight > 0.1) {
+            reasons.push("gaming_digital_has_weight");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/nintendo switch|ps5|xbox/i.test(nameLower) && p.weight < 1) {
+            reasons.push("gaming_console_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 20) {
+            reasons.push("gaming_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "beauty") {
+          if (/perfume|cologne|fragrance|eau de/i.test(nameLower) && p.weight > 3) {
+            reasons.push("beauty_fragrance_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "phones") {
+          if (/cable|charger|cargador|adapter/i.test(nameLower) && p.weight > 3) {
+            reasons.push("phones_cable_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/screen protector|protector de pantalla|tempered glass/i.test(nameLower) && p.weight > 1) {
+            reasons.push("phones_protector_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "home") {
+          if (p.weight > 25) {
+            reasons.push("home_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "clothing" || p.category === "shoes") {
+          if (p.weight < 0.05) {
+            reasons.push("clothing_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 5) {
+            reasons.push("clothing_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        if (p.category === "pets") {
+          if (/food|treats|litter|comida/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("pets_food_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // Only include critical + high for auto-fix
+        if (reasons.length > 0 && (severity === "critical" || severity === "high")) {
+          findings.push({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            weight: p.weight,
+            basePrice: p.basePrice,
+            amazonAsin: p.amazonAsin || "",
+            severity,
+            reasons,
+          });
+        }
+      }
+
+      // Sort critical first, then high
+      findings.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+      // Apply limit
+      const toProcess = findings.slice(0, limit);
+
+      const fixes: Array<{
+        id: number;
+        name: string;
+        category: string;
+        oldWeight: number;
+        newWeight: number;
+        source: string;
+        oldPrice: number;
+        newPrice: number;
+        reasons: string[];
+      }> = [];
+
+      const skippedProducts: Array<{
+        id: number;
+        name: string;
+        reason: string;
+      }> = [];
+
+      // Step 2: Process each product sequentially
+      for (const product of toProcess) {
+        const nameLower = (product.name || "").toLowerCase();
+
+        // Skip digital products
+        if (/gift\s*card|digital\s*code|\bdigital\b|\[digital/i.test(nameLower)) {
+          skippedProducts.push({ id: product.id, name: product.name, reason: "digital_product" });
+          continue;
+        }
+
+        let newWeight: number | null = null;
+        let source = "";
+
+        // Step 2a: Try Canopy API if ASIN available
+        if (product.amazonAsin) {
+          try {
+            const { itemWeight, packageWeight } = await getProductWeight(product.amazonAsin);
+            const fallbackEstimate = estimateWeightByName(product.name, product.category);
+            const canopyWeight = getBestWeight(itemWeight, packageWeight, fallbackEstimate, product.name, product.category);
+
+            // Use Canopy weight if valid and different from current suspicious weight
+            if ((itemWeight && itemWeight > 0) || (packageWeight && packageWeight > 0)) {
+              if (canopyWeight !== product.weight) {
+                newWeight = canopyWeight;
+                source = "canopy_api";
+              }
+            }
+          } catch {
+            // Canopy failed, fall through to estimation
+          }
+
+          // Rate limit: 500ms between API calls
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        // Step 2b: Fall back to name-based estimation if Canopy didn't work
+        if (newWeight === null) {
+          const estimated = estimateWeightByName(product.name, product.category);
+          const isPlaceholder = product.weight === 0.01 || product.weight === 0.02 || product.weight === 0;
+
+          if (isPlaceholder) {
+            // Any estimate is better than a placeholder
+            newWeight = estimated;
+            source = "name_estimate";
+          } else if (Math.abs(estimated - product.weight) / product.weight > 0.5) {
+            // Estimate differs by >50%
+            newWeight = estimated;
+            source = "name_estimate";
+          }
+        }
+
+        if (newWeight === null || newWeight === product.weight) {
+          skippedProducts.push({ id: product.id, name: product.name, reason: "no_weight_available" });
+          continue;
+        }
+
+        // Step 3: Apply correction
+        const newPrice = +(product.basePrice * 1.15 + newWeight * 5.50).toFixed(2);
+
+        await db.update(productsTable)
+          .set({ weight: newWeight, totalPriceUsd: newPrice })
+          .where(eq(productsTable.id, product.id));
+
+        fixes.push({
+          id: product.id,
+          name: product.name,
+          category: product.category,
+          oldWeight: product.weight,
+          newWeight,
+          source,
+          oldPrice: +(product.basePrice * 1.15 + product.weight * 5.50).toFixed(2),
+          newPrice,
+          reasons: product.reasons,
+        });
+      }
+
+      res.json({
+        timestamp: new Date().toISOString(),
+        processed: toProcess.length,
+        fixed: fixes.length,
+        skipped: skippedProducts.length,
+        fixes,
+        skippedProducts,
+      });
+    } catch (e: any) {
+      res.status(500).json({ status: "error", message: e.message });
+    }
+  });
+
   return httpServer;
 }
