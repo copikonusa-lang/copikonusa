@@ -3471,5 +3471,235 @@ export async function registerRoutes(
     }
   });
 
+  // ===== WEIGHT ANOMALY HUNTER (automated audit) =====
+  app.get("/api/admin/audit/weights", requireAdmin, async (_req, res) => {
+    if (!(storage instanceof PgStorage)) return res.status(400).json({ message: "Solo PostgreSQL" });
+    const db = (storage as PgStorage).db;
+    const { productsTable } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+
+    try {
+      const allActive = await db.select().from(productsTable).where(eq(productsTable.isActive, true));
+
+      const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+
+      // Compute category averages for statistical outlier detection
+      const categoryWeights: Record<string, number[]> = {};
+      for (const p of allActive) {
+        if (p.weight > 0.02) {
+          if (!categoryWeights[p.category]) categoryWeights[p.category] = [];
+          categoryWeights[p.category].push(p.weight);
+        }
+      }
+      const categoryAvg: Record<string, number> = {};
+      for (const [cat, weights] of Object.entries(categoryWeights)) {
+        categoryAvg[cat] = weights.reduce((a, b) => a + b, 0) / weights.length;
+      }
+
+      type Finding = {
+        id: number;
+        name: string;
+        category: string;
+        weight: number;
+        basePrice: number;
+        amazonAsin: string;
+        severity: string;
+        reasons: string[];
+        suggestedWeight: number | null;
+      };
+
+      const findings: Finding[] = [];
+
+      for (const p of allActive) {
+        const reasons: string[] = [];
+        let severity = "low";
+        const nameLower = (p.name || "").toLowerCase();
+
+        // CRITICAL: placeholder weights
+        if (p.weight === 0.01 || p.weight === 0.02) {
+          reasons.push("placeholder_weight");
+          severity = "critical";
+        }
+
+        // CRITICAL: zero or null weight
+        if (p.weight === 0 || p.weight == null) {
+          reasons.push("zero_weight");
+          severity = "critical";
+        }
+
+        // HIGH: category-specific anomalies
+        // baby
+        if (p.category === "baby") {
+          if (/diaper|diapers|pañal|pañales/i.test(nameLower) && p.weight < 2.0) {
+            reasons.push("baby_diaper_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/wipes|toallitas/i.test(nameLower) && /\d{2,}.*ct|\d{2,}.*count|\d{3,}/.test(nameLower) && p.weight < 1.0) {
+            reasons.push("baby_wipes_bulk_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/formula|fórmula/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("baby_formula_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // food
+        if (p.category === "food") {
+          if (/k-cup|keurig|pods/i.test(nameLower) && p.weight < 0.5) {
+            reasons.push("food_kcups_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/pack|count|ct\b/i.test(nameLower)) {
+            const numMatch = nameLower.match(/(\d+)/);
+            if (numMatch && parseInt(numMatch[1]) >= 20 && p.weight < 0.5) {
+              reasons.push("food_bulk_too_light");
+              if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+            }
+          }
+        }
+
+        // tech
+        if (p.category === "tech") {
+          if (/alarm clock|clock|lamp|light|hatch/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("tech_device_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/headphones|auriculares|audífonos/i.test(nameLower) && p.weight > 5) {
+            reasons.push("tech_headphones_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 15) {
+            reasons.push("tech_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // gaming
+        if (p.category === "gaming") {
+          if (/gift card|digital code|digital/i.test(nameLower) && p.weight > 0.1) {
+            reasons.push("gaming_digital_has_weight");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/nintendo switch|ps5|xbox/i.test(nameLower) && p.weight < 1) {
+            reasons.push("gaming_console_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 20) {
+            reasons.push("gaming_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // beauty
+        if (p.category === "beauty") {
+          if (/perfume|cologne|fragrance|eau de/i.test(nameLower) && p.weight > 3) {
+            reasons.push("beauty_fragrance_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // phones
+        if (p.category === "phones") {
+          if (/cable|charger|cargador|adapter/i.test(nameLower) && p.weight > 3) {
+            reasons.push("phones_cable_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (/screen protector|protector de pantalla|tempered glass/i.test(nameLower) && p.weight > 1) {
+            reasons.push("phones_protector_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // home
+        if (p.category === "home") {
+          if (p.weight > 25) {
+            reasons.push("home_suspiciously_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // clothing/shoes
+        if (p.category === "clothing" || p.category === "shoes") {
+          if (p.weight < 0.05) {
+            reasons.push("clothing_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+          if (p.weight > 5) {
+            reasons.push("clothing_too_heavy");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // pets
+        if (p.category === "pets") {
+          if (/food|treats|litter|comida/i.test(nameLower) && p.weight < 0.1) {
+            reasons.push("pets_food_too_light");
+            if (severityOrder[severity] > severityOrder["high"]) severity = "high";
+          }
+        }
+
+        // MEDIUM: multi-pack weight mismatch
+        const multipackMatch = nameLower.match(/(\d+)\s*-?\s*(pack|count|ct|sheets|wipes|pods|capsules)/);
+        if (multipackMatch && parseInt(multipackMatch[1]) >= 50 && p.weight < 0.5) {
+          reasons.push("multipack_weight_mismatch");
+          if (severityOrder[severity] > severityOrder["medium"]) severity = "medium";
+        }
+
+        // LOW: statistical outliers
+        const avg = categoryAvg[p.category];
+        if (avg && p.weight > 0.02) {
+          if (p.weight > avg * 3) {
+            reasons.push("statistical_outlier_heavy");
+            // keep severity as-is (low) unless already higher
+          }
+          if (p.weight < avg / 10) {
+            reasons.push("statistical_outlier_light");
+          }
+        }
+
+        if (reasons.length > 0) {
+          findings.push({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            weight: p.weight,
+            basePrice: p.basePrice,
+            amazonAsin: p.amazonAsin || "",
+            severity,
+            reasons,
+            suggestedWeight: null,
+          });
+        }
+      }
+
+      // Sort by severity (critical first), then by category
+      findings.sort((a, b) => {
+        const sd = severityOrder[a.severity] - severityOrder[b.severity];
+        if (sd !== 0) return sd;
+        return a.category.localeCompare(b.category);
+      });
+
+      // Build summary counts
+      const bySeverity: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 };
+      const byCategory: Record<string, number> = {};
+      for (const f of findings) {
+        bySeverity[f.severity] = (bySeverity[f.severity] || 0) + 1;
+        byCategory[f.category] = (byCategory[f.category] || 0) + 1;
+      }
+
+      res.json({
+        timestamp: new Date().toISOString(),
+        totalActive: allActive.length,
+        totalSuspicious: findings.length,
+        bySeverity,
+        byCategory,
+        products: findings,
+      });
+    } catch (e: any) {
+      res.status(500).json({ status: "error", message: e.message });
+    }
+  });
+
   return httpServer;
 }
