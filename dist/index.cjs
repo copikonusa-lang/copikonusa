@@ -4691,7 +4691,7 @@ var PgStorage = class {
     let totalWeight = 0;
     for (const item of data.items) {
       subtotalUsd += item.priceUsd * item.quantity;
-      totalWeight += item.weight * item.quantity;
+      totalWeight += Math.max(item.weight, 1) * item.quantity;
     }
     const shippingUsd = +(totalWeight * settings.shippingPerLb).toFixed(2);
     const totalUsd = +subtotalUsd.toFixed(2);
@@ -9344,7 +9344,7 @@ async function registerRoutes(httpServer2, app2) {
                 const estimate = estimateWeightByName(product.name, product.category);
                 const currentWeight = Number(product.weight);
                 if (Math.abs(estimate - currentWeight) > 0.5) {
-                  const newPrice2 = +(Number(product.base_price) * 1.15 + estimate * 5.5).toFixed(2);
+                  const newPrice2 = +(Number(product.base_price) * 1.15 + Math.max(estimate, 1) * 5.5).toFixed(2);
                   const v2 = checkShippingViability(Number(product.base_price), estimate, product.category || "");
                   await db2.update(productsTable2).set({
                     weight: estimate,
@@ -9368,7 +9368,7 @@ async function registerRoutes(httpServer2, app2) {
                 product.category
               );
               const oldWeight = Number(product.weight);
-              const newPrice = +(Number(product.base_price) * 1.15 + realWeight * 5.5).toFixed(2);
+              const newPrice = +(Number(product.base_price) * 1.15 + Math.max(realWeight, 1) * 5.5).toFixed(2);
               const v = checkShippingViability(Number(product.base_price), realWeight, product.category || "");
               await db2.update(productsTable2).set({
                 weight: realWeight,

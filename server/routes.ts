@@ -2937,7 +2937,7 @@ export async function registerRoutes(
                 const estimate = estimateWeightByName(product.name, product.category);
                 const currentWeight = Number(product.weight);
                 if (Math.abs(estimate - currentWeight) > 0.5) {
-                  const newPrice = +(Number(product.base_price) * 1.15 + estimate * 5.50).toFixed(2);
+                  const newPrice = +(Number(product.base_price) * 1.15 + Math.max(estimate, 1) * 5.50).toFixed(2);
                   // Re-check viability with new weight
                   const v = checkShippingViability(Number(product.base_price), estimate, product.category || '');
                   await db.update(productsTable).set({
@@ -2963,7 +2963,7 @@ export async function registerRoutes(
               );
 
               const oldWeight = Number(product.weight);
-              const newPrice = +(Number(product.base_price) * 1.15 + realWeight * 5.50).toFixed(2);
+              const newPrice = +(Number(product.base_price) * 1.15 + Math.max(realWeight, 1) * 5.50).toFixed(2);
               
               // Check viability with real weight
               const v = checkShippingViability(Number(product.base_price), realWeight, product.category || '');

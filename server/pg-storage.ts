@@ -335,7 +335,7 @@ export class PgStorage implements IStorage {
 
     for (const item of data.items) {
       subtotalUsd += item.priceUsd * item.quantity;
-      totalWeight += item.weight * item.quantity;
+      totalWeight += Math.max(item.weight, 1) * item.quantity;
     }
 
     const shippingUsd = +(totalWeight * settings.shippingPerLb).toFixed(2);
