@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { SlidersHorizontal, X, Star, Loader2, Search, ShoppingBag } from "lucide-react";
+import { SlidersHorizontal, X, Star, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -363,104 +363,84 @@ export default function Catalog() {
               <p className="text-gray-400 text-sm mt-2">Intenta con otros filtros o busca algo diferente</p>
             </div>
           ) : hasSearch && !category ? (
-            /* ─── SEARCH MODE: Live results FIRST, then relevant local results ─── */
+            /* ─── SEARCH MODE: Unified grid — catalog first, then live results ─── */
             <>
-              {/* Live API results (primary - most relevant) */}
-              {(liveLoading || uniqueLiveProducts.length > 0) && (
-                <div>
-                  {/* Live loading skeleton */}
-                  {liveLoading && uniqueLiveProducts.length === 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {Array.from({length: 8}).map((_, i) => (
-                        <div key={`live-skel-${i}`} className="animate-pulse">
-                          <div className="bg-gray-100 rounded-lg h-72" />
-                        </div>
-                      ))}
+              {/* Loading skeleton when no results yet */}
+              {liveLoading && uniqueLiveProducts.length === 0 && filteredLocalProducts.length === 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {Array.from({length: 8}).map((_, i) => (
+                    <div key={`live-skel-${i}`} className="animate-pulse">
+                      <div className="bg-gray-100 rounded-lg h-72" />
                     </div>
-                  )}
-
-                  {/* Live results cards */}
-                  {uniqueLiveProducts.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {uniqueLiveProducts.map(lp => {
-                        const isImporting = importingAsins.has(lp.asin);
-                        return (
-                          <div
-                            key={lp.asin}
-                            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer group"
-                            onClick={() => !isImporting && handleImportAndView(lp)}
-                            data-testid={`live-product-${lp.asin}`}
-                          >
-                            {/* Image */}
-                            <div className="relative bg-white p-4 flex items-center justify-center h-44">
-                              {lp.badge && (
-                                <span className={`absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-bold rounded z-10 ${
-                                  lp.badge === "Más vendido" ? "bg-[#C45500] text-white" : "bg-[#007185] text-white"
-                                }`}>
-                                  {lp.badge}
-                                </span>
-                              )}
-                              <img
-                                src={proxyImageUrl(lp.image)}
-                                alt={lp.name}
-                                className="max-h-36 max-w-full object-contain group-hover:scale-105 transition-transform"
-                                loading="lazy"
-                                onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
-                              />
-                              {isImporting && (
-                                <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2 z-10">
-                                  <Loader2 className="w-6 h-6 animate-spin text-copikon-red" />
-                                  <span className="text-xs text-gray-500 font-medium">Abriendo...</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Info */}
-                            <div className="px-3 pb-3">
-                              <p className="text-xs text-gray-900 line-clamp-2 leading-snug min-h-[2.5rem] font-medium">{lp.name}</p>
-                              <div className="mt-2 flex items-baseline gap-1.5">
-                                <span className="text-base font-bold text-copikon-red">{formatUSD(lp.totalPriceUsd)}</span>
-                                <span className="text-[10px] text-gray-400">{formatBs(lp.totalPriceUsd)}</span>
-                              </div>
-                              {lp.rating > 0 && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <div className="flex">
-                                    {Array.from({length: 5}).map((_, i) => (
-                                      <Star key={i} className={`w-3 h-3 ${i < Math.round(lp.rating) ? "fill-amber-400 text-amber-400" : "text-gray-200"}`} />
-                                    ))}
-                                  </div>
-                                  <span className="text-[10px] text-gray-400">
-                                    {lp.reviews >= 1000 ? `${(lp.reviews / 1000).toFixed(lp.reviews >= 10000 ? 0 : 1)}K` : lp.reviews}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  ))}
                 </div>
               )}
 
-              {/* Local catalog results (secondary - filtered for relevance) */}
-              {filteredLocalProducts.length > 0 && (
-                <div className={uniqueLiveProducts.length > 0 ? "mt-8" : ""}>
-                  {/* Divider between live and local */}
-                  {uniqueLiveProducts.length > 0 && (
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="flex-1 border-t border-gray-200" />
-                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
-                        <ShoppingBag className="w-3.5 h-3.5" /> En nuestro catálogo
-                      </span>
-                      <div className="flex-1 border-t border-gray-200" />
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredLocalProducts.map(p => (
-                      <ProductCard key={p.id} product={p} />
-                    ))}
-                  </div>
+              {/* Single unified grid: catalog products first, then live products */}
+              {(filteredLocalProducts.length > 0 || uniqueLiveProducts.length > 0) && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {/* Catalog products first */}
+                  {filteredLocalProducts.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
+
+                  {/* Live products after catalog */}
+                  {uniqueLiveProducts.map(lp => {
+                    const isImporting = importingAsins.has(lp.asin);
+                    return (
+                      <div
+                        key={lp.asin}
+                        className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer group"
+                        onClick={() => !isImporting && handleImportAndView(lp)}
+                        data-testid={`live-product-${lp.asin}`}
+                      >
+                        {/* Image */}
+                        <div className="relative bg-white p-4 flex items-center justify-center h-44">
+                          {lp.badge && (
+                            <span className={`absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-bold rounded z-10 ${
+                              lp.badge === "Más vendido" ? "bg-[#C45500] text-white" : "bg-[#007185] text-white"
+                            }`}>
+                              {lp.badge}
+                            </span>
+                          )}
+                          <img
+                            src={proxyImageUrl(lp.image)}
+                            alt={lp.name}
+                            className="max-h-36 max-w-full object-contain group-hover:scale-105 transition-transform"
+                            loading="lazy"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+                          />
+                          {isImporting && (
+                            <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2 z-10">
+                              <Loader2 className="w-6 h-6 animate-spin text-copikon-red" />
+                              <span className="text-xs text-gray-500 font-medium">Abriendo...</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="px-3 pb-3">
+                          <p className="text-xs text-gray-900 line-clamp-2 leading-snug min-h-[2.5rem] font-medium">{lp.name}</p>
+                          <div className="mt-2 flex items-baseline gap-1.5">
+                            <span className="text-base font-bold text-copikon-red">{formatUSD(lp.totalPriceUsd)}</span>
+                            <span className="text-[10px] text-gray-400">{formatBs(lp.totalPriceUsd)}</span>
+                          </div>
+                          {lp.rating > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className="flex">
+                                {Array.from({length: 5}).map((_, i) => (
+                                  <Star key={i} className={`w-3 h-3 ${i < Math.round(lp.rating) ? "fill-amber-400 text-amber-400" : "text-gray-200"}`} />
+                                ))}
+                              </div>
+                              <span className="text-[10px] text-gray-400">
+                                {lp.reviews >= 1000 ? `${(lp.reviews / 1000).toFixed(lp.reviews >= 10000 ? 0 : 1)}K` : lp.reviews}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </>

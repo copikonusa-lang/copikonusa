@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Search, Star, Loader2, TrendingUp, Clock, ArrowRight, X, Globe, Package } from "lucide-react";
+import { Search, Star, Loader2, TrendingUp, Clock, ArrowRight, X } from "lucide-react";
 import { formatUSD, formatBs } from "@/lib/utils";
 import { proxyImageUrl } from "@/lib/imageProxy";
 import { apiRequest } from "@/lib/queryClient";
@@ -438,22 +438,8 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
                 const isSelected = index === selectedIndex;
                 const isBeingImported = !isLocal && importingAsin === (p as LiveSearchResult).asin;
 
-                // Show section header when switching from local to live
-                const prevItem = index > 0 ? mergedResults[index - 1] : null;
-                const showLiveHeader = !isLocal && (prevItem === null || prevItem.type === "local");
-
                 return (
                   <div key={isLocal ? `local-${(p as AutocompleteResult).id}` : `live-${(p as LiveSearchResult).asin}`}>
-                    {/* Live results section header */}
-                    {showLiveHeader && (
-                      <div className="px-4 py-1.5 bg-gray-50/80 border-t border-b border-gray-100">
-                        <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                          <Globe className="w-3 h-3" /> Más productos disponibles en USA
-                          {liveLoading && <Loader2 className="w-3 h-3 animate-spin ml-1" />}
-                        </span>
-                      </div>
-                    )}
-
                     <div
                       onClick={() => {
                         if (isBeingImported) return;
@@ -502,11 +488,6 @@ export default function SearchDropdown({ mobile = false }: { mobile?: boolean })
                           )}
                           {isLocal && (p as AutocompleteResult).category && (
                             <span className="text-[10px] text-gray-300">{CATEGORY_LABELS[(p as AutocompleteResult).category] || (p as AutocompleteResult).category}</span>
-                          )}
-                          {!isLocal && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-500 font-medium">
-                              <Package className="w-3 h-3" /> Envío aéreo
-                            </span>
                           )}
                         </div>
                       </div>
