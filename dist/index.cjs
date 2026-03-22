@@ -5748,35 +5748,62 @@ function getResend() {
 }
 var FROM_INFO = "CopikonUSA <info@copikonusa.com>";
 var FROM_PEDIDOS = "CopikonUSA Pedidos <pedidos@copikonusa.com>";
+var FROM_SOPORTE = "CopikonUSA Soporte <soporte@copikonusa.com>";
 var REPLY_TO_INFO = "info@copikonusa.com";
 var REPLY_TO_ADMIN = "admin@copikonusa.com";
 var NAVY = "#1B2A4A";
 var RED = "#E31E24";
 var LIGHT_BG = "#f4f4f4";
 var WHITE = "#ffffff";
-function baseTemplate(title, body, footerExtra) {
+function baseTemplate(title, body, preheader, footerExtra) {
+  const preheaderBlock = preheader ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${preheader}</div>` : "";
   return `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;font-family:'Segoe UI',Arial,Helvetica,sans-serif;background:${LIGHT_BG};">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:${LIGHT_BG};padding:20px 0;">
-<tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="background:${WHITE};border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Arial,Helvetica,sans-serif;background:${LIGHT_BG};-webkit-font-smoothing:antialiased;">
+${preheaderBlock}
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${LIGHT_BG};padding:0;">
+<tr><td align="center" style="padding:24px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background:${WHITE};border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.1);max-width:600px;width:100%;">
+  <!-- Top accent bar -->
+  <tr><td style="background:${RED};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
   <!-- Header -->
-  <tr><td style="background:${NAVY};padding:28px 24px;text-align:center;">
-    <span style="font-size:32px;font-weight:800;color:${WHITE};letter-spacing:2px;">COP</span><span style="font-size:32px;font-weight:800;color:${RED};letter-spacing:2px;">IKON</span><span style="font-size:32px;font-weight:800;color:${WHITE};letter-spacing:2px;">USA</span>
-    <p style="color:rgba(255,255,255,0.7);font-size:12px;margin:8px 0 0 0;letter-spacing:1px;">TU TIENDA DE PRODUCTOS AMERICANOS</p>
+  <tr><td style="background:${NAVY};padding:24px 32px;text-align:center;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center">
+      <span style="font-size:28px;font-weight:800;color:${WHITE};letter-spacing:1.5px;">COP</span><span style="font-size:28px;font-weight:800;color:${RED};letter-spacing:1.5px;">IKON</span><span style="font-size:28px;font-weight:800;color:${WHITE};letter-spacing:1.5px;">USA</span>
+    </td></tr><tr><td align="center" style="padding-top:6px;">
+      <span style="color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Tu tienda de productos americanos</span>
+    </td></tr></table>
+  </td></tr>
+  <!-- Accent line below header -->
+  <tr><td style="background:linear-gradient(90deg,${RED},${NAVY});height:3px;font-size:0;line-height:0;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td style="width:50%;background:${RED};height:3px;font-size:0;line-height:0;">&nbsp;</td>
+      <td style="width:50%;background:${NAVY};height:3px;font-size:0;line-height:0;">&nbsp;</td>
+    </tr></table>
   </td></tr>
   <!-- Body -->
-  <tr><td style="padding:32px 28px;">
+  <tr><td style="padding:32px 32px 24px 32px;">
     <h2 style="color:${NAVY};margin:0 0 20px 0;font-size:22px;font-weight:700;">${title}</h2>
     ${body}
   </td></tr>
   <!-- Footer -->
-  <tr><td style="background:${NAVY};padding:20px 24px;text-align:center;">
+  <tr><td style="border-top:1px solid #e8e8e8;background:#fafafa;padding:24px 32px;text-align:center;">
     ${footerExtra || ""}
-    <p style="color:rgba(255,255,255,0.5);font-size:11px;margin:8px 0 0 0;">\xA9 ${(/* @__PURE__ */ new Date()).getFullYear()} CopikonUSA \u2014 Productos americanos al mejor precio</p>
-    <p style="color:rgba(255,255,255,0.4);font-size:10px;margin:4px 0 0 0;">Este email fue enviado desde info@copikonusa.com. Si no solicitaste este correo, puedes ignorarlo.</p>
+    <!-- WhatsApp contact -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-bottom:16px;">
+      <a href="https://wa.me/17869695464" style="color:${NAVY};font-size:13px;text-decoration:none;font-weight:600;">&#9742; WhatsApp: +1 (786) 969-5464</a>
+    </td></tr></table>
+    <!-- Social placeholders -->
+    <table cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+      <td style="padding:0 8px;"><a href="https://instagram.com/copikonusa" style="color:#999;font-size:12px;text-decoration:none;">Instagram</a></td>
+      <td style="color:#ccc;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="https://copikonusa.com" style="color:#999;font-size:12px;text-decoration:none;">Web</a></td>
+      <td style="color:#ccc;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="https://wa.me/17869695464" style="color:#999;font-size:12px;text-decoration:none;">WhatsApp</a></td>
+    </tr></table>
+    <p style="color:#999;font-size:11px;margin:14px 0 0 0;">&copy; ${(/* @__PURE__ */ new Date()).getFullYear()} CopikonUSA &mdash; Productos americanos al mejor precio</p>
+    <p style="color:#bbb;font-size:10px;margin:6px 0 0 0;">Si no deseas recibir estos correos, puedes <a href="https://copikonusa.com" style="color:#bbb;text-decoration:underline;">cancelar tu suscripci&oacute;n</a>.</p>
   </td></tr>
 </table>
 </td></tr></table>
@@ -5823,7 +5850,8 @@ async function sendWelcomeEmail(to, customerName) {
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com" style="background:${RED};color:#fff;padding:14px 36px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:15px;">Explorar Productos</a>
         </div>
-        <p style="color:#888;font-size:13px;text-align:center;">\xBFPreguntas? Cont\xE1ctanos por WhatsApp o escr\xEDbenos a info@copikonusa.com</p>`
+        <p style="color:#888;font-size:13px;text-align:center;">\xBFPreguntas? Cont\xE1ctanos por WhatsApp o escr\xEDbenos a info@copikonusa.com</p>`,
+        "Tu cuenta est\xE1 lista. Explora miles de productos de USA."
       )
     });
     console.log("[Email] Welcome email sent to", to);
@@ -5846,7 +5874,7 @@ async function sendOrderConfirmation(to, data) {
       html: baseTemplate(
         `Pedido ${data.orderNumber}`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, hemos recibido tu pedido exitosamente.</p>
-        
+
         <table width="100%" cellpadding="10" cellspacing="0" style="background:#f8f9fa;border-radius:8px;margin:16px 0;font-size:14px;">
           <tr><td style="color:#666;border-bottom:1px solid #eee;width:40%;"><strong>Productos</strong></td><td style="border-bottom:1px solid #eee;">${data.products}</td></tr>
           <tr><td style="color:#666;border-bottom:1px solid #eee;"><strong>Total USD</strong></td><td style="border-bottom:1px solid #eee;font-weight:bold;color:${RED};font-size:16px;">$${data.totalUsd}</td></tr>
@@ -5863,8 +5891,9 @@ async function sendOrderConfirmation(to, data) {
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com" style="background:${NAVY};color:#fff;padding:12px 32px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:14px;">Ver Mi Pedido</a>
         </div>
-        
-        <p style="color:#888;font-size:13px;text-align:center;">\xBFNecesitas ayuda? Responde a este correo o cont\xE1ctanos por WhatsApp</p>`
+
+        <p style="color:#888;font-size:13px;text-align:center;">\xBFNecesitas ayuda? Responde a este correo o cont\xE1ctanos por WhatsApp</p>`,
+        "Pedido recibido. Realiza tu pago para procesarlo."
       )
     });
     console.log("[Email] Order confirmation sent to", to, "order:", data.orderNumber);
@@ -5887,7 +5916,7 @@ async function sendPaymentConfirmed(to, data) {
       html: baseTemplate(
         `\xA1Pago Confirmado!`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, tu pago para el pedido <strong>${data.orderNumber}</strong> ha sido verificado exitosamente.</p>
-        
+
         <div style="background:#D4EDDA;border-left:4px solid #28a745;padding:16px 18px;border-radius:6px;margin:20px 0;text-align:center;">
           <p style="margin:0;color:#155724;font-size:18px;font-weight:bold;">\u2705 Monto Verificado: $${data.totalUsd}</p>
         </div>
@@ -5901,7 +5930,8 @@ async function sendPaymentConfirmed(to, data) {
           </table>
         </div>
 
-        <p style="color:#888;font-size:13px;text-align:center;">Te mantendremos informado en cada paso del proceso</p>`
+        <p style="color:#888;font-size:13px;text-align:center;">Te mantendremos informado en cada paso del proceso</p>`,
+        "Ya verificamos tu pago. Pr\xF3ximo paso: compra en USA."
       )
     });
     console.log("[Email] Payment confirmed sent to", to, "order:", data.orderNumber);
@@ -5925,7 +5955,7 @@ async function sendStatusUpdate(to, data) {
       html: baseTemplate(
         `Actualizaci\xF3n de Pedido`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, tu pedido <strong>${data.orderNumber}</strong> tiene una actualizaci\xF3n:</p>
-        
+
         <div style="background:${statusInfo.bg};border-left:4px solid ${statusInfo.color};padding:18px 20px;border-radius:6px;margin:20px 0;text-align:center;">
           <p style="margin:0;color:${statusInfo.color};font-size:20px;font-weight:bold;">${statusInfo.icon} ${statusInfo.label}</p>
         </div>
@@ -5938,8 +5968,9 @@ async function sendStatusUpdate(to, data) {
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com" style="background:${NAVY};color:#fff;padding:12px 32px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:14px;">Ver Detalles del Pedido</a>
         </div>
-        
-        <p style="color:#888;font-size:13px;text-align:center;">\xBFPreguntas sobre tu pedido? Responde a este correo</p>`
+
+        <p style="color:#888;font-size:13px;text-align:center;">\xBFPreguntas sobre tu pedido? Responde a este correo</p>`,
+        `Tu pedido ${data.orderNumber} cambi\xF3 a: ${statusInfo.label}.`
       )
     });
     console.log("[Email] Status update sent to", to, "order:", data.orderNumber, "status:", data.status);
@@ -5962,7 +5993,7 @@ async function sendPaymentReminder(to, data) {
       html: baseTemplate(
         `Recordatorio de Pago`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, te recordamos que tu pedido <strong>${data.orderNumber}</strong> est\xE1 pendiente de pago.</p>
-        
+
         <div style="background:#FFF3CD;border-left:4px solid ${RED};padding:16px 18px;border-radius:6px;margin:20px 0;">
           <p style="margin:0;color:#856404;font-size:15px;font-weight:bold;">\u23F0 Te quedan aproximadamente ${data.hoursRemaining} horas</p>
           <p style="margin:8px 0 0 0;color:#856404;font-size:14px;">Fecha l\xEDmite: <strong>${data.paymentDeadline}</strong></p>
@@ -5974,12 +6005,13 @@ async function sendPaymentReminder(to, data) {
         </table>
 
         <p style="color:#333;line-height:1.7;font-size:14px;">Si ya realizaste el pago, por favor env\xEDa tu comprobante a trav\xE9s de tu cuenta en CopikonUSA o por WhatsApp.</p>
-        
+
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com" style="background:${RED};color:#fff;padding:14px 36px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:15px;">Enviar Comprobante</a>
         </div>
 
-        <p style="color:#888;font-size:13px;text-align:center;">Si el pago no se recibe antes de la fecha l\xEDmite, el pedido ser\xE1 cancelado autom\xE1ticamente.</p>`
+        <p style="color:#888;font-size:13px;text-align:center;">Si el pago no se recibe antes de la fecha l\xEDmite, el pedido ser\xE1 cancelado autom\xE1ticamente.</p>`,
+        "Tu pedido est\xE1 pendiente de pago."
       )
     });
     console.log("[Email] Payment reminder sent to", to, "order:", data.orderNumber);
@@ -6002,7 +6034,7 @@ async function sendOrderShipped(to, data) {
       html: baseTemplate(
         `\xA1Tu Pedido Est\xE1 en Camino!`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, \xA1excelentes noticias! Tu pedido <strong>${data.orderNumber}</strong> ya fue enviado desde Estados Unidos.</p>
-        
+
         <div style="background:#CCE5FF;border-left:4px solid #004085;padding:18px 20px;border-radius:6px;margin:20px 0;text-align:center;">
           <p style="margin:0;color:#004085;font-size:20px;font-weight:bold;">\u2708\uFE0F En Camino a Venezuela</p>
         </div>
@@ -6014,8 +6046,9 @@ async function sendOrderShipped(to, data) {
         </table>
 
         <p style="color:#333;line-height:1.7;font-size:14px;">Te notificaremos cuando tu pedido llegue a la sucursal y est\xE9 listo para retirar.</p>
-        
-        <p style="color:#888;font-size:13px;text-align:center;">\xBFPreguntas? Responde a este correo o cont\xE1ctanos por WhatsApp</p>`
+
+        <p style="color:#888;font-size:13px;text-align:center;">\xBFPreguntas? Responde a este correo o cont\xE1ctanos por WhatsApp</p>`,
+        "Tu pedido ya est\xE1 en camino desde Estados Unidos."
       )
     });
     console.log("[Email] Order shipped email sent to", to, "order:", data.orderNumber);
@@ -6038,7 +6071,7 @@ async function sendReadyForPickup(to, data) {
       html: baseTemplate(
         `\xA1Tu Pedido Lleg\xF3!`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, \xA1tu pedido <strong>${data.orderNumber}</strong> ya est\xE1 en tu sucursal listo para que lo retires!</p>
-        
+
         <div style="background:#D4EDDA;border-left:4px solid #28a745;padding:18px 20px;border-radius:6px;margin:20px 0;text-align:center;">
           <p style="margin:0;color:#155724;font-size:22px;font-weight:bold;">\u{1F389} \xA1Listo para Retirar!</p>
         </div>
@@ -6055,8 +6088,9 @@ async function sendReadyForPickup(to, data) {
         </div>` : ""}
 
         <p style="color:#333;line-height:1.7;font-size:14px;">Presenta tu n\xFAmero de pedido y c\xE9dula al momento de retirar.</p>
-        
-        <p style="color:#888;font-size:13px;text-align:center;">\xA1Gracias por comprar en CopikonUSA! \u{1F1FA}\u{1F1F8}\u{1F1FB}\u{1F1EA}</p>`
+
+        <p style="color:#888;font-size:13px;text-align:center;">\xA1Gracias por comprar en CopikonUSA! \u{1F1FA}\u{1F1F8}\u{1F1FB}\u{1F1EA}</p>`,
+        "\xA1Tu paquete lleg\xF3! Ret\xEDralo en tu sucursal."
       )
     });
     console.log("[Email] Ready for pickup email sent to", to, "order:", data.orderNumber);
@@ -6072,14 +6106,14 @@ async function sendOrderCancelled(to, data) {
       return;
     }
     await resend.emails.send({
-      from: FROM_PEDIDOS,
+      from: FROM_SOPORTE,
       replyTo: REPLY_TO_INFO,
       to,
       subject: `\u274C Pedido ${data.orderNumber} \u2014 Cancelado`,
       html: baseTemplate(
         `Pedido Cancelado`,
         `<p style="color:#333;line-height:1.7;font-size:15px;">Hola <strong>${data.customerName}</strong>, lamentamos informarte que tu pedido <strong>${data.orderNumber}</strong> ha sido cancelado.</p>
-        
+
         <div style="background:#F8D7DA;border-left:4px solid #dc3545;padding:16px 18px;border-radius:6px;margin:20px 0;">
           <p style="margin:0;color:#721c24;font-size:14px;"><strong>Motivo:</strong> ${data.reason}</p>
         </div>
@@ -6090,12 +6124,13 @@ async function sendOrderCancelled(to, data) {
         </div>` : ""}
 
         <p style="color:#333;line-height:1.7;font-size:14px;">Si crees que esto es un error o necesitas ayuda, no dudes en contactarnos.</p>
-        
+
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com" style="background:${NAVY};color:#fff;padding:12px 32px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:14px;">Seguir Comprando</a>
         </div>
-        
-        <p style="color:#888;font-size:13px;text-align:center;">Responde a este correo si necesitas asistencia</p>`
+
+        <p style="color:#888;font-size:13px;text-align:center;">Responde a este correo si necesitas asistencia</p>`,
+        "Tu pedido ha sido cancelado."
       )
     });
     console.log("[Email] Order cancelled email sent to", to, "order:", data.orderNumber);
@@ -6123,7 +6158,8 @@ async function sendAdminNewOrderAlert(data) {
         <p style="color:#333;font-size:14px;">${data.products}</p>
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com/#/admin" style="background:${RED};color:#fff;padding:12px 32px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:14px;">Ir al Panel de Admin</a>
-        </div>`
+        </div>`,
+        `Nuevo pedido de ${data.customerName} por $${data.totalUsd}.`
       )
     });
     console.log("[Email] Admin new order alert sent for order:", data.orderNumber);
@@ -6151,7 +6187,8 @@ async function sendAdminPaymentReceivedAlert(data) {
         <p style="color:#333;font-size:14px;">Verifica el pago y actualiza el estado del pedido en el panel de administraci\xF3n.</p>
         <div style="text-align:center;margin:24px 0;">
           <a href="https://copikonusa.com/#/admin" style="background:${RED};color:#fff;padding:12px 32px;border-radius:8px;font-weight:bold;display:inline-block;text-decoration:none;font-size:14px;">Verificar Pago</a>
-        </div>`
+        </div>`,
+        `Pago recibido de ${data.customerName} \u2014 Pedido ${data.orderNumber}.`
       )
     });
     console.log("[Email] Admin payment alert sent for order:", data.orderNumber);

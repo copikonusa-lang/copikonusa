@@ -64,7 +64,7 @@ ${preheaderBlock}
     ${footerExtra || ""}
     <!-- WhatsApp contact -->
     <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-bottom:16px;">
-      <a href="https://wa.me/584241234567" style="color:${NAVY};font-size:13px;text-decoration:none;font-weight:600;">&#9742; WhatsApp: +58 424-123-4567</a>
+      <a href="https://wa.me/17869695464" style="color:${NAVY};font-size:13px;text-decoration:none;font-weight:600;">&#9742; WhatsApp: +1 (786) 969-5464</a>
     </td></tr></table>
     <!-- Social placeholders -->
     <table cellpadding="0" cellspacing="0" border="0" align="center"><tr>
@@ -72,7 +72,7 @@ ${preheaderBlock}
       <td style="color:#ccc;font-size:12px;">|</td>
       <td style="padding:0 8px;"><a href="https://copikonusa.com" style="color:#999;font-size:12px;text-decoration:none;">Web</a></td>
       <td style="color:#ccc;font-size:12px;">|</td>
-      <td style="padding:0 8px;"><a href="https://wa.me/584241234567" style="color:#999;font-size:12px;text-decoration:none;">WhatsApp</a></td>
+      <td style="padding:0 8px;"><a href="https://wa.me/17869695464" style="color:#999;font-size:12px;text-decoration:none;">WhatsApp</a></td>
     </tr></table>
     <p style="color:#999;font-size:11px;margin:14px 0 0 0;">&copy; ${new Date().getFullYear()} CopikonUSA &mdash; Productos americanos al mejor precio</p>
     <p style="color:#bbb;font-size:10px;margin:6px 0 0 0;">Si no deseas recibir estos correos, puedes <a href="https://copikonusa.com" style="color:#bbb;text-decoration:underline;">cancelar tu suscripci&oacute;n</a>.</p>
