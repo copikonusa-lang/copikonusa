@@ -67,11 +67,11 @@ ${preheaderBlock}
   <!-- Top accent bar -->
   <tr><td style="background:${RED};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
   <!-- Header with logo -->
-  <tr><td style="background:${WHITE};padding:28px 32px 16px 32px;text-align:center;border-bottom:1px solid #eee;">
+  <tr><td style="background:${NAVY};padding:28px 32px 20px 32px;text-align:center;">
     <a href="https://copikonusa.com" style="text-decoration:none;">
-      <img src="https://copikonusa.com/copikon-logo.png" alt="CopikonUSA" width="240" height="55" style="width:240px;height:auto;max-height:55px;display:inline-block;" />
+      <img src="https://copikonusa.com/copikon-logo-white.png" alt="CopikonUSA" width="220" height="50" style="width:220px;height:auto;max-height:50px;display:inline-block;" />
     </a>
-    <p style="color:#999;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 0 0;">Tu tienda de productos americanos en Venezuela</p>
+    <p style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 0 0;">Tu tienda de productos americanos en Venezuela</p>
   </td></tr>
   <!-- Accent line below header -->
   <tr><td style="background:linear-gradient(90deg,${RED},${NAVY});height:3px;font-size:0;line-height:0;">
