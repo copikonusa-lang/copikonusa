@@ -66,13 +66,12 @@ ${preheaderBlock}
 <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:${WHITE};border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.1);max-width:600px;width:100%;">
   <!-- Top accent bar -->
   <tr><td style="background:${RED};height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
-  <!-- Header -->
-  <tr><td style="background:${NAVY};padding:24px 32px;text-align:center;">
-    <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center">
-      <span style="font-size:28px;font-weight:800;color:${WHITE};letter-spacing:1.5px;">COP</span><span style="font-size:28px;font-weight:800;color:${RED};letter-spacing:1.5px;">IKON</span><span style="font-size:28px;font-weight:800;color:${WHITE};letter-spacing:1.5px;">USA</span>
-    </td></tr><tr><td align="center" style="padding-top:6px;">
-      <span style="color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Tu tienda de productos americanos</span>
-    </td></tr></table>
+  <!-- Header with logo -->
+  <tr><td style="background:${NAVY};padding:28px 32px 20px 32px;text-align:center;">
+    <a href="https://copikonusa.com" style="text-decoration:none;">
+      <img src="https://copikonusa.com/copikon-logo.png" alt="CopikonUSA" width="220" height="50" style="width:220px;height:auto;max-height:50px;display:inline-block;" />
+    </a>
+    <p style="color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 0 0;">Tu tienda de productos americanos en Venezuela</p>
   </td></tr>
   <!-- Accent line below header -->
   <tr><td style="background:linear-gradient(90deg,${RED},${NAVY});height:3px;font-size:0;line-height:0;">
