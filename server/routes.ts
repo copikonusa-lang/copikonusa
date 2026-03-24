@@ -2163,8 +2163,15 @@ export async function registerRoutes(
                 continue;
               }
 
-              // Check shipping viability BEFORE importing
+              // Skip products with no price — they'd show as $0 in the store
               const baseP = full.price?.value || 0;
+              if (baseP <= 0) {
+                console.log(`[CATALOG GROWTH] Skipped no-price: "${full.title?.slice(0, 60)}"`);
+                skipped++;
+                continue;
+              }
+
+              // Check shipping viability BEFORE importing
               const importViability = checkShippingViability(baseP, realWeight, search.category);
               if (!importViability.viable) {
                 console.log(`[CATALOG GROWTH] Blocked shipping-prohibitive: "${full.title?.slice(0, 60)}" — ratio ${importViability.ratio}x`);
