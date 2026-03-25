@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Package, ChevronRight, Clock } from "lucide-react";
+import { Package, ChevronRight, Clock, Upload, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
@@ -57,9 +57,11 @@ export default function MyOrders() {
         <div className="space-y-3">
           {orders.map(order => {
             const clientStatus = ORDER_STATUS_MAP[order.status];
+            const isPendingPayment = clientStatus === "pending_payment";
+            const hasProof = !!order.paymentProof;
             return (
               <Link key={order.id} href={`/pedido/${order.id}`}>
-                <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm transition cursor-pointer" data-testid={`order-${order.id}`}>
+                <div className={`bg-white rounded-lg border p-4 hover:shadow-sm transition cursor-pointer ${isPendingPayment && !hasProof ? "border-yellow-300 border-2" : "border-gray-200"}`} data-testid={`order-${order.id}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -76,6 +78,19 @@ export default function MyOrders() {
                           {CLIENT_STATUS_LABELS[clientStatus]}
                         </Badge>
                         <p className="text-sm font-bold text-copikon-red mt-1">{formatUSD(order.totalUsd)}</p>
+                        {/* Payment proof indicator */}
+                        {isPendingPayment && !hasProof && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded-full mt-1">
+                            <Upload className="w-3 h-3" />
+                            Subir Comprobante
+                          </span>
+                        )}
+                        {isPendingPayment && hasProof && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full mt-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Comprobante enviado
+                          </span>
+                        )}
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-400" />
                     </div>
