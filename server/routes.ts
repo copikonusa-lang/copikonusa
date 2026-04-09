@@ -4085,7 +4085,7 @@ export async function registerRoutes(
         const nameLower = (product.name || "").toLowerCase();
 
         // Skip digital products
-        if (/gift\s*card|digital\s*code|\bdigital\b|\[digital/i.test(nameLower)) {
+        if (/gift\s*card|digital\s*code|\[digital\s*code|\[digital\]|\bdigital download\b|\bdigital key\b/i.test(nameLower)) {
           skippedProducts.push({ id: product.id, name: product.name, reason: "digital_product" });
           continue;
         }

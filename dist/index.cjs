@@ -10339,7 +10339,7 @@ async function registerRoutes(httpServer2, app2) {
       const skippedProducts = [];
       for (const product of toProcess) {
         const nameLower = (product.name || "").toLowerCase();
-        if (/gift\s*card|digital\s*code|\bdigital\b|\[digital/i.test(nameLower)) {
+        if (/gift\s*card|digital\s*code|\[digital\s*code|\[digital\]|\bdigital download\b|\bdigital key\b/i.test(nameLower)) {
           skippedProducts.push({ id: product.id, name: product.name, reason: "digital_product" });
           continue;
         }
